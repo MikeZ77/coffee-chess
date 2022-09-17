@@ -5,7 +5,7 @@ import { h } from 'virtual-dom';
 
 const { button, div } = hh(h);
 
-const node = document.getElementById('app');
+const node = <HTMLElement>document.getElementById('app');
 // let btn = createElement(button({className: 'button'}, 'Hello'))
 
 function testLayout() {

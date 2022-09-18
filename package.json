@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently -k \"webpack serve --config ./src/client/webpack.dev.js --hot\" \"tsc -p ./src/server -w\" \"nodemon ./dist/server/api/app.js\""
+    "dev": "concurrently -k \"webpack --config ./src/client/webpack.dev.js\" \"tsc -p ./src/server -w\" \"nodemon ./dist/server/api/app.js\""
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,6 @@
   },
   "homepage": "https://github.com/MikeZ77/coffee-chess#readme",
   "dependencies": {
-    "cors": "^2.8.5",
     "dotenv": "^16.0.2",
     "express": "^4.18.1",
     "helmet": "^6.0.0",

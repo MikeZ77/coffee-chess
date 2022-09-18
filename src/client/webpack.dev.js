@@ -13,17 +13,9 @@ module.exports = {
     path: path.resolve(__dirname, '../../dist/client'),
     publicPath: ''
   },
+  devtool: 'source-map',
   mode: 'development',
-  devServer: {
-    port: 9000,
-    static: {
-      directory: path.resolve(__dirname, '../../dist/client')
-    },
-    devMiddleware: {
-      index: 'index.html',
-      writeToDisk: true
-    }
-  },
+  watch: true,
   module: {
     rules: [
       {

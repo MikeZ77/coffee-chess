@@ -11,7 +11,7 @@ const node = <HTMLElement>document.getElementById('app');
 function testLayout() {
   return div({ className: 'columns is-centered' }, [
     div({ className: 'column is-one-third' }, [
-      button({ className: 'button' }, 'Hello1')
+      button({ className: 'button' }, 'Hello')
     ]),
     div({ className: 'column' }, [button({ className: 'button' }, 'Hello2')]),
     div({ className: 'column' }, [button({ className: 'button' }, 'Hello3')])

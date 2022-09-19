@@ -5,8 +5,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
   entry: {
-    login: './src/client/pages/login/App.ts',
-    register: './src/client/pages/register/App.ts'
+    login: './src/client/pages/login/index.ts',
+    register: './src/client/pages/register/index.ts'
   },
   output: {
     filename: '[name].bundle.js',
@@ -16,6 +16,9 @@ module.exports = {
   devtool: 'source-map',
   mode: 'development',
   watch: true,
+  resolve: {
+    extensions: ['.js', '.ts']
+  },
   module: {
     rules: [
       {

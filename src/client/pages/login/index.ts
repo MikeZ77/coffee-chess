@@ -1,8 +1,7 @@
-// import initModel from './Model';
-// import update from './Update';
-// import view from './View';
-// import app from './App';
+import models from './state';
+import View from './View';
+import App from './App';
 
-// const node = document.getElementById('app');
-
-// app(initModel, update, view, node);
+const node = <HTMLElement>document.getElementById('app');
+console.log('Hello');
+App(models, View, node);

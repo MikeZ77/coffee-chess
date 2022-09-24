@@ -1,20 +1,24 @@
 import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
-import { Store, Action, View, Reducer, Model } from './types';
+import { State, View, Dispatch } from './types';
+import combineReducers from './reducers/combineReducers';
+import { reduceLogin } from './reducers/reduceLogin';
 
-function app(initModel: Store, view: View, node: HTMLElement) {
-  let model = initModel;
-  let currentView = view(dispatch, model);
-  let rootNode = createElement(currentView);
-  node.appendChild(rootNode);
-  function dispatch(action: Action, reduce: Reducer) {
-    model = reduce(action, model);
-    const updatedView = view(dispatch, model);
+const app = (initState: State, view: View, node: HTMLElement) => {
+  const dispatch: Dispatch = (action) => {
+    state = reduce(action, state);
+    const updatedView = view(dispatch, state);
     const patches = diff(currentView, updatedView);
     rootNode = patch(rootNode, patches);
     currentView = updatedView;
-  }
-}
+  };
+
+  let state = initState;
+  let currentView = view(dispatch, state);
+  let rootNode = createElement(currentView);
+  const reduce = combineReducers({ reduceLogin });
+  node.appendChild(rootNode);
+};
 
 export default app;
 

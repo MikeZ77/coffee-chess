@@ -1,24 +1,24 @@
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
-import { Component, Login } from '../types';
+import { Component } from '../types';
+import LoginLogo from './LoginLogo';
 import { updateInputUsername, updateInputPassword } from '../actions';
-import { redLogin } from '../reducers';
-// import TempLogo from '../../../images/coffee_logo.png';
 
 const { form, div, label, input, button } = hh(h);
 
-const LoginForm: Component<Login> = (dispatch, loginModel) => {
+const LoginForm: Component = (dispatch, state) => {
   return form({ className: 'box' }, [
-    // img({ src: TempLogo, alt: 'Coffee Chess', width: '75', height: '75' }),
+    LoginLogo(),
     div({ className: 'field' }, [
       label({ className: 'label' }, 'Username'),
       div({ className: 'control' }, [
         input({
           className: 'input',
           type: 'email',
-          value: loginModel.username,
-          oninput: (e) =>
-            dispatch(updateInputUsername(e.target.value), redLogin(loginModel))
+          value: state.username,
+          oninput: (e: Event) => {
+            dispatch(updateInputUsername((<HTMLInputElement>e.target).value));
+          }
         })
       ])
     ]),
@@ -28,8 +28,9 @@ const LoginForm: Component<Login> = (dispatch, loginModel) => {
         input({
           className: 'input',
           type: 'password',
-          value: loginModel.password
-          // oninput: (e) => dispatch(updateInputPassword(e.target.value))
+          value: state.password,
+          oninput: (e: Event) =>
+            dispatch(updateInputPassword((<HTMLInputElement>e.target).value))
         })
       ])
     ]),

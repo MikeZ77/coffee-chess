@@ -1,35 +1,29 @@
 import { VNode } from 'virtual-dom';
 import { HyperScriptHelperFn } from 'hyperscript-helpers';
 
-export type View = (dispatch: Dispatch, model: Store) => VNode;
-export type Reducer = (action: Action, model: Store) => Store;
-export type Dispatch = (action: Action, reduce: Reducer) => void;
-
-export type Component<T> = (
+export type View = (dispatch: Dispatch, state: State) => VNode;
+export type Reducer = (action: Action, state: State) => State;
+export type Dispatch = (action: Action) => void;
+export type Component = (
   dispatch: Dispatch,
-  model: T
+  state: State
 ) => HyperScriptHelperFn;
 
-export enum ActionType {
-  SUBMIT_FORM,
-  UPDATE_USERNAME,
-  UPDATE_PASSWORD
-}
-
-export interface Action {
-  type: ActionType;
-  payload: string;
-}
-
-export type Model = Login | Submit;
-
-export type Login = {
+export type State = {
   username: string;
   password: string;
 };
 
-export type Submit = {
-  submit: boolean;
-};
+export type Action =
+  | {
+      type: 'UPDATE_USERNAME';
+      username: string;
+    }
+  | {
+      type: 'UPDATE_PASSWORD';
+      password: string;
+    };
 
-export type Store = { loginModel: Login };
+export type Reducers = {
+  [index: string]: Reducer;
+};

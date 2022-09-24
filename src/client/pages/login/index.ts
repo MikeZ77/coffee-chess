@@ -1,7 +1,6 @@
-import models from './state';
+import state from './store';
 import View from './View';
 import App from './App';
 
 const node = <HTMLElement>document.getElementById('app');
-console.log('Hello');
-App(models, View, node);
+App(state, View, node);

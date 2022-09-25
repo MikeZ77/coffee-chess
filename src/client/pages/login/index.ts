@@ -1,4 +1,4 @@
-import state from './store';
+import state from './Store';
 import View from './View';
 import App from './App';
 

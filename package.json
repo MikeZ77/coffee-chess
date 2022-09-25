@@ -25,7 +25,8 @@
     "morgan": "^1.10.0",
     "socket.io": "^4.5.2",
     "socket.io-client": "^4.5.2",
-    "virtual-dom": "^2.1.1"
+    "virtual-dom": "^2.1.1",
+    "bulma": "^0.9.4"
   },
   "devDependencies": {
     "@babel/core": "^7.19.1",
@@ -35,7 +36,6 @@
     "@typescript-eslint/eslint-plugin": "^5.37.0",
     "@typescript-eslint/parser": "^5.37.0",
     "babel-loader": "^8.2.5",
-    "bulma": "^0.9.4",
     "clean-webpack-plugin": "^4.0.0",
     "concurrently": "^7.4.0",
     "css-loader": "^6.7.1",

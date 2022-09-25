@@ -2,7 +2,12 @@ import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from '../types';
 import LoginLogo from './LoginLogo';
-import { updateInputUsername, updateInputPassword } from '../actions';
+import {
+  updateInputUsername,
+  updateInputPassword,
+  signInLoading,
+  signIn
+} from '../Actions';
 
 const { form, div, label, input, button } = hh(h);
 
@@ -34,7 +39,22 @@ const LoginForm: Component = (dispatch, state) => {
         })
       ])
     ]),
-    button({ className: 'button is-primary mr-2' }, 'Sign in'),
+    button(
+      {
+        className: `button is-primary mr-2 ${
+          state.loading ? 'is-loading' : ''
+        }`,
+        disabled: state.loading ? 'disabled' : '',
+        onclick: (e: Event) => {
+          e.preventDefault();
+          dispatch(signInLoading(true));
+          dispatch(
+            signIn({ username: state.username, password: state.password })
+          );
+        }
+      },
+      'Sign in'
+    ),
     button({ className: 'button is-primary is-light' }, 'Register')
   ]);
 };

@@ -1,11 +1,13 @@
 import dbClient from 'mssql';
-import env from './env.config';
+import Logger from './logging.config';
+
+const { DB_USER, DB_PASSWORD, DB_NAME, DB_SERVER } = process.env;
 
 const sqlServerConfig = {
-  user: env.DB_USER,
-  password: env.DB_PASSWORD,
-  database: env.DB_NAME,
-  server: env.DB_SERVER,
+  user: DB_USER,
+  password: DB_PASSWORD,
+  database: DB_NAME,
+  server: DB_SERVER,
   options: {
     trustServerCertificate: true
   }
@@ -14,10 +16,10 @@ const sqlServerConfig = {
 const initDb = async () => {
   try {
     await dbClient.connect(sqlServerConfig);
-    console.log('Connected to SQL Server');
+    Logger.info('Connected to SQL Server');
     return dbClient;
   } catch (error) {
-    console.log('Error connecting to SQL server', error);
+    Logger.error('Error connecting to SQL server', error);
   }
 };
 

@@ -28,7 +28,8 @@
     "redis": "^4.3.1",
     "socket.io": "^4.5.2",
     "socket.io-client": "^4.5.2",
-    "virtual-dom": "^2.1.1"
+    "virtual-dom": "^2.1.1",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "@babel/core": "^7.19.1",

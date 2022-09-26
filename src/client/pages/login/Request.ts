@@ -17,6 +17,14 @@ export const sendRequest = <T>(request: HttpRequest<Payloads>): Promise<T> => {
   });
 };
 
-export const handleResponse = (data, dispatch) => {};
+export const handleResponse = (
+  requestCode: number,
+  data: any,
+  dispatch: Dispatch
+) => {
+  console.log();
+};
 
-export const hanldeError = (error, dispatch) => {};
+export const hanldeError = (error: Error, dispatch: Dispatch) => {
+  console.log();
+};

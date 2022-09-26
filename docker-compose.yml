@@ -1,0 +1,36 @@
+version: '3.9'
+services:
+  app:
+    container_name: coffee-chess
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    depends_on:
+      - cache
+      - db
+    command: npm run dev
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 3000:3000
+    links:
+      - cache
+  cache:
+    container_name: redis
+    image: redis:7.0.5-alpine
+    ports:
+      - 3001:6379
+  db:
+    container_name: sql-server
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - 3002:1433
+    environment:
+      SA_PASSWORD: dev7aY!dm2t62
+      ACCEPT_EULA: Y
+      MSSQL_PID: Developer
+    volumes:
+      - mssql-data:/var/opt/mssql
+volumes:
+  mssql-data:

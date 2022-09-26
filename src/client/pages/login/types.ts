@@ -59,3 +59,7 @@ export type LoginPayload =
   | string;
 
 export type Payloads = LoginPayload | undefined;
+
+export enum RequestCode {
+  LOGIN = 1000
+}

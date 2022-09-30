@@ -5,9 +5,8 @@ import initRedis from './utils/connect.cache';
 import initDb from './utils/connect.database';
 import initApi from './api/app';
 import dotenv from 'dotenv';
-import path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config();
 
 const app = express();
 const server = createServer(app);

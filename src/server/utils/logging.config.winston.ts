@@ -22,9 +22,14 @@ winston.addColors(colors);
 
 const format = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
-  winston.format.colorize({ all: true }),
+  winston.format((info) => ({
+    ...info,
+    level: `[${info.level.toUpperCase()}]`
+  }))(),
+  winston.format.splat(),
+  winston.format.colorize({ level: true }),
   winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`
+    (info) => `${info.timestamp} ${info.level} ${info.message}`
   )
 );
 

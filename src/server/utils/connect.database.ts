@@ -19,7 +19,7 @@ const initDb = async () => {
     Logger.info('Connected to SQL Server');
     return dbClient;
   } catch (error) {
-    Logger.error('Error connecting to SQL server', error);
+    Logger.error('Error connecting to SQL server: %o', error);
   }
 };
 

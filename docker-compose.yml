@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     depends_on:
-      - cache
-      - db
+      db:
+        condition: service_healthy
     command: npm run dev
     volumes:
       - .:/usr/src/app
@@ -16,6 +16,9 @@ services:
       - 3000:3000
     links:
       - cache
+      - db
+    env_file:
+      - .env
   cache:
     container_name: redis
     image: redis:7.0.5-alpine
@@ -32,5 +35,11 @@ services:
       MSSQL_PID: Developer
     volumes:
       - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "dev7aY!dm2t62" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 volumes:
   mssql-data:

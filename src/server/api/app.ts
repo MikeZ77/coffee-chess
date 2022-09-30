@@ -2,8 +2,8 @@ import helmet from 'helmet';
 import express from 'express';
 import path from 'path';
 import router from './routes/index';
-import morganMiddleware from './middleware/logging.http';
-import Logger from '../utils/logging.config';
+import morganMiddleware from '../utils/logging.config.morgan';
+import Logger from '../utils/logging.config.winston';
 
 const { PORT, API_VERSION } = process.env;
 

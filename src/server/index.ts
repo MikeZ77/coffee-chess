@@ -12,7 +12,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server);
 const redisClient = initRedis();
-const dbClient = initDb();
+const dbPoolPromise = initDb();
 initApi(app);
 
-export { redisClient, dbClient };
+export { redisClient, dbPoolPromise };

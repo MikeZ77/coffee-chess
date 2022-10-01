@@ -1,5 +1,5 @@
 import { createClient } from 'redis';
-import Logger from './logging.config';
+import Logger from './logging.config.winston';
 
 const { CACHE_SERVER } = process.env;
 

@@ -1,5 +1,5 @@
 import dbClient from 'mssql';
-import Logger from './logging.config';
+import Logger from './logging.config.winston';
 
 const { DB_USER, DB_PASSWORD, DB_NAME, DB_SERVER } = process.env;
 
@@ -15,9 +15,9 @@ const sqlServerConfig = {
 
 const initDb = async () => {
   try {
-    await dbClient.connect(sqlServerConfig);
+    const dbPoolPromise = await dbClient.connect(sqlServerConfig);
     Logger.info('Connected to SQL Server');
-    return dbClient;
+    return dbPoolPromise;
   } catch (error) {
     Logger.error('Error connecting to SQL server: %o', error);
   }

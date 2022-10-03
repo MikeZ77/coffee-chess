@@ -1,5 +1,5 @@
 import morgan, { StreamOptions } from 'morgan';
-import Logger from './logging.config.winston';
+import Logger from './config.logging.winston';
 
 const stream: StreamOptions = {
   write: (message) => Logger.http(message.trim())

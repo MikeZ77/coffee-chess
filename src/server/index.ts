@@ -11,8 +11,8 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
-const redisClient = initRedis();
+const redisClientPromise = initRedis();
 const dbPoolPromise = initDb();
 initApi(app);
 
-export { redisClient, dbPoolPromise };
+export { redisClientPromise, dbPoolPromise };

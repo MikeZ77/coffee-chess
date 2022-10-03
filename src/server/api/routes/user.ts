@@ -1,8 +1,11 @@
 import { Router } from 'express';
-import { register } from '../controllers/index';
+import { register, activate } from '../controllers/index';
+import handleError from '../middleware/handle.error';
+import validateRegister from '../middleware/validate.register';
 
 const router = Router();
 
-router.post('/register', register);
+router.post('/register', validateRegister, register, handleError);
+router.put('/activate', activate, handleError);
 
 export default router;

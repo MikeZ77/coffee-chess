@@ -1,5 +1,5 @@
 import dbClient from 'mssql';
-import Logger from './logging.config.winston';
+import Logger from './config.logging.winston';
 
 const { DB_USER, DB_PASSWORD, DB_NAME, DB_SERVER } = process.env;
 

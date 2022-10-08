@@ -14,27 +14,34 @@ export default async (req, res, next) => {
   const activationTokenExpiry = 60 * 30;
 
   try {
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const dbPool = await dbPoolPromise;
+    const result = await dbPool
+      .request()
+      .input('email', sql.VarChar, email)
+      .input('username', sql.VarChar, username)
+      .input('password', sql.VarChar, hashedPassword)
+      .output('user_id', sql.UniqueIdentifier)
+      .execute('api.create_user');
+
+    console.log(result);
+
     const redisClient = await redisClientPromise;
-    redisClient.set(email, activationToken, { EX: activationTokenExpiry });
+    redisClient.set(`user:activation:${activationToken}`, email, {
+      EX: activationTokenExpiry
+    });
 
     // TODO: Create a better email template.
     await transporter.sendMail({
       from: EMAIL_USERNAME,
       to: email,
       subject: 'Activate your Coffee Chess Account',
-      html: `<p>Activate your account: <a href="${BASE_URL}${API_VERSION}/activate/${activationToken}"></p>
-             <p>The new account will expire if it is not activated in the next ${activationTokenExpiry} minutes</p>`
+      html: `<p>Activate your account: <a href="${BASE_URL}${API_VERSION}/activate/${activationToken}">Activate</a></p>
+             <p>The new account will expire if it is not activated in the next ${
+               activationTokenExpiry / 60
+             } minutes</p>`
     });
-
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const dbPool = await dbPoolPromise;
-    await dbPool
-      .request()
-      .input('email', sql.VarChar, email)
-      .input('username', sql.VarChar, username)
-      .input('password', sql.VarChar, hashedPassword)
-      .execute('api.create_user');
 
     res.status(201).json({
       resultMessage: `Your user has been created. Please check ${email} to activate your account.`

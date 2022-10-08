@@ -7,13 +7,12 @@ const errorCodes = {
     statusCode: 409,
     errorMessage: 'Email has already been registered.'
   },
-  50002: { statusCode: 409, errorMessage: 'Username is already in use.' }
+  50002: { statusCode: 409, errorMessage: 'Username is already in use.' },
   // Server Error Codes
+  50100: { statusCode: 410, errorMessage: 'Activation token has expired.' }
 };
 
 const handleError = (error, req, res, next) => {
-  console.log(error);
-
   if (errorCodes[error.number] !== 'undefined') {
     const matchedError = errorCodes[error.number];
     res.status(matchedError.statusCode).send(matchedError.errorMessage);

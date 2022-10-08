@@ -13,6 +13,6 @@ router.post(
   register,
   handleError
 );
-router.patch('/activate:token', activate, handleError);
+router.patch('/activate/:token', activate, handleError);
 
 export default router;

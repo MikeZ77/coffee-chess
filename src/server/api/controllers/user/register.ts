@@ -25,10 +25,10 @@ export default async (req, res, next) => {
       .output('user_id', sql.UniqueIdentifier)
       .execute('api.create_user');
 
-    console.log(result);
+    const user_id = result.output.user_id;
 
     const redisClient = await redisClientPromise;
-    redisClient.set(`user:activation:${activationToken}`, email, {
+    redisClient.set(`user:activation:${activationToken}`, user_id, {
       EX: activationTokenExpiry
     });
 

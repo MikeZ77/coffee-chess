@@ -3,7 +3,6 @@ import sql from 'mssql';
 import bcrypt from 'bcryptjs';
 import transporter from '../../../utils/config.mailer';
 import { v4 as uuidv4 } from 'uuid';
-import Logger from '../../../utils/config.logging.winston';
 
 const { EMAIL_USERNAME, BASE_URL, API_VERSION } = process.env;
 
@@ -15,13 +14,13 @@ export default async (req, res, next) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
+    console.log(hashedPassword);
     const dbPool = await dbPoolPromise;
     const result = await dbPool
       .request()
-      .input('email', sql.VarChar, email)
-      .input('username', sql.VarChar, username)
-      .input('password', sql.VarChar, hashedPassword)
+      .input('email', sql.NVarChar, email)
+      .input('username', sql.NVarChar, username)
+      .input('password', sql.NVarChar, hashedPassword)
       .output('user_id', sql.UniqueIdentifier)
       .execute('api.create_user');
 
@@ -37,7 +36,7 @@ export default async (req, res, next) => {
       from: EMAIL_USERNAME,
       to: email,
       subject: 'Activate your Coffee Chess Account',
-      html: `<p>Activate your account: <a href="${BASE_URL}${API_VERSION}/activate/${activationToken}">Activate</a></p>
+      html: `<p><a href="${BASE_URL}${API_VERSION}/activate/${activationToken}">Activate your account</a></p>
              <p>The new account will expire if it is not activated in the next ${
                activationTokenExpiry / 60
              } minutes</p>`

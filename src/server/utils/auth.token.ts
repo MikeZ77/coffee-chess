@@ -25,22 +25,23 @@ export const decodeToken = (token) => {
   }
 };
 
-enum TokenAction {
+export enum TokenState {
   RENEW,
   EXPIRED,
   ACTIVE
 }
 
 export const checkExpiration = (partialSession) => {
-  const { expiry } = partialSession;
-  const timeRemaining = DateTime.fromISO(expiry)
+  const { expires } = partialSession;
+  const timeRemaining = DateTime.fromISO(expires)
     .diff(DateTime.now(), 'minute')
     .toObject();
+  console.log(timeRemaining);
   if (timeRemaining.minutes < 0) {
-    return TokenAction.EXPIRED;
+    return TokenState.EXPIRED;
   } else if (timeRemaining.minutes > 15) {
-    return TokenAction.ACTIVE;
+    return TokenState.ACTIVE;
   } else {
-    return TokenAction.RENEW;
+    return TokenState.RENEW;
   }
 };

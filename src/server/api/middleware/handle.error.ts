@@ -14,7 +14,9 @@ const errorCodes = {
   50100: {
     statusCode: 410,
     errorMessage: 'Activation token has expired.'
-  }
+  },
+  50101: { statusCode: 403, errorMessage: 'Acount has not been activated.' },
+  50102: { statusCode: 401, errorMessage: 'Incorrect username or password.' }
 };
 
 const getErrorHelper = (errorCode) => {
@@ -39,7 +41,7 @@ const handleError = (error, req, res, next) => {
       break;
     default:
       Logger.error('Unhandled error occured: %o', error);
-      res.status(500).send();
+      res.status(500).send('Server error.');
   }
 };
 

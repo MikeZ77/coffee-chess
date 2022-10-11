@@ -1,6 +1,5 @@
 import { encode, decode } from 'jwt-simple';
 import { DateTime } from 'luxon';
-import { ServerError } from './custom.errors';
 import Logger from './config.logging.winston';
 
 const { JWT_SECRET, JWT_EXPIRY_HOURS } = process.env;
@@ -21,7 +20,7 @@ export const decodeToken = (token) => {
   } catch (error) {
     // TODO: Include details about the session.
     Logger.warn(error.message);
-    // throw new ServerError();
+    throw error;
   }
 };
 
@@ -36,7 +35,6 @@ export const checkExpiration = (partialSession) => {
   const timeRemaining = DateTime.fromISO(expires)
     .diff(DateTime.now(), 'minute')
     .toObject();
-  console.log(timeRemaining);
   if (timeRemaining.minutes < 0) {
     return TokenState.EXPIRED;
   } else if (timeRemaining.minutes > 15) {

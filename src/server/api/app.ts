@@ -1,5 +1,5 @@
 import helmet from 'helmet';
-import express from 'express';
+import express, { Express } from 'express';
 import path from 'path';
 import router from './routes/index';
 import morganMiddleware from '../utils/config.logging.morgan';
@@ -8,7 +8,7 @@ import Logger from '../utils/config.logging.winston';
 
 const { PORT, API_VERSION } = process.env;
 
-const initApi = (app) => {
+const initApi = (app: Express) => {
   app.use(helmet());
   app.use(express.json());
   app.use(cookieParser());

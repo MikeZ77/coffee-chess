@@ -1,13 +1,13 @@
-import dbClient from 'mssql';
+import sql, { config } from 'mssql';
 import Logger from './config.logging.winston';
 
 const { DB_USER, DB_PASSWORD, DB_NAME, DB_SERVER } = process.env;
 
-const sqlServerConfig = {
+const sqlServerConfig: config = {
   user: DB_USER,
   password: DB_PASSWORD,
   database: DB_NAME,
-  server: DB_SERVER,
+  server: DB_SERVER || '',
   options: {
     trustServerCertificate: true
   }
@@ -15,9 +15,10 @@ const sqlServerConfig = {
 
 const initDb = async () => {
   try {
-    const dbPoolPromise = await dbClient.connect(sqlServerConfig);
+    const appPool = new sql.ConnectionPool(sqlServerConfig);
+    const pool = await appPool.connect();
     Logger.info('Connected to SQL Server');
-    return dbPoolPromise;
+    return pool;
   } catch (error) {
     Logger.error('Error connecting to SQL server: %o', error);
   }

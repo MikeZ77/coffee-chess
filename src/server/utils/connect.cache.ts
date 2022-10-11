@@ -1,9 +1,10 @@
 import { createClient } from 'redis';
 import Logger from './config.logging.winston';
 
+type RedisClient = ReturnType<typeof createClient>;
 const { CACHE_SERVER } = process.env;
 
-const initConnListeners = (conn) => {
+const initConnListeners = (conn: RedisClient) => {
   conn.on('connect', () => {
     Logger.info('Redis connection status: connected');
   });

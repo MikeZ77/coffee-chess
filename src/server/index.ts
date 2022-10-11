@@ -8,11 +8,13 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const app = express();
-const server = createServer(app);
-const io = new Server(server);
-const redisClientPromise = initRedis();
-const dbPoolPromise = initDb();
-initApi(app);
-
-export { redisClientPromise, dbPoolPromise };
+(async () => {
+  const app = express();
+  const redisClient = await initRedis();
+  const connPool = await initDb();
+  app.locals.db = connPool;
+  app.locals.redis = redisClient;
+  const server = createServer(app);
+  const io = new Server(server);
+  initApi(app);
+})();

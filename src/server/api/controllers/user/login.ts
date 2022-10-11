@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs';
-import { dbPoolPromise } from '../../..';
 import { encodeToken } from '../../../utils/auth.token';
 import { ServerError } from '../../../utils/custom.errors';
 import sql from 'mssql';
@@ -8,10 +7,10 @@ const { ENV } = process.env;
 
 export default async (req, res, next) => {
   const { username, password } = req.body;
+  const db = req.app.locals.db;
 
   try {
-    const dbPool = await dbPoolPromise;
-    const userRequest = await dbPool
+    const userRequest = await db
       .request()
       .input('username', sql.NVarChar, username)
       .execute('api.get_user');
@@ -39,14 +38,4 @@ export default async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-
-  // get user from database
-
-  // compare username with password
-
-  // Check that account is activated
-
-  // issue token
-
-  res.send();
 };

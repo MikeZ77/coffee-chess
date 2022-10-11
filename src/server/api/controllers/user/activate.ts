@@ -1,16 +1,15 @@
-import { redisClientPromise, dbPoolPromise } from '../../../index';
 import { ServerError } from '../../../utils/custom.errors';
 import sql from 'mssql';
 
 export default async (req, res, next) => {
   const activationToken = req.params.token;
+  const db = req.app.locals.db;
+  const redis = req.app.locals.redis;
   try {
-    const redisClient = await redisClientPromise;
-    const userId = await redisClient.get(`user:activation:${activationToken}`);
+    const userId = await redis.get(`user:activation:${activationToken}`);
 
     if (userId) {
-      const dbPool = await dbPoolPromise;
-      await dbPool
+      await db
         .request()
         .input('user_id', sql.UniqueIdentifier, userId)
         .execute('api.activate_user');

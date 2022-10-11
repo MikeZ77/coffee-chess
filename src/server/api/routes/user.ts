@@ -17,6 +17,6 @@ router.post(
 );
 router.patch('/activate/:token', activate, handleError);
 router.post('/login', validateLogin, handleValidation, login, handleError);
-router.get('/test', handleAuthorization, test);
+router.get('/test', handleAuthorization, test, handleError);
 
 export default router;

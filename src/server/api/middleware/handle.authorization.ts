@@ -1,8 +1,11 @@
 import {
   decodeToken,
+  encodeToken,
   checkExpiration,
   TokenState
 } from '../../utils/auth.token';
+
+const { ENV } = process.env;
 
 export default (req, res, next) => {
   const token = req.cookies.access_token;
@@ -12,15 +15,30 @@ export default (req, res, next) => {
     return res.status(401).send('Unauthorized.');
   }
 
-  const decodedToken = decodeToken(token);
-  console.log(decodedToken);
-
-  const authAction = checkExpiration(decodedToken);
-  console.log(authAction);
-
-  switch (authAction) {
-    case TokenState.ACTIVE:
+  try {
+    const decodedToken = decodeToken(token);
+    const authAction = checkExpiration(decodedToken);
+    console.log('Action: ', authAction);
+    console.log(decodedToken);
+    switch (authAction) {
+      case TokenState.ACTIVE:
+        // TODO: Include user info in req.locals
+        return next();
+      case TokenState.EXPIRED:
+        // TODO: Pass query string using encodeURIComponent for client notification.
+        return res.status(401).redirect('/login.html');
+      case TokenState.RENEW: {
+        const refreshedToken = encodeToken({ token });
+        res.cookie('access_token', refreshedToken, {
+          httpOnly: true,
+          secure: ENV === 'dev' ? false : true
+        });
+        return next();
+      }
+      default:
+        return res.status(401).send('Unauthorized.');
+    }
+  } catch (error) {
+    return next(error);
   }
-
-  return res.status(401).send('Unauthorized.');
 };

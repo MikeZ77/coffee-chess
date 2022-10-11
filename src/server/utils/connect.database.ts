@@ -7,7 +7,7 @@ const sqlServerConfig: config = {
   user: DB_USER,
   password: DB_PASSWORD,
   database: DB_NAME,
-  server: DB_SERVER || '',
+  server: DB_SERVER as string,
   options: {
     trustServerCertificate: true
   }

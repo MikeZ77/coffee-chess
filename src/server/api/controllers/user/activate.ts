@@ -1,7 +1,8 @@
+import { Request, Response, NextFunction } from 'express';
 import { ServerError } from '../../../utils/custom.errors';
 import sql from 'mssql';
 
-export default async (req, res, next) => {
+export default async (req: Request, res: Response, next: NextFunction) => {
   const activationToken = req.params.token;
   const db = req.app.locals.db;
   const redis = req.app.locals.redis;

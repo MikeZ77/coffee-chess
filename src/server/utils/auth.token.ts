@@ -4,17 +4,33 @@ import Logger from './config.logging.winston';
 
 const { JWT_SECRET, JWT_EXPIRY_HOURS } = process.env;
 
-export const encodeToken = (partialSession) => {
+interface IPartialTokenSession {
+  user_id: string;
+  username: string;
+}
+
+interface ITokenSession extends IPartialTokenSession {
+  issued: string;
+  expires: string;
+}
+
+export enum TokenState {
+  RENEW,
+  EXPIRED,
+  ACTIVE
+}
+
+export const encodeToken = (partialSession: IPartialTokenSession) => {
   const currentTime = DateTime.now();
   const issued = currentTime.toString();
   const expires = currentTime
     .plus({ hours: parseInt(JWT_EXPIRY_HOURS) })
     .toString();
   const session = { ...partialSession, issued, expires };
-  return encode(session, JWT_SECRET);
+  return encode(session, JWT_SECRET as string);
 };
 
-export const decodeToken = (token) => {
+export const decodeToken = (token: string) => {
   try {
     return decode(token, JWT_SECRET);
   } catch (error) {
@@ -24,14 +40,8 @@ export const decodeToken = (token) => {
   }
 };
 
-export enum TokenState {
-  RENEW,
-  EXPIRED,
-  ACTIVE
-}
-
-export const checkExpiration = (partialSession) => {
-  const { expires } = partialSession;
+export const checkExpiration = (session: ITokenSession) => {
+  const { expires } = session;
   const timeRemaining = DateTime.fromISO(expires)
     .diff(DateTime.now(), 'minute')
     .toObject();

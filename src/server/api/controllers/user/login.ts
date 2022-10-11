@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { encodeToken } from '../../../utils/auth.token';
 import { ServerError } from '../../../utils/custom.errors';
@@ -5,7 +6,7 @@ import sql from 'mssql';
 
 const { ENV } = process.env;
 
-export default async (req, res, next) => {
+export default async (req: Request, res: Response, next: NextFunction) => {
   const { username, password } = req.body;
   const db = req.app.locals.db;
 

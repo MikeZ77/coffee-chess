@@ -8,7 +8,7 @@ import {
 const { ENV } = process.env;
 
 export default (req, res, next) => {
-  const token = req.cookies.access_token;
+  const token: string = req.cookies.access_token;
   console.log(token);
 
   if (token === 'undefined') {
@@ -28,7 +28,8 @@ export default (req, res, next) => {
         // TODO: Pass query string using encodeURIComponent for client notification.
         return res.status(401).redirect('/login.html');
       case TokenState.RENEW: {
-        const refreshedToken = encodeToken({ token });
+        const { user_id, username } = decodedToken;
+        const refreshedToken = encodeToken({ user_id, username });
         res.cookie('access_token', refreshedToken, {
           httpOnly: true,
           secure: ENV === 'dev' ? false : true

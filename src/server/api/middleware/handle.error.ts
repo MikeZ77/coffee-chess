@@ -1,6 +1,16 @@
+import type { ErrorRequestHandler } from 'express';
 import { MSSQLError } from 'mssql';
 import { ServerError } from '../../utils/custom.errors';
 import Logger from '../../utils/config.logging.winston';
+
+interface IErrorCodes {
+  [index: number]: ErrorCodeMessage;
+}
+
+type ErrorCodeMessage = {
+  statusCode: number;
+  errorMessage: string;
+};
 
 // TODO: Include clientCode that describes how the client should handle the specific error.
 const errorCodes = {
@@ -19,13 +29,12 @@ const errorCodes = {
   50102: { statusCode: 401, errorMessage: 'Incorrect username or password.' }
 };
 
-const getErrorHelper = (errorCode) => {
-  const statusCode = errorCodes[errorCode].statusCode;
-  const errorMessage = errorCodes[errorCode].errorMessage;
+const getErrorHelper = (errorCode: number) => {
+  const { statusCode, errorMessage } = (errorCodes as IErrorCodes)[errorCode];
   return { statusCode, errorMessage };
 };
 
-const handleError = (error, req, res, next) => {
+const handleError: ErrorRequestHandler = (error, req, res, next) => {
   switch (true) {
     case error instanceof MSSQLError:
       if (error.number in errorCodes) {

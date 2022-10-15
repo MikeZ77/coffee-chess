@@ -34,9 +34,11 @@ export const decodeToken = (token: string) => {
   try {
     return decode(token, JWT_SECRET);
   } catch (error) {
-    // TODO: Include details about the session.
-    Logger.warn(error.message);
-    throw error;
+    if (error instanceof Error) {
+      // TODO: Include details about the session.
+      Logger.warn(error.message);
+      throw error;
+    }
   }
 };
 
@@ -45,6 +47,10 @@ export const checkExpiration = (session: ITokenSession) => {
   const timeRemaining = DateTime.fromISO(expires)
     .diff(DateTime.now(), 'minute')
     .toObject();
+
+  if (timeRemaining.minutes == undefined) {
+    return TokenState.EXPIRED;
+  }
   if (timeRemaining.minutes < 0) {
     return TokenState.EXPIRED;
   } else if (timeRemaining.minutes > 15) {

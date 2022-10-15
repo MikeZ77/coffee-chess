@@ -4,7 +4,8 @@
     "module": "commonjs",
     "outDir": "../../dist/server",
     "sourceMap": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": true
   },
   "include": ["**/*.ts"],
   "ts-node": {

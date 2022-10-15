@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from 'express';
 import {
   decodeToken,
   encodeToken,
@@ -7,7 +8,7 @@ import {
 
 const { ENV } = process.env;
 
-export default (req, res, next) => {
+export default (req: Request, res: Response, next: NextFunction) => {
   const token: string = req.cookies.access_token;
   console.log(token);
 

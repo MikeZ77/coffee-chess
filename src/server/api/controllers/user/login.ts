@@ -23,13 +23,14 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     if (correctPassword) {
       if (activated) {
         const token = encodeToken({ user_id, username });
+        // TODO: Crate the user session.
         res
           .cookie('access_token', token, {
             httpOnly: true, // HTTP(S) and not available to client javascript
             secure: ENV === 'dev' ? false : true // HTTPS
           })
           .status(200)
-          .json({}); //TODO: Send inital data required for client.
+          .json({}); //TODO: Redirect to main.html
       } else {
         throw new ServerError(50101);
       }

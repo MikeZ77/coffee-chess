@@ -49,16 +49,14 @@ export type HttpRequest<T = void> = {
   payload?: T;
 };
 
-export type LoginPayload =
-  | {
-      username: string;
-      password: string;
-    }
-  | string;
+export type LoginPayload = {
+  username: string;
+  password: string;
+};
 
 export type Toast = {
   isError: boolean;
   message: string;
 };
 
-export type Payloads = LoginPayload | undefined;
+export type Payloads = LoginPayload | void;

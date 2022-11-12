@@ -15,7 +15,6 @@ export const sendRequest = <T>(request: HttpRequest<Payloads>): Promise<T> => {
 export const hanldeError = (error: Error, dispatch: Dispatch) => {
   if (axios.isAxiosError(error)) {
     if (error.response) {
-      // dispatch(activateToast({isError: true, message: error.response.data}))
       toast({
         message: error.response.data,
         type: 'is-danger',

@@ -1,8 +1,8 @@
-import { Reducer, HttpRequest, LoginPayload } from '../types';
+import { Reducer, HttpRequest, LoginPayload, State } from '../types';
 
 const { SERVER_FQDN } = process.env;
 
-export const reduceLogin: Reducer = (action, state) => {
+export const reduceLogin: Reducer = (action, state): State => {
   switch (action.type) {
     case 'UPDATE_USERNAME': {
       const { username } = action;
@@ -32,6 +32,9 @@ export const reduceLogin: Reducer = (action, state) => {
         method: 'GET'
       };
       return { ...state, pendingRequest };
+    }
+    default: {
+      return state;
     }
   }
 };

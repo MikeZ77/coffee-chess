@@ -60,8 +60,8 @@ module.exports = {
       filename: 'login.html',
       template: path.resolve(__dirname, './common/index.html'),
       chunks: ['login'],
-      minify: false
-      // favicon: './public/favicon.ico'
+      minify: false,
+      favicon: './images/favicon.ico'
     }),
     new HtmlWebpackPlugin({
       filename: 'register.html',

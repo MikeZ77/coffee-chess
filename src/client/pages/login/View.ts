@@ -2,7 +2,7 @@ import '../../common/bulma.styles.scss';
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { View } from './types';
-import { LoginForm, NotificationMessage } from './components/index';
+import { LoginForm } from './components/index';
 
 const { div, section } = hh(h);
 
@@ -19,8 +19,7 @@ const view: View = (dispatch, state) => {
           )
         ])
       ])
-    ]),
-    NotificationMessage(state)
+    ])
   ]);
 };
 

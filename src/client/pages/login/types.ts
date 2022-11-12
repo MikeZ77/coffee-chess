@@ -15,9 +15,6 @@ export type State = {
   password: string;
   loading: boolean;
   pendingRequest: HttpRequest<Payloads> | null;
-  noitificationShow: boolean;
-  notificationLevel: 'is-danger' | 'is-success' | 'is-warning' | '';
-  noitificationMessage: string;
 };
 
 export type Action =
@@ -35,20 +32,21 @@ export type Action =
     }
   | {
       type: 'REQUEST_LOGIN';
-      body: LoginPayload;
+      payload: LoginPayload;
+    }
+  | {
+      type: 'REQUEST_REGISTER';
     };
 
 export type Reducers = {
   [index: string]: Reducer;
 };
 
-export type HttpRequest<T> = {
+export type HttpRequest<T = void> = {
   endpoint: string;
   method: 'GET' | 'POST' | 'DELETE' | 'PATCH' | 'PUT';
-  headers: Headers;
   redirect?: 'follow';
-  credentials?: 'same-origin';
-  body?: T;
+  payload?: T;
 };
 
 export type LoginPayload =
@@ -58,8 +56,9 @@ export type LoginPayload =
     }
   | string;
 
-export type Payloads = LoginPayload | undefined;
+export type Toast = {
+  isError: boolean;
+  message: string;
+};
 
-export enum RequestCode {
-  LOGIN = 1000
-}
+export type Payloads = LoginPayload | undefined;

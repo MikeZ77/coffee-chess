@@ -6,8 +6,9 @@ import {
   updateInputUsername,
   updateInputPassword,
   signInLoading,
-  signIn
-} from '../Actions';
+  signIn,
+  register
+} from '../actions';
 
 const { form, div, label, input, button } = hh(h);
 
@@ -55,7 +56,16 @@ const LoginForm: Component = (dispatch, state) => {
       },
       'Sign in'
     ),
-    button({ className: 'button is-primary is-light' }, 'Register')
+    button(
+      {
+        className: 'button is-primary is-light',
+        onclick: (e: Event) => {
+          e.preventDefault();
+          dispatch(register());
+        }
+      },
+      'Register'
+    )
   ]);
 };
 

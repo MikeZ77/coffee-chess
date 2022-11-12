@@ -21,9 +21,15 @@ export const signInLoading = (loading: boolean): Action => {
   };
 };
 
-export const signIn = (body: LoginPayload): Action => {
+export const signIn = (payload: LoginPayload): Action => {
   return {
     type: 'REQUEST_LOGIN',
-    body
+    payload
+  };
+};
+
+export const register = (): Action => {
+  return {
+    type: 'REQUEST_REGISTER'
   };
 };

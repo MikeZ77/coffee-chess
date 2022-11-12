@@ -3,10 +3,11 @@ import user from './user';
 import health from './health';
 import pages from './pages';
 
-const router = Router();
+const apiRouter = Router();
+const pageRouter = Router();
 
-router.use('/', pages);
-router.use('/user', user);
-router.use('/health', health);
+pageRouter.use('/', pages);
+apiRouter.use('/user', user);
+apiRouter.use('/health', health);
 
-export default router;
+export default {apiRouter, pageRouter};

@@ -1,30 +1,29 @@
 import { HttpRequest, Dispatch, Payloads } from './types';
-import dotenv from 'dotenv';
-
-// const { NOTIFICATION_TIMEOUT_MS } = process.env;
+import { signInLoading } from './actions';
+import { toast } from 'bulma-toast';
+import axios from 'axios';
 
 export const sendRequest = <T>(request: HttpRequest<Payloads>): Promise<T> => {
-  const { endpoint, ...data } = request;
-  let { body = null } = request;
-  if (body != null) {
-    body = JSON.stringify(body);
-  }
-  return fetch(endpoint, { ...data, body }).then((response) => {
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    return <Promise<T>>response.json();
+  const { endpoint, method, redirect, payload = null } = request;
+  return axios({
+    method: method,
+    url: endpoint,
+    data: payload
   });
 };
 
-export const handleResponse = (
-  requestCode: number,
-  data: any,
-  dispatch: Dispatch
-) => {
-  console.log();
-};
-
 export const hanldeError = (error: Error, dispatch: Dispatch) => {
-  console.log();
+  if (axios.isAxiosError(error)) {
+    if (error.response) {
+      // dispatch(activateToast({isError: true, message: error.response.data}))
+      toast({
+        message: error.response.data,
+        type: 'is-danger',
+        position: 'bottom-center',
+        dismissible: true,
+        pauseOnHover: true
+      });
+      dispatch(signInLoading(false));
+    }
+  }
 };

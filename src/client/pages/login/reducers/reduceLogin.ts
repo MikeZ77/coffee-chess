@@ -1,5 +1,7 @@
 import { Reducer, HttpRequest, LoginPayload } from '../types';
 
+const { SERVER_FQDN } = process.env;
+
 export const reduceLogin: Reducer = (action, state) => {
   switch (action.type) {
     case 'UPDATE_USERNAME': {
@@ -15,13 +17,19 @@ export const reduceLogin: Reducer = (action, state) => {
       return { ...state, loading };
     }
     case 'REQUEST_LOGIN': {
-      const { body } = action;
+      const { payload } = action;
       const pendingRequest: HttpRequest<LoginPayload> = {
-        endpoint: 'localhost:3000/api/v1/login',
+        endpoint: SERVER_FQDN + '/api/v1/user/login',
         method: 'POST',
-        headers: new Headers({ 'Content-Type': 'application/json' }),
         redirect: 'follow',
-        body
+        payload
+      };
+      return { ...state, pendingRequest };
+    }
+    case 'REQUEST_REGISTER': {
+      const pendingRequest: HttpRequest = {
+        endpoint: SERVER_FQDN + '/register',
+        method: 'GET'
       };
       return { ...state, pendingRequest };
     }

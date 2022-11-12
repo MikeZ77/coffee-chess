@@ -7,10 +7,12 @@ import sql from 'mssql';
 const { ENV } = process.env;
 
 export default async (req: Request, res: Response, next: NextFunction) => {
+  console.log(req.body)
   const { username, password } = req.body;
   const db = req.app.locals.db;
 
   try {
+    // TODO: If the user does not exist return the appropriate error
     const userRequest = await db
       .request()
       .input('username', sql.NVarChar, username)

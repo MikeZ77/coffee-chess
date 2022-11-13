@@ -6,11 +6,11 @@ import {
   updateInputUsername,
   updateInputPassword,
   signInLoading,
-  signIn,
-  register
+  signIn
 } from '../actions';
 
 const { form, div, label, input, button } = hh(h);
+const { SERVER_FQDN } = process.env;
 
 const LoginForm: Component = (dispatch, state) => {
   return form({ className: 'box' }, [
@@ -61,7 +61,7 @@ const LoginForm: Component = (dispatch, state) => {
         className: 'button is-primary is-light',
         onclick: (e: Event) => {
           e.preventDefault();
-          dispatch(register());
+          window.location.assign(`${SERVER_FQDN}/register`);
         }
       },
       'Register'

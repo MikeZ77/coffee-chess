@@ -26,13 +26,6 @@ export const reduceLogin: Reducer = (action, state): State => {
       };
       return { ...state, pendingRequest };
     }
-    case 'REQUEST_REGISTER': {
-      const pendingRequest: HttpRequest = {
-        endpoint: SERVER_FQDN + '/register',
-        method: 'GET'
-      };
-      return { ...state, pendingRequest };
-    }
     default: {
       return state;
     }

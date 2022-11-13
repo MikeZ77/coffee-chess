@@ -27,9 +27,3 @@ export const signIn = (payload: LoginPayload): Action => {
     payload
   };
 };
-
-export const register = (): Action => {
-  return {
-    type: 'REQUEST_REGISTER'
-  };
-};

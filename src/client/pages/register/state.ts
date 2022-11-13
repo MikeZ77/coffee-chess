@@ -5,6 +5,7 @@ const state: State = {
   email: '',
   password: '',
   repeatedPassword: '',
+  loading: false,
   pendingRequest: null
 };
 

@@ -15,7 +15,9 @@ const initApi = (app: Express) => {
   app.use(morganMiddleware);
   app.use(
     '/favicon.ico',
-    express.static('../../../src/client/images/favicon.ico')
+    express.static(
+      path.resolve(__dirname, '../../../src/client/images/favicon.ico')
+    )
   );
   app.use(express.static(path.resolve(__dirname, '../../../dist/client')));
   app.use(routers.pageRouter);

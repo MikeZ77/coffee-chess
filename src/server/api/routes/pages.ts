@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { loginPage, registerPage } from '../controllers/index';
+import { loginPage, registerPage, gameLobbyPage } from '../controllers/index';
 
 const router = Router();
 
 router.get('/login', loginPage);
 router.get('/register', registerPage);
+router.get('/game-lobby', gameLobbyPage);
 
 export default router;

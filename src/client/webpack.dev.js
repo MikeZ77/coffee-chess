@@ -7,7 +7,8 @@ const Dotenv = require('dotenv-webpack');
 module.exports = {
   entry: {
     login: './src/client/pages/login/index.ts',
-    register: './src/client/pages/register/index.ts'
+    register: './src/client/pages/register/index.ts',
+    gameLobby: './src/client/pages/game-lobby/index.ts'
   },
   output: {
     filename: '[name].bundle.js',
@@ -60,13 +61,18 @@ module.exports = {
       filename: 'login.html',
       template: path.resolve(__dirname, './common/index.html'),
       chunks: ['login'],
-      minify: false,
-      favicon: './images/favicon.ico'
+      minify: false
     }),
     new HtmlWebpackPlugin({
       filename: 'register.html',
       template: path.resolve(__dirname, './common/index.html'),
       chunks: ['register'],
+      minify: false
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'game-lobby.html',
+      template: path.resolve(__dirname, './common/index.html'),
+      chunks: ['gameLobby'],
       minify: false
     }),
     new MiniCssExtractPlugin({

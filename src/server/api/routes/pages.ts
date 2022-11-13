@@ -5,6 +5,6 @@ const router = Router();
 
 router.get('/login', loginPage);
 router.get('/register', registerPage);
-router.get('/game-lobby', gameLobbyPage);
+router.get('/', gameLobbyPage);
 
 export default router;

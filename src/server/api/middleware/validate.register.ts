@@ -14,7 +14,7 @@ const validateRegister = checkSchema({
         minSymbols: 1
       },
       errorMessage:
-        'Password must have a minimum length of 8, at least one number and one symbol.'
+        'Password must have a minimum length of 8, and have at least one number, symbol, uppercase and lowercase.'
     },
     isLength: {
       options: { max: 16 },

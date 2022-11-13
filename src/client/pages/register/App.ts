@@ -1,7 +1,7 @@
 import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import { State, View, Dispatch } from './types';
-import { sendRequest, hanldeError } from './request';
+import { sendRequest, hanldeError, handleResponse } from './request';
 import { reduceRegister } from './reducers/reduceRegister';
 import combineReducers from './reducers/combineReducers';
 
@@ -12,9 +12,13 @@ const app = (initState: State, view: View, node: HTMLElement) => {
     if (state.pendingRequest != null) {
       const newRequest = { ...state.pendingRequest };
       state.pendingRequest = null;
-      sendRequest(newRequest).catch((error) => {
-        hanldeError(error, dispatch);
-      });
+      sendRequest(newRequest)
+        .then((res) => {
+          handleResponse(res);
+        })
+        .catch((error) => {
+          hanldeError(error, dispatch);
+        });
     }
     const updatedView = view(dispatch, state);
     const patches = diff(currentView, updatedView);

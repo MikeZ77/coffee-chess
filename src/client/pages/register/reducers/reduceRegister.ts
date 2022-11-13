@@ -20,12 +20,15 @@ export const reduceRegister: Reducer = (action, state): State => {
       const { repeatedPassword } = action;
       return { ...state, repeatedPassword };
     }
+    case 'LOADING_REGISTER': {
+      const { loading } = action;
+      return { ...state, loading };
+    }
     case 'REQUEST_REGISTER': {
       const { payload } = action;
       const pendingRequest: HttpRequest<RegisterPayload> = {
         endpoint: SERVER_FQDN + '/api/v1/user/register',
         method: 'POST',
-        redirect: 'follow',
         payload
       };
       return { ...state, pendingRequest };

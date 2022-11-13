@@ -20,7 +20,8 @@ export const hanldeError = (error: Error, dispatch: Dispatch) => {
         type: 'is-danger',
         position: 'bottom-center',
         dismissible: true,
-        pauseOnHover: true
+        pauseOnHover: true,
+        duration: 3000
       });
       dispatch(signInLoading(false));
     }

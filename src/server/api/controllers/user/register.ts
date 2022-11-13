@@ -43,7 +43,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     });
 
     res.status(201).json({
-      resultMessage: `Your user has been created. Please check ${email} to activate your account.`
+      message: `Your user has been created. Please check ${email} to activate your account.`
     });
   } catch (error) {
     next(error);

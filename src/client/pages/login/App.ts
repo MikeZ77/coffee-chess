@@ -3,6 +3,7 @@ import createElement from 'virtual-dom/create-element';
 import { State, View, Dispatch } from './types';
 import { sendRequest, hanldeError } from './Request';
 import { reduceLogin } from './reducers/reduceLogin';
+import { comingFromRegistration } from './handlers';
 import combineReducers from './reducers/combineReducers';
 
 const app = (initState: State, view: View, node: HTMLElement) => {
@@ -28,6 +29,7 @@ const app = (initState: State, view: View, node: HTMLElement) => {
   let rootNode = createElement(currentView);
   const reduce = combineReducers({ reduceLogin });
   node.appendChild(rootNode);
+  comingFromRegistration();
 };
 
 export default app;

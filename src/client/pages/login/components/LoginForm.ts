@@ -1,18 +1,20 @@
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
-import { Component } from '../types';
+import { Component } from 'common/types';
+import { State } from '../state';
+import { Action } from '../actions/actions';
 import LoginLogo from './LoginLogo';
 import {
   updateInputUsername,
   updateInputPassword,
   signInLoading,
   signIn
-} from '../actions';
+} from '../actions/actions';
 
 const { form, div, label, input, button } = hh(h);
 const { SERVER_FQDN } = process.env;
 
-const LoginForm: Component = (dispatch, state) => {
+const LoginForm: Component<State, Action> = (dispatch, state) => {
   return form({ className: 'box' }, [
     LoginLogo(),
     div({ className: 'field' }, [
@@ -20,7 +22,7 @@ const LoginForm: Component = (dispatch, state) => {
       div({ className: 'control' }, [
         input({
           className: 'input',
-          type: 'email',
+          type: 'text',
           value: state.username,
           oninput: (e: Event) => {
             dispatch(updateInputUsername((<HTMLInputElement>e.target).value));

@@ -1,4 +1,6 @@
-import { State } from './types';
+export type State = {
+  placeHolder: null;
+};
 
 const state: State = {
   placeHolder: null

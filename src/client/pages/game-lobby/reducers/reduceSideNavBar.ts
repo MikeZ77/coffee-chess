@@ -1,10 +1,14 @@
-import { Reducer, State } from '../types';
-
+import { Reducer, HttpRequest } from 'common/types';
+import { State } from '../state';
+import { NavBarAction } from '../actions/sideNavBarActions';
 const { SERVER_FQDN } = process.env;
 
-export const reduceSideNavBar: Reducer = (action, state): State => {
+export const reduceSideNavBar: Reducer<State, NavBarAction> = (
+  action,
+  state
+): State => {
   switch (action.type) {
-    case 'PLACE_HOLDER': {
+    case 'TEST_ACTION': {
       return { ...state };
     }
     default: {

@@ -1,12 +1,19 @@
 import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
-import { State, View, Dispatch } from './types';
+import { View, Dispatch } from '../../common/types';
+import { State } from './state';
+import { NavBarAction } from './actions/sideNavBarActions';
 // import { sendRequest, hanldeError } from './request';
 import { reduceSideNavBar } from './reducers/reduceSideNavBar';
+import { initChessboard } from './utils/chessboard';
 import combineReducers from './reducers/combineReducers';
 
-const app = (initState: State, view: View, node: HTMLElement) => {
-  const dispatch: Dispatch = (action) => {
+const app = (
+  initState: State,
+  view: View<State, NavBarAction>,
+  node: HTMLElement
+) => {
+  const dispatch: Dispatch<NavBarAction> = (action) => {
     state = reduce(action, state);
 
     // if (state.pendingRequest != null) {
@@ -27,6 +34,7 @@ const app = (initState: State, view: View, node: HTMLElement) => {
   let rootNode = createElement(currentView);
   const reduce = combineReducers({ reduceSideNavBar });
   node.appendChild(rootNode);
+  initChessboard();
 };
 
 export default app;

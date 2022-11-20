@@ -24,7 +24,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(png|jpg)$/,
+        test: /\.(png|jpg|svg)$/,
         type: 'asset/resource'
       },
       {
@@ -76,7 +76,7 @@ module.exports = {
       minify: false
     }),
     new MiniCssExtractPlugin({
-      filename: 'css/mystyles.css'
+      filename: '[name].css'
     })
   ]
 };

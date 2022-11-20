@@ -1,55 +1,27 @@
-import '../../common/bulma.styles.scss';
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
-import { View } from './types';
+import { View } from '../../common/types';
+import { State } from './state';
+import { NavBarAction } from './actions/sideNavBarActions';
+import sideNavBar from './components/SideNavBar';
+import Console from './components/Console';
 
-const { div, section, aside, ul, li, a, span, i } = hh(h);
+const { div, section } = hh(h);
 
-const view: View = (dispatch, state) => {
+const view: View<State, NavBarAction> = (dispatch, state) => {
   return section({ className: 'hero is-fullheight' }, [
     div({ className: 'columns' }, [
-      div({ className: 'column is-2' }, [
-        aside({ className: 'menu' }, [
-          div({ className: 'box p-2' }, [
-            ul({ className: 'menu-list' }, [
-              li({}, [
-                // span('New Game')
-                a({ className: 'is-active columns is-flex is-vcentered' }, [
-                  span({ className: 'icon is-large' }, [
-                    i({ className: 'fas fa-2x fa-solid fa-chess-board' })
-                  ]),
-                  span('New Game')
-                ]),
-                ul({}, [
-                  li({}, [a('Game Type 1')]),
-                  li({}, [a('Game Type 2')]),
-                  li({}, [a('Game Type 3')])
-                ])
-              ]),
-              li({}, [
-                // span('New Game')
-                a({ className: 'columns is-flex is-vcentered' }, [
-                  span({ className: 'icon is-large' }, [
-                    i({ className: 'fas fa-2x fa-solid fa-chess' })
-                  ]),
-                  span('Game History')
-                ])
-              ]),
-              li({}, [
-                // span('New Game')
-                a({ className: 'columns is-flex is-vcentered' }, [
-                  span({ className: 'icon is-large' }, [
-                    i({ className: 'fas fa-2x fa-solid fa-gear' })
-                  ]),
-                  span('Settings')
-                ])
-              ])
-            ])
-          ])
+      div({ className: 'column is-2' }, [sideNavBar(dispatch, state)]),
+      div({ className: 'column is-7 mt-5' }, [
+        div({ className: 'box' }, [
+          div('#board', { style: 'height: 88vh; width: 88vh;' })
         ])
       ]),
-      div({ className: 'column is-7' }, []),
-      div({ className: 'column is-3' }, [])
+      div({ className: 'column is-3 mt-5' }, [
+        div({ className: 'box mr-5', style: 'height: 100%' }, [
+          Console(dispatch, state)
+        ])
+      ])
     ])
   ]);
 };

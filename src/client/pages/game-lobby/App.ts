@@ -7,6 +7,7 @@ import { NavBarAction } from './actions/sideNavBarActions';
 import { reduceSideNavBar } from './reducers/reduceSideNavBar';
 import { initChessboard } from './utils/chessboard';
 import combineReducers from './reducers/combineReducers';
+import { initTooltipAttributes } from './utils/simple.utils';
 
 const app = (
   initState: State,
@@ -35,6 +36,12 @@ const app = (
   const reduce = combineReducers({ reduceSideNavBar });
   node.appendChild(rootNode);
   initChessboard();
+  initTooltipAttributes({
+    'player-list': 'Player List',
+    'current-game': 'Current Game',
+    games: 'Games',
+    chat: 'Chat'
+  });
 };
 
 export default app;

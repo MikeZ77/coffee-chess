@@ -4,13 +4,16 @@ import { Component } from 'common/types';
 import { State } from '../state';
 import { NavBarAction } from '../actions/sideNavBarActions';
 
-const { div, footer, a, button, i, span, p } = hh(h);
+const { div, footer, a, button, i, span, p, input } = hh(h);
 
 const ConsoleGame: Component<State, NavBarAction> = (dispatch, state) => {
   return div({ className: 'card' }, [
-    div({ className: 'card-content', style: 'height: 50vh' }, []),
-    div({ className: 'content' }, [
-      footer({ className: 'card-footer' }, [
+    div({ className: 'card-content', style: 'height: 48vh' }, [
+      div({ className: 'content' }, [])
+    ]),
+    footer(
+      { className: 'card-footer', style: 'border-bottom: 1px solid #ededed; ' },
+      [
         a({ className: 'card-footer-item' }, [
           div({ className: 'field has-addons' }, [
             p({ className: 'control m-0' }, [
@@ -44,10 +47,32 @@ const ConsoleGame: Component<State, NavBarAction> = (dispatch, state) => {
           ])
         ]),
         a({ className: 'card-footer-item' }, [
-          button({ className: 'button is-rounded is-warning' }, 'Draw')
-        ]),
-        a({ className: 'card-footer-item' }, [
-          button({ className: 'button is-rounded is-danger' }, 'Resign')
+          div({ className: 'buttons' }, [
+            button(
+              { className: 'button is-rounded is-small is-warning' },
+              'Draw'
+            ),
+            button(
+              { className: 'button is-rounded is-small is-danger' },
+              'Resign'
+            )
+          ])
+        ])
+      ]
+    ),
+    div({ className: 'card-content', style: 'height: 24vh' }, [
+      div({ className: 'content' }, [])
+    ]),
+
+    div({ className: 'field has-addons' }, [
+      p({ className: 'control is-expanded' }, [
+        input({ className: 'input', type: 'text' }, [])
+      ]),
+      p({ className: 'control' }, [
+        a({ className: 'button is-success' }, [
+          span({ className: 'icon' }, [
+            i({ className: 'fas fa-regular fa-message' })
+          ])
         ])
       ])
     ])

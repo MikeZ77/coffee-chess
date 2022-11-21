@@ -23,6 +23,7 @@
     "bcryptjs": "^2.4.3",
     "bulma": "^0.9.4",
     "bulma-toast": "^2.4.1",
+    "bulma-tooltip": "^3.0.2",
     "chess.js": "^1.0.0-alpha.0",
     "cm-chessboard": "^5.4.8",
     "cookie-parser": "^1.4.6",

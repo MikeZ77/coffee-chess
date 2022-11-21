@@ -17,7 +17,7 @@ const sideNavBar: Component<State, NavBarAction> = (dispatch, state) => {
           // span('New Game')
           a({ className: 'is-active columns is-flex is-vcentered' }, [
             span({ className: 'icon is-large mr-2' }, [
-              i({ className: 'fas fa-2x fa-solid fa-chess-board' })
+              i({ className: 'fas fa-xl fa-solid fa-chess-board' })
             ]),
             span('New Game')
           ]),
@@ -57,7 +57,7 @@ const sideNavBar: Component<State, NavBarAction> = (dispatch, state) => {
         li({}, [
           a({ className: 'columns is-flex is-vcentered' }, [
             span({ className: 'icon is-large mr-2' }, [
-              i({ className: 'fas fa-2x fa-solid fa-chess' })
+              i({ className: 'fas fa-xl fa-solid fa-chess' })
             ]),
             span('Game History')
           ])
@@ -65,7 +65,7 @@ const sideNavBar: Component<State, NavBarAction> = (dispatch, state) => {
         li({}, [
           a({ className: 'columns is-flex is-vcentered' }, [
             span({ className: 'icon is-large mr-2' }, [
-              i({ className: 'fas fa-2x fa-solid fa-gear' })
+              i({ className: 'fas fa-xl fa-solid fa-gear' })
             ]),
             span('Settings')
           ])
@@ -73,7 +73,7 @@ const sideNavBar: Component<State, NavBarAction> = (dispatch, state) => {
         li({}, [
           a({ className: 'columns is-flex is-vcentered' }, [
             span({ className: 'icon is-large mr-2' }, [
-              i({ className: 'fas fa-2x fa-solid fa-power-off' })
+              i({ className: 'fas fa-xl fa-solid fa-power-off' })
             ]),
             span('Log Out')
           ])

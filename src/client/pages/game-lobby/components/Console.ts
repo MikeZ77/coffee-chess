@@ -11,27 +11,31 @@ const Console: Component<State, NavBarAction> = (dispatch, state) => {
   return div({ className: 'container' }, [
     div({ className: 'field has-addons mb-0' }, [
       p({ className: 'control is-expanded' }, [
-        button({ className: 'button is-fullwidth' }, [
-          span({ className: 'icon is-small' }, [
-            i({ className: 'fas fa-solid fa-users' })
-          ]),
-          span('Players')
+        button('#player-list', { className: 'button is-fullwidth' }, [
+          span({ className: 'icon is-medium' }, [
+            i({ className: 'fas fa-lg fa-solid fa-users' })
+          ])
         ])
       ]),
       p({ className: 'control is-expanded' }, [
-        button({ className: 'button is-fullwidth' }, [
-          span({ className: 'icon is-small' }, [
-            i({ className: 'fas fa-solid fa-chess-board' })
-          ]),
-          span('Games  ')
+        button('#games', { className: 'button is-fullwidth' }, [
+          span({ className: 'icon is-medium' }, [
+            i({ className: 'fas fa-lg fa-solid fa-chess-board' })
+          ])
         ])
       ]),
       p({ className: 'control is-expanded' }, [
-        button({ className: 'button is-fullwidth' }, [
-          span({ className: 'icon is-small' }, [
-            i({ className: 'fas fa-solid fa-people-arrows' })
-          ]),
-          span('Game   ')
+        button('#current-game', { className: 'button is-fullwidth' }, [
+          span({ className: 'icon is-medium' }, [
+            i({ className: 'fas fa-lg fa-solid fa-people-arrows' })
+          ])
+        ])
+      ]),
+      p({ className: 'control is-expanded' }, [
+        button('#chat', { className: 'button is-fullwidth' }, [
+          span({ className: 'icon is-medium' }, [
+            i({ className: 'fas fa-lg fa-solid fa-comments' })
+          ])
         ])
       ])
     ]),

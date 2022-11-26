@@ -8,3 +8,14 @@ export const initTooltipAttributes = (tooltipInfo: Tooltip): void => {
     element?.setAttribute('data-tooltip', message);
   }
 };
+
+export const initEventListeners = (): void => {
+  document
+    .getElementById('message-game-chat')
+    ?.addEventListener('keyup', (e) => {
+      e.preventDefault();
+      if (e.key === 'Enter') {
+        document.getElementById('button-game-chat')?.click();
+      }
+    });
+};

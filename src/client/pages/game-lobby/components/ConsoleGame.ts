@@ -2,11 +2,11 @@ import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
-import { NavBarAction } from '../actions/sideNavBarActions';
+import { updateChatMessage, GameConsoleAction } from '../actions/index';
 
 const { div, footer, a, button, i, span, p, input } = hh(h);
 
-const ConsoleGame: Component<State, NavBarAction> = (dispatch, state) => {
+const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
   return div({ className: 'card' }, [
     div({ className: 'card-content', style: 'height: 48vh' }, [
       div({ className: 'content' }, [])
@@ -66,14 +66,34 @@ const ConsoleGame: Component<State, NavBarAction> = (dispatch, state) => {
 
     div({ className: 'field has-addons' }, [
       p({ className: 'control is-expanded' }, [
-        input({ className: 'input', type: 'text' }, [])
+        input(
+          '#message-game-chat',
+          {
+            className: 'input',
+            type: 'text',
+            value: state.gameConsole.gameChatMessage,
+            oninput: (e: Event) => {
+              dispatch(updateChatMessage((<HTMLInputElement>e.target).value));
+            }
+          },
+          []
+        )
       ]),
       p({ className: 'control' }, [
-        a({ className: 'button is-success' }, [
-          span({ className: 'icon' }, [
-            i({ className: 'fas fa-regular fa-message' })
-          ])
-        ])
+        a(
+          '#button-game-chat',
+          {
+            className: 'button is-success',
+            onclick: (e: Event) => {
+              console.log(state.gameConsole.gameChatMessage);
+            }
+          },
+          [
+            span({ className: 'icon' }, [
+              i({ className: 'fas fa-regular fa-message' })
+            ])
+          ]
+        )
       ])
     ])
   ]);

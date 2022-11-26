@@ -2,7 +2,7 @@ import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { View } from '../../common/types';
 import { State } from './state';
-import { NavBarAction } from './actions/sideNavBarActions';
+import { NavBarAction } from './actions/sideNavBar';
 import sideNavBar from './components/SideNavBar';
 import Console from './components/Console';
 import Board from './components/Board';

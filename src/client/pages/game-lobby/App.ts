@@ -2,21 +2,27 @@ import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import { View, Dispatch } from '../../common/types';
 import { State } from './state';
-import { NavBarAction } from './actions/sideNavBarActions';
 // import { sendRequest, hanldeError } from './request';
-import { reduceSideNavBar } from './reducers/reduceSideNavBar';
+import {
+  combineReducers,
+  CombinedActions,
+  reduceGameConsole,
+  reduceSideNavBar
+} from './reducers/index';
 import { initChessboard } from './utils/chessboard';
-import combineReducers from './reducers/combineReducers';
-import { initTooltipAttributes } from './utils/simple.utils';
+import {
+  initTooltipAttributes,
+  initEventListeners
+} from './utils/simple.utils';
 
 const app = (
   initState: State,
-  view: View<State, NavBarAction>,
+  view: View<State, CombinedActions>,
   node: HTMLElement
 ) => {
-  const dispatch: Dispatch<NavBarAction> = (action) => {
+  const dispatch: Dispatch<CombinedActions> = (action) => {
     state = reduce(action, state);
-
+    console.log('state', state);
     // if (state.pendingRequest != null) {
     //   const newRequest = { ...state.pendingRequest };
     //   state.pendingRequest = null;
@@ -33,9 +39,10 @@ const app = (
   let state = initState;
   let currentView = view(dispatch, state);
   let rootNode = createElement(currentView);
-  const reduce = combineReducers({ reduceSideNavBar });
+  const reduce = combineReducers({ reduceGameConsole, reduceSideNavBar });
   node.appendChild(rootNode);
   initChessboard();
+  initEventListeners();
   initTooltipAttributes({
     'player-list': 'Player List',
     'current-game': 'Current Game',

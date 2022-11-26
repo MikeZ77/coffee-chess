@@ -7,6 +7,7 @@ import '../../../client/images/chessboard-sprite.svg';
 import '../../common/bulma.styles.scss';
 import '../../common/cm-chessboard.scss';
 import '../../common/_cm-chessboard-theme.scss';
+// import '../../../../node_modules/bulma-tooltip/src/sass/index.sass';
 
 const node = <HTMLElement>document.getElementById('app');
 App(state, View, node);

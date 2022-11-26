@@ -2,7 +2,7 @@ import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
-import { NavBarAction } from '../actions/sideNavBarActions';
+import { NavBarAction } from '../actions/sideNavBar';
 
 const { div, aside, ul, li, a, span, i } = hh(h);
 

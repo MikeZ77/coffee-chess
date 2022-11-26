@@ -2,7 +2,7 @@ import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
-import { NavBarAction } from '../actions/sideNavBarActions';
+import { NavBarAction } from '../actions/sideNavBar';
 
 const { div, span, p, i } = hh(h);
 
@@ -19,7 +19,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
         div({ className: 'tile is-child box is-flex', style: 'width:65%' }, [
           div({ className: 'tile is-ancestor' }, [
             div({ className: 'tile is-12 is-vertical is-parent' }, [
-              div({ className: 'tile is-child box is-flex-grow-5 p-1' }, [
+              div({ className: 'tile is-child is-flex-grow-5 p-1' }, [
                 span({ className: 'icon' }, [
                   i({ className: 'fas  fa-solid fa-chess-pawn' })
                 ]),
@@ -41,13 +41,15 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                     'tile is-child box has-background-dark p-1 has-text-centered'
                 },
                 [
-                  p(
-                    {
-                      className: 'is-family-monospace is-size-3',
-                      style: 'color: hsl(60,100%,50%);'
-                    },
-                    '3:00'
-                  )
+                  div([
+                    p(
+                      {
+                        className: 'is-family-monospace is-size-3',
+                        style: 'color: hsl(60,100%,50%);'
+                      },
+                      '3:00'
+                    )
+                  ])
                 ]
               )
             ])
@@ -58,37 +60,50 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
             div({ className: 'tile is-12 is-vertical is-parent' }, [
               div(
                 {
-                  className:
-                    'tile is-child box has-background-dark p-1 has-text-centered'
+                  className: 'tile is-child p-0 is-flex-grow-5'
                 },
                 [
-                  p(
+                  div(
                     {
-                      className: 'is-family-monospace is-size-3',
-                      style: 'color: hsl(60,100%,50%);'
+                      className:
+                        'tile is-child box has-background-dark p-1 has-text-centered'
                     },
-                    '3:00'
+                    [
+                      p(
+                        {
+                          className: 'is-family-monospace is-size-3',
+                          style: 'color: hsl(60,100%,50%);'
+                        },
+                        '3:00'
+                      )
+                    ]
                   )
                 ]
               ),
-              div({ className: 'tile is-child box p-1 is-flex-grow-5' }, [
-                div({ className: 'is-flex-grow-4 ' }, [
-                  span({ className: 'icon' }, [
-                    i({ className: 'fas fa-solid fa-chess-knight' })
-                  ]),
-                  span(
-                    { className: 'is-size-5 has-text-grey-darker' },
-                    'Player1 '
-                  ),
-                  span(
-                    {
-                      className:
-                        'is-size-5 has-text-weight-semibold has-text-grey'
-                    },
-                    '(1900)'
-                  )
-                ])
-              ])
+              div(
+                {
+                  className: 'tile is-child p-0',
+                  style: 'position: relative;'
+                },
+                [
+                  div({ style: 'bottom: 0; position: absolute;' }, [
+                    span({ className: 'icon' }, [
+                      i({ className: 'fas fa-solid fa-chess-knight' })
+                    ]),
+                    span(
+                      { className: 'is-size-5 has-text-grey-darker' },
+                      'Player2 '
+                    ),
+                    span(
+                      {
+                        className:
+                          'is-size-5 has-text-weight-semibold has-text-grey'
+                      },
+                      '(1900)'
+                    )
+                  ])
+                ]
+              )
             ])
           ])
         ])

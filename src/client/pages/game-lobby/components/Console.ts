@@ -2,12 +2,12 @@ import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
-import { NavBarAction } from '../actions/sideNavBarActions';
+import { GameConsoleAction } from '../actions/index';
 import ConsoleGame from './ConsoleGame';
 
 const { div, p, button, span, i } = hh(h);
 
-const Console: Component<State, NavBarAction> = (dispatch, state) => {
+const Console: Component<State, GameConsoleAction> = (dispatch, state) => {
   return div({ className: 'container' }, [
     div({ className: 'field has-addons mb-0' }, [
       p({ className: 'control is-expanded' }, [

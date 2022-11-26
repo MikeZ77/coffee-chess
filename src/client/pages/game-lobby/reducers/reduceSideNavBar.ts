@@ -1,9 +1,9 @@
-import { Reducer, HttpRequest } from 'common/types';
+import { Reducer } from 'common/types';
 import { State } from '../state';
-import { NavBarAction } from '../actions/sideNavBarActions';
+import { NavBarAction, GameConsoleAction } from '../actions/index';
 const { SERVER_FQDN } = process.env;
 
-export const reduceSideNavBar: Reducer<State, NavBarAction> = (
+const reduceSideNavBar: Reducer<State, NavBarAction> = (
   action,
   state
 ): State => {
@@ -16,3 +16,5 @@ export const reduceSideNavBar: Reducer<State, NavBarAction> = (
     }
   }
 };
+
+export default reduceSideNavBar;

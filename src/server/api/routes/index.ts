@@ -10,4 +10,4 @@ pageRouter.use('/', pages);
 apiRouter.use('/user', user);
 apiRouter.use('/health', health);
 
-export default {apiRouter, pageRouter};
+export default { apiRouter, pageRouter };

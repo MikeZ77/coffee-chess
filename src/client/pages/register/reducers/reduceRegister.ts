@@ -1,8 +1,13 @@
-import { Reducer, State, HttpRequest, RegisterPayload } from '../types';
+import { Reducer, HttpRequest, RegisterPayload } from '../../../common/types';
+import { State } from '../state';
+import { Action } from '../actions/actions';
 
 const { SERVER_FQDN } = process.env;
 
-export const reduceRegister: Reducer = (action, state): State => {
+export const reduceRegister: Reducer<State, Action> = (
+  action,
+  state
+): State => {
   switch (action.type) {
     case 'UPDATE_USERNAME': {
       const { username } = action;

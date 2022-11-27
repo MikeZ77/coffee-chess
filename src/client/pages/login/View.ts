@@ -1,4 +1,4 @@
-import '../../common/bulma.styles.scss';
+import '../../public/styles/bulma.styles.scss';
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { View } from '../../common/types';

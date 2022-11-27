@@ -3,10 +3,10 @@ import View from './View';
 import App from './App';
 import '@fortawesome/fontawesome-free/js/fontawesome';
 import '@fortawesome/fontawesome-free/js/solid';
-import '../../../client/images/chessboard-sprite.svg';
-import '../../common/bulma.styles.scss';
-import '../../common/cm-chessboard.scss';
-import '../../common/_cm-chessboard-theme.scss';
+import '../../public/images/chessboard-sprite.svg';
+import '../../public/styles/bulma.styles.scss';
+import '../../public/styles/cm-chessboard.scss';
+import '../../public/styles/_cm-chessboard-theme.scss';
 // import '../../../../node_modules/bulma-tooltip/src/sass/index.sass';
 
 const node = <HTMLElement>document.getElementById('app');

@@ -1,4 +1,13 @@
-import { State } from './types';
+import { HttpRequest, Payloads } from '../../common/types';
+
+export type State = {
+  username: string;
+  email: string;
+  password: string;
+  repeatedPassword: string;
+  loading: boolean;
+  pendingRequest: HttpRequest<Payloads> | null;
+};
 
 const state: State = {
   username: '',

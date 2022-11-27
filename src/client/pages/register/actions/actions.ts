@@ -1,4 +1,12 @@
-import { Action, RegisterPayload } from './types';
+import { RegisterPayload } from '../../../common/types';
+
+export type Action =
+  | { type: 'UPDATE_USERNAME'; username: string }
+  | { type: 'UPDATE_EMAIL'; email: string }
+  | { type: 'UPDATE_PASSWORD'; password: string }
+  | { type: 'UPDATE_REPEATED_PASSWORD'; repeatedPassword: string }
+  | { type: 'LOADING_REGISTER'; loading: boolean }
+  | { type: 'REQUEST_REGISTER'; payload: RegisterPayload };
 
 export const updateInputUsername = (username: string): Action => {
   return {

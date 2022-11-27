@@ -5,7 +5,7 @@ export interface State {
 }
 
 type SideNavBar = {
-  newGameDropdownOpen: boolean;
+  newGameMenuOpen: boolean;
   oneMinuteSearching: boolean;
   threeMinuteSearching: boolean;
   fifteenMinuteSearching: boolean;
@@ -18,7 +18,7 @@ type GameConsole = {
 const state: State = {
   reduced: false,
   sideNavBar: {
-    newGameDropdownOpen: false,
+    newGameMenuOpen: false,
     oneMinuteSearching: false,
     threeMinuteSearching: false,
     fifteenMinuteSearching: false

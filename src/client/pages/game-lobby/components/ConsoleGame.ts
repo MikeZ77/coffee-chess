@@ -2,7 +2,11 @@ import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
-import { updateChatMessage, GameConsoleAction } from '../actions/index';
+import {
+  updateChatMessage,
+  GameConsoleAction,
+  sendChatMessage
+} from '../actions/index';
 
 const { div, footer, a, button, i, span, p, input } = hh(h);
 
@@ -84,8 +88,8 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
           '#button-game-chat',
           {
             className: 'button is-success',
-            onclick: (e: Event) => {
-              console.log(state.gameConsole.gameChatMessage);
+            onclick: () => {
+              dispatch(sendChatMessage());
             }
           },
           [

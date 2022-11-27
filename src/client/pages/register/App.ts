@@ -1,18 +1,25 @@
 import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
-import { State, View, Dispatch } from './types';
-import { sendRequest, hanldeError, handleResponse } from './request';
+import { View, Dispatch } from 'common/types';
+import { BasicResponse } from '../../../types';
+import { State } from './state';
+import { hanldeError, handleResponse } from './utils/handlers';
 import { reduceRegister } from './reducers/reduceRegister';
-import combineReducers from './reducers/combineReducers';
+import { Action } from './actions/actions';
+import sendRequest from '../../common/request';
+import combineReducers from './utils/combineReducers';
 
-const app = (initState: State, view: View, node: HTMLElement) => {
-  const dispatch: Dispatch = (action) => {
+const app = (
+  initState: State,
+  view: View<State, Action>,
+  node: HTMLElement
+) => {
+  const dispatch: Dispatch<Action> = (action) => {
     state = reduce(action, state);
-
     if (state.pendingRequest != null) {
       const newRequest = { ...state.pendingRequest };
       state.pendingRequest = null;
-      sendRequest(newRequest)
+      sendRequest<BasicResponse>(newRequest)
         .then((res) => {
           handleResponse(res);
         })

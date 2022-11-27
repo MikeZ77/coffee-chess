@@ -1,7 +1,7 @@
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 // @ts-ignore
-import TempLoginLogo from '../../../images/coffee_temp_logo.png';
+import TempLoginLogo from '../../../public/images/coffee_temp_logo.png';
 
 const { div, img } = hh(h);
 

@@ -16,6 +16,7 @@ export type Reducers<S, A> = {
   [index: string]: Reducer<S, A>;
 };
 
+// For different optrions extend HttpRequest
 export type HttpRequest<T = void> = {
   endpoint: string;
   method: 'GET' | 'POST' | 'DELETE' | 'PATCH' | 'PUT';
@@ -23,11 +24,17 @@ export type HttpRequest<T = void> = {
   payload?: T;
 };
 
-export type Payloads = LoginPayload | void;
+export type Payloads = LoginPayload | RegisterPayload | void;
 
 export type LoginPayload = {
   username: string;
   password: string;
+};
+
+export type RegisterPayload = {
+  username: string;
+  password: string;
+  email: string;
 };
 
 export type Toast = {

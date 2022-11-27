@@ -2,10 +2,10 @@ import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import { View, Dispatch } from '../../common/types';
 import { State } from './state';
+import { AllActions, AnyActions } from './actions/index';
 // import { sendRequest, hanldeError } from './request';
 import {
   combineReducers,
-  CombinedActions,
   reduceGameConsole,
   reduceSideNavBar
 } from './reducers/index';
@@ -17,12 +17,11 @@ import {
 
 const app = (
   initState: State,
-  view: View<State, CombinedActions>,
+  view: View<State, AnyActions>,
   node: HTMLElement
 ) => {
-  const dispatch: Dispatch<CombinedActions> = (action) => {
-    state = reduce(action, state);
-    console.log('state', state);
+  const dispatch: Dispatch<AnyActions> = (action) => {
+    state = reduce(<AllActions>action, state);
     // if (state.pendingRequest != null) {
     //   const newRequest = { ...state.pendingRequest };
     //   state.pendingRequest = null;

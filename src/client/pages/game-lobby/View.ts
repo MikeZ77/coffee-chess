@@ -2,14 +2,14 @@ import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { View } from '../../common/types';
 import { State } from './state';
-import { NavBarAction } from './actions/sideNavBar';
+import { NavBarAction, AnyActions } from './actions/index';
 import sideNavBar from './components/SideNavBar';
 import Console from './components/Console';
 import Board from './components/Board';
 
 const { div, section } = hh(h);
 
-const view: View<State, NavBarAction> = (dispatch, state) => {
+const view: View<State, AnyActions> = (dispatch, state) => {
   return section({ className: 'hero is-fullheight' }, [
     div({ className: 'columns' }, [
       div({ className: 'column is-2' }, [sideNavBar(dispatch, state)]),

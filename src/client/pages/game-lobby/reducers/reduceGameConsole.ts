@@ -15,6 +15,13 @@ const reduceGameConsole: Reducer<State, GameConsoleAction> = (
         gameConsole: { ...state.gameConsole, gameChatMessage }
       };
     }
+    case 'SEND_CHAT_MESSAGE': {
+      return {
+        ...state,
+        reduced: true,
+        gameConsole: { ...state.gameConsole, gameChatMessage: '' }
+      };
+    }
     default: {
       return state;
     }

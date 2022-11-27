@@ -1,7 +1,9 @@
 import { toast } from 'bulma-toast';
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
-import { Component } from '../types';
+import { Component } from '../../../common/types';
+import { State } from '../state';
+import { Action } from '../actions/actions';
 import {
   updateInputUsername,
   updateInputPassword,
@@ -9,11 +11,11 @@ import {
   updateInputEmail,
   registerLoading,
   register
-} from '../actions';
+} from '../actions/actions';
 
 const { form, div, label, input, button } = hh(h);
 
-const RegisterForm: Component = (dispatch, state) => {
+const RegisterForm: Component<State, Action> = (dispatch, state) => {
   const { username, email, password, repeatedPassword, loading } = state;
   return form({ className: 'box' }, [
     div({ className: 'field' }, [

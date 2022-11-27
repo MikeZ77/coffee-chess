@@ -59,19 +59,19 @@ module.exports = {
     new Dotenv(),
     new HtmlWebpackPlugin({
       filename: 'login.html',
-      template: path.resolve(__dirname, './common/index.html'),
+      template: path.resolve(__dirname, './public/index.html'),
       chunks: ['login'],
       minify: false
     }),
     new HtmlWebpackPlugin({
       filename: 'register.html',
-      template: path.resolve(__dirname, './common/index.html'),
+      template: path.resolve(__dirname, './public/index.html'),
       chunks: ['register'],
       minify: false
     }),
     new HtmlWebpackPlugin({
       filename: 'game-lobby.html',
-      template: path.resolve(__dirname, './common/index.html'),
+      template: path.resolve(__dirname, './public/index.html'),
       chunks: ['gameLobby'],
       minify: false
     }),

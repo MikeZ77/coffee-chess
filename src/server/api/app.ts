@@ -16,7 +16,7 @@ const initApi = (app: Express) => {
   app.use(
     '/favicon.ico',
     express.static(
-      path.resolve(__dirname, '../../../src/client/images/favicon.ico')
+      path.resolve(__dirname, '../../../src/client/public/images/favicon.ico')
     )
   );
   app.use(express.static(path.resolve(__dirname, '../../../dist/client')));

@@ -10,19 +10,23 @@ export const reduceRegister: Reducer<State, Action> = (
 ): State => {
   switch (action.type) {
     case 'UPDATE_USERNAME': {
-      const { username } = action;
+      let { username } = action;
+      username = username.trim();
       return { ...state, username };
     }
     case 'UPDATE_EMAIL': {
-      const { email } = action;
+      let { email } = action;
+      email = email.trim();
       return { ...state, email };
     }
     case 'UPDATE_PASSWORD': {
-      const { password } = action;
+      let { password } = action;
+      password = password.trim();
       return { ...state, password };
     }
     case 'UPDATE_REPEATED_PASSWORD': {
-      const { repeatedPassword } = action;
+      let { repeatedPassword } = action;
+      repeatedPassword = repeatedPassword.trim();
       return { ...state, repeatedPassword };
     }
     case 'LOADING_REGISTER': {

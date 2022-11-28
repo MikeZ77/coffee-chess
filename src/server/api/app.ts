@@ -24,7 +24,7 @@ const initApi = (app: Express) => {
   app.use(`/api/${API_VERSION}`, routers.apiRouter);
 
   app.listen(PORT, () =>
-    Logger.info(`Coffee Chess running on port ${PORT} ☕ ♟️ 🚀`)
+    Logger.info(`Coffee Chess API server running on port ${PORT} ☕ ♟️ 🚀`)
   );
 };
 

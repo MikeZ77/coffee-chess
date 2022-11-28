@@ -15,3 +15,14 @@ export interface RegisterPayload {
 export interface BasicResponse {
   message: string;
 }
+
+/*************************************** STATE OBJECTS **********************************/
+
+export type UserSession = {
+  userId: string;
+  username: string;
+  state: 'IDLE' | 'PLAYING' | 'SEARCHING' | 'DISCONNECTED';
+  playingGame: string | null;
+  watchingGame: string | null;
+  lastActivity: string;
+};

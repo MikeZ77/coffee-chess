@@ -5,10 +5,15 @@
     "outDir": "../../dist/server",
     "sourceMap": true,
     "esModuleInterop": true,
-    "strict": true
+    "strict": true,
+    "baseUrl": "./",
+    "paths": {
+      "@Utils/*": ["utils/*"]
+    }
   },
   "include": ["**/*.ts"],
   "ts-node": {
-    "files": true
+    "files": true,
+    "require": ["tsconfig-paths/register"]
   }
 }

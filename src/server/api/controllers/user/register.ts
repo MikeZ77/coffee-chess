@@ -1,20 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
-import sql from 'mssql';
 import bcrypt from 'bcryptjs';
 import transporter from '../../../utils/config.mailer';
 import { v4 as uuidv4 } from 'uuid';
+import sql, { ConnectionPool } from 'mssql';
+import { RedisClientType } from 'redis';
 
-const { EMAIL_USERNAME, BASE_URL, API_VERSION } = process.env;
+const { EMAIL_USERNAME, SERVER_FQDN, API_VERSION } = process.env;
 
 export default async (req: Request, res: Response, next: NextFunction) => {
+  const db: ConnectionPool = req.app.locals.db;
+  const redis: RedisClientType = req.app.locals.redis;
   const { username, password, email } = req.body;
   const saltRounds = 10;
   const activationToken = uuidv4();
-  const activationTokenExpiry = 60 * 30;
+  const activationTokenExpirySeconds = 60 * 30;
 
   try {
-    const db = req.app.locals.db;
-    const redis = req.app.locals.redis;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const result = await db
@@ -28,7 +29,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const user_id = result.output.user_id;
 
     redis.set(`user:activation:${activationToken}`, user_id, {
-      EX: activationTokenExpiry
+      EX: activationTokenExpirySeconds
     });
 
     // TODO: Create a better email template.
@@ -36,10 +37,10 @@ export default async (req: Request, res: Response, next: NextFunction) => {
       from: EMAIL_USERNAME,
       to: email,
       subject: 'Activate your Coffee Chess Account',
-      html: `<p><a href="${BASE_URL}${API_VERSION}/activate/${activationToken}">Activate your account</a></p>
+      html: `<p>Hi ${username}. <a href="${SERVER_FQDN}/api/${API_VERSION}/user/activate/${activationToken}" target="_blank">Activate your account here.</a></p>
              <p>The new account will expire if it is not activated in the next ${
-               activationTokenExpiry / 60
-             } minutes</p>`
+               activationTokenExpirySeconds / 60
+             } minutes.</p>`
     });
 
     res.status(201).json({

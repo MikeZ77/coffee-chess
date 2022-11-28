@@ -22,7 +22,7 @@ services:
       - .env
   cache:
     container_name: redis
-    image: redis:7.0.5-alpine
+    image: redislabs/rejson:2.4.2
     ports:
       - 3001:6379
   db:

@@ -7,7 +7,7 @@ export const errorToast = (message: string): void => {
     position: 'bottom-center',
     dismissible: true,
     pauseOnHover: true,
-    duration: 3000
+    duration: 4500
   });
 };
 
@@ -18,6 +18,6 @@ export const successToast = (message: string): void => {
     position: 'bottom-center',
     dismissible: true,
     pauseOnHover: true,
-    duration: 3000
+    duration: 4500
   });
 };

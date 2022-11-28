@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import initRedis from './utils/connect.cache';
 import initDb from './utils/connect.database';
 import initApi from './api/app';
+import initSockets from './sockets/index';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -17,4 +18,5 @@ dotenv.config();
   const server = createServer(app);
   const io = new Server(server);
   initApi(app);
+  initSockets(io, app.locals.redis);
 })();

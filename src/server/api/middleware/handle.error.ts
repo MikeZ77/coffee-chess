@@ -26,7 +26,8 @@ const errorCodes = {
     errorMessage: 'Activation token has expired.'
   },
   50101: { statusCode: 403, errorMessage: 'Acount has not been activated.' },
-  50102: { statusCode: 401, errorMessage: 'Incorrect username or password.' }
+  50102: { statusCode: 401, errorMessage: 'Incorrect username or password.' },
+  50103: { statusCode: 404, errorMessage: 'Username does not exist.' }
 };
 
 const getErrorHelper = (errorCode: number) => {

@@ -4,32 +4,37 @@ import Logger from './config.logging.winston';
 type RedisClient = ReturnType<typeof createClient>;
 const { CACHE_SERVER } = process.env;
 
-const initConnListeners = (conn: RedisClient) => {
+export const redisConfig = {
+  url: CACHE_SERVER,
+  socket: {
+    reconnectStrategy() {
+      return 5000;
+    }
+  }
+};
+
+export const initConnListeners = (
+  conn: RedisClient,
+  connectionType: string
+) => {
   conn.on('connect', () => {
-    Logger.info('Redis connection status: connected');
+    Logger.info(`${connectionType} connection status: connected`);
   });
   conn.on('end', () => {
-    Logger.info('Redis connection status: disconnected');
+    Logger.info(`${connectionType} connection status: disconnected`);
   });
   conn.on('reconnecting', () => {
-    Logger.warn('Redis connection status: reconnecting');
+    Logger.warn(`${connectionType} connection status: reconnecting`);
   });
   conn.on('error', (error) => {
-    Logger.error('Redis connection status: error ', error);
+    Logger.error(`${connectionType} connection status: error`, error);
   });
 };
 
 const initRedis = async () => {
   // TODO: Config should be specified for stage and prod environments
-  const redisClientPromise = createClient({
-    url: CACHE_SERVER,
-    socket: {
-      reconnectStrategy() {
-        return 5000;
-      }
-    }
-  });
-  initConnListeners(redisClientPromise);
+  const redisClientPromise = createClient(redisConfig);
+  initConnListeners(redisClientPromise, 'Redis');
   await redisClientPromise.connect();
   return redisClientPromise;
 };

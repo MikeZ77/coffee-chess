@@ -7,11 +7,13 @@ const { SERVER_FQDN } = process.env;
 export const reduceLogin: Reducer<State, Action> = (action, state) => {
   switch (action.type) {
     case 'UPDATE_USERNAME': {
-      const { username } = action;
+      let { username } = action;
+      username = username.trim();
       return { ...state, username };
     }
     case 'UPDATE_PASSWORD': {
-      const { password } = action;
+      let { password } = action;
+      password = password.trim();
       return { ...state, password };
     }
     case 'LOADING_BUTTON': {

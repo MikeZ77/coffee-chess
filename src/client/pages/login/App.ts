@@ -2,7 +2,7 @@ import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import { View, Dispatch } from 'common/types';
 import { State } from './state';
-import { hanldeError } from './utils/handlers';
+import { hanldeError, handleResponse } from './utils/handlers';
 import { reduceLogin } from './reducers/reduceLogin';
 import { Action } from './actions/actions';
 import { comingFromRegistration } from './utils/handlers';
@@ -20,9 +20,13 @@ const app = (
     if (state.pendingRequest != null) {
       const newRequest = { ...state.pendingRequest };
       state.pendingRequest = null;
-      sendRequest(newRequest).catch((error) => {
-        hanldeError(error, dispatch);
-      });
+      sendRequest<void>(newRequest)
+        .then(() => {
+          handleResponse();
+        })
+        .catch((error) => {
+          hanldeError(error, dispatch);
+        });
     }
     const updatedView = view(dispatch, state);
     const patches = diff(currentView, updatedView);

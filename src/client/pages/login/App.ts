@@ -6,7 +6,7 @@ import { hanldeError, handleResponse } from './utils/handlers';
 import { reduceLogin } from './reducers/reduceLogin';
 import { Action } from './actions/actions';
 import { comingFromRegistration } from './utils/handlers';
-import sendRequest from '../../common/request';
+import sendRequest from '@Common/request';
 import combineReducers from './utils/combineReducers';
 
 const app = (

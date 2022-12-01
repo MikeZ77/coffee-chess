@@ -1,6 +1,6 @@
 import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
-import { View, Dispatch } from '../../common/types';
+import { View, Dispatch } from '@Common/types';
 import { State } from './state';
 import { AllActions, AnyActions } from './actions/index';
 // import { sendRequest, hanldeError } from './request';

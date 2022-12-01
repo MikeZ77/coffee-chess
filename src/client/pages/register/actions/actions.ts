@@ -1,4 +1,4 @@
-import { RegisterPayload } from '../../../common/types';
+import { RegisterPayload } from '@Common/types';
 
 export type Action =
   | { type: 'UPDATE_USERNAME'; username: string }

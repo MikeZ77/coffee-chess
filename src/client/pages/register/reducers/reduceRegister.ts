@@ -1,4 +1,4 @@
-import { Reducer, HttpRequest, RegisterPayload } from '../../../common/types';
+import { Reducer, HttpRequest, RegisterPayload } from '@Common/types';
 import { State } from '../state';
 import { Action } from '../actions/actions';
 

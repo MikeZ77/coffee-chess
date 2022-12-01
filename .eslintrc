@@ -15,10 +15,11 @@
   },
   "rules": {
     "no-console": "warn",
+    "max-len": [{ "ignorePattern": "export default async (req*" }],
     "prettier/prettier": [
       "error",
       {
-        "endOfLine": "auto"
+        "semi": true
       }
     ],
     "@typescript-eslint/ban-ts-comment": "off"

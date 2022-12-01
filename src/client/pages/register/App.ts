@@ -1,12 +1,12 @@
 import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import { View, Dispatch } from 'common/types';
-import { BasicResponse } from '../../../types';
+import { BasicResponse } from '@Types';
 import { State } from './state';
 import { hanldeError, handleResponse } from './utils/handlers';
 import { reduceRegister } from './reducers/reduceRegister';
 import { Action } from './actions/actions';
-import sendRequest from '../../common/request';
+import sendRequest from '@Common/request';
 import combineReducers from './utils/combineReducers';
 
 const app = (

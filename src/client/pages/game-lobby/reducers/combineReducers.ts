@@ -1,4 +1,4 @@
-import { Reducers } from '../../../common/types';
+import { Reducers } from '@Common/types';
 import { State } from '../state';
 import { AllActions } from '../actions/index';
 

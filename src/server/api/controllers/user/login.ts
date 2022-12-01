@@ -1,17 +1,17 @@
-import type { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { DateTime } from 'luxon';
 import { encodeToken } from '../../../utils/auth.token';
 import { ServerError } from '../../../utils/custom.errors';
-import sql, { type ConnectionPool } from 'mssql';
-import type { RedisClientType } from 'redis';
-import type { UserSession } from '../../../../types';
+import sql from 'mssql';
+import type { UserSession, LoginPayload } from '@Types';
+import type { Response, NextFunction } from 'express';
+import type { Request } from '../types';
 
 const { ENV } = process.env;
 
-export default async (req: Request, res: Response, next: NextFunction) => {
-  const db: ConnectionPool = req.app.locals.db;
-  const redis: RedisClientType = req.app.locals.redis;
+export default async (req: Request<LoginPayload>, res: Response, next: NextFunction) => {
+  const db = req.app.locals.db;
+  const redis = req.app.locals.redis;
   const { username, password } = req.body;
 
   try {

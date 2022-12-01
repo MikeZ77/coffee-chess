@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { signInLoading, Action } from '../actions/actions';
-import { Dispatch } from '../../../common/types';
-import { successToast, errorToast } from '../../../common/toast';
+import { Dispatch } from '@Common/types';
+import { successToast, errorToast } from '@Common/toast';
 
 const { SERVER_FQDN } = process.env;
 

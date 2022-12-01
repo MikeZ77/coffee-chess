@@ -19,7 +19,10 @@ module.exports = {
   mode: 'development',
   watch: true,
   resolve: {
-    extensions: ['.js', '.ts']
+    extensions: ['.js', '.ts'],
+    alias: {
+      '@Common': path.resolve(__dirname, 'common')
+    }
   },
   module: {
     rules: [

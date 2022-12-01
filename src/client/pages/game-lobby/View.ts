@@ -1,6 +1,6 @@
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
-import { View } from '../../common/types';
+import { View } from '@Common/types';
 import { State } from './state';
 import { NavBarAction, AnyActions } from './actions/index';
 import sideNavBar from './components/SideNavBar';

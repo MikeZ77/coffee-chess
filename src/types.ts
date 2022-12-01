@@ -11,6 +11,11 @@ export interface RegisterPayload {
   email: string;
 }
 
+export interface LoginPayload {
+  username: string;
+  password: string;
+}
+
 /*************************************** RESPONSES **************************************/
 export interface BasicResponse {
   message: string;

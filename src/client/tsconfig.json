@@ -6,7 +6,11 @@
     "baseUrl": ".",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@Common/*": ["common/*"],
+      "@Types": ["../types.ts"]
+    }
   },
   "include": ["**/*.ts"]
 }

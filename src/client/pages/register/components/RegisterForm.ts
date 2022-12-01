@@ -1,7 +1,7 @@
 import { toast } from 'bulma-toast';
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
-import { Component } from '../../../common/types';
+import { Component } from '@Common/types';
 import { State } from '../state';
 import { Action } from '../actions/actions';
 import {

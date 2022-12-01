@@ -1,4 +1,4 @@
-import { HttpRequest, Payloads } from '../../common/types';
+import { HttpRequest, Payloads } from '@Common/types';
 
 export type State = {
   username: string;

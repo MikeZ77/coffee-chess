@@ -1,7 +1,7 @@
 import '../../public/styles/bulma.styles.scss';
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
-import { View } from '../../common/types';
+import { View } from '@Common/types';
 import { State } from './state';
 import { LoginForm } from './components/index';
 import { Action } from './actions/actions';

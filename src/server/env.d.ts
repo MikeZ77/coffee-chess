@@ -2,22 +2,6 @@
     Note that dotenv imports every env variable as a string or undefined.
     This interfaces tells typescript the env types.
 */
-// import 'express';
-// import { RedisClientType } from 'redis';
-// import { ConnectionPool } from 'mssql';
-
-// interface AppLocals {
-//   redis: RedisClientType;
-//   db: ConnectionPool;
-// }
-
-// interface ReqLocals { }
-
-// declare namespace Express {
-//   export interface Locals {
-//     hi: string;
-//   }
-// }
 
 declare global {
   namespace NodeJS {

@@ -16,9 +16,7 @@ const initSockets = async (io: ioServer, redisClient: RedisClientType) => {
   Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
     io.adapter(createAdapter(pubClient, subClient));
     io.listen(parseInt(SOCKET_PORT as string));
-    Logger.info(
-      `Coffee Chess Socket server running on port ${SOCKET_PORT} ☕ ♟️ 🚀`
-    );
+    Logger.info(`Coffee Chess Socket server running on port ${SOCKET_PORT} ☕ ♟️ 🚀`);
     io.on('connection', (socket) => {
       console.log(socket);
     });

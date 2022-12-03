@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { ServerError } from '../../../utils/custom.errors';
-import sql, { ConnectionPool } from 'mssql';
-import { RedisClientType } from 'redis';
+import sql, { type ConnectionPool } from 'mssql';
+import type { RedisClientType } from 'redis';
 
 export default async (req: Request, res: Response, next: NextFunction) => {
   const db: ConnectionPool = req.app.locals.db;

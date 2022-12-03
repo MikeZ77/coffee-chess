@@ -11,10 +11,7 @@ import {
 
 const { ul, li, a, span, i, div } = hh(h);
 
-const sideNavBarGameTypes: Component<State, NavBarAction> = (
-  dispatch,
-  state
-) => {
+const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) => {
   const { oneMinuteSearching, threeMinuteSearching, fifteenMinuteSearching } =
     state.sideNavBar;
   return ul({}, [

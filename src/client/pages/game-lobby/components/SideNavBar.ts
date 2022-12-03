@@ -18,9 +18,7 @@ const sideNavBar: Component<State, NavBarAction> = (dispatch, state) => {
         li({}, [
           a(
             {
-              className: `${
-                newGameMenuOpen ? 'is-active' : ''
-              } columns is-flex is-vcentered`,
+              className: `${newGameMenuOpen ? 'is-active' : ''} columns is-flex is-vcentered`,
               onclick: () => {
                 dispatch(openNewGameMenu(newGameMenuOpen));
               }

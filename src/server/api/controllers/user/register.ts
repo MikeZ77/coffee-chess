@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import sql, { ConnectionPool } from 'mssql';
 import { RedisClientType } from 'redis';
 
-const { EMAIL_USERNAME, SERVER_FQDN, API_VERSION } = process.env;
+const { EMAIL_USERNAME, SERVER_FQDN, API_VERSION, DEFAULT_RATING } = process.env;
 
 export default async (req: Request, res: Response, next: NextFunction) => {
   const db: ConnectionPool = req.app.locals.db;
@@ -14,6 +14,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   const saltRounds = 10;
   const activationToken = uuidv4();
   const activationTokenExpirySeconds = 60 * 30;
+  const defaultRating = parseInt(DEFAULT_RATING);
 
   try {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -23,6 +24,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
       .input('email', sql.NVarChar, email)
       .input('username', sql.NVarChar, username)
       .input('password', sql.NVarChar, hashedPassword)
+      .input('default_rating', sql.Int, defaultRating)
       .output('user_id', sql.UniqueIdentifier)
       .execute('api.create_user');
 
@@ -37,7 +39,8 @@ export default async (req: Request, res: Response, next: NextFunction) => {
       from: EMAIL_USERNAME,
       to: email,
       subject: 'Activate your Coffee Chess Account',
-      html: `<p>Hi ${username}. <a href="${SERVER_FQDN}/api/${API_VERSION}/user/activate/${activationToken}" target="_blank">Activate your account here.</a></p>
+      html: `<p>Hi ${username}. Activate your account by heading to this 
+             <a href="${SERVER_FQDN}/api/${API_VERSION}/user/activate/${activationToken}" target="_blank"> LINK.</a></p>
              <p>The new account will expire if it is not activated in the next ${
                activationTokenExpirySeconds / 60
              } minutes.</p>`

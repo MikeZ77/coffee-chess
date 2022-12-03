@@ -5,6 +5,7 @@ export { default as gameLobbyPage } from './pages/game.lobby';
 export { default as register } from './user/register';
 export { default as activate } from './user/activate';
 export { default as login } from './user/login';
+export { default as queueSearch } from './game/queue.search';
 
 // TODO: For testing only.
 export { default as test } from './user/temp';

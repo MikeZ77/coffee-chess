@@ -1,0 +1,30 @@
+{
+  // Place your coffee-chess workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and
+  // description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope
+  // is left empty or omitted, the snippet gets applied to all languages. The prefix is what is
+  // used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+  // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
+  // Placeholders with the same ids are connected.
+  // Example:
+  "New controller": {
+    "scope": "javascript,typescript",
+    "prefix": "controller",
+    "body": [
+      "import type { Request, Response, NextFunction } from 'express';",
+      "import { ServerError } from '../../../utils/custom.errors';",
+      "import sql, { type ConnectionPool } from 'mssql';",
+      "import type { RedisClientType } from 'redis';",
+      "",
+      "export default async (req: Request, res: Response, next: NextFunction) => {",
+      "const db: ConnectionPool = req.app.locals.db;",
+      "const redis: RedisClientType = req.app.locals.redis;",
+      "",
+      "try {",
+      "console.log('Body here');",
+      "} catch (error) {",
+      "next(error);",
+      "}",
+      "};"
+    ]
+  }
+}

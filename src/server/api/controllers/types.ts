@@ -11,9 +11,6 @@ interface IApplication extends Application {
   locals: Locals;
 }
 
-interface IRequest<T> extends ERequest {
+export interface IRequest extends ERequest {
   app: IApplication;
-  body: T;
 }
-
-export type Request<T> = IRequest<T> | ERequest;

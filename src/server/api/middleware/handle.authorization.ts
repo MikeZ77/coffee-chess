@@ -1,10 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import {
-  decodeToken,
-  encodeToken,
-  checkExpiration,
-  TokenState
-} from '../../utils/auth.token';
+import { decodeToken, encodeToken, checkExpiration, TokenState } from '../../utils/auth.token';
 
 const { ENV } = process.env;
 
@@ -18,14 +13,15 @@ export default (req: Request, res: Response, next: NextFunction) => {
   try {
     const decodedToken = decodeToken(token);
     const authAction = checkExpiration(decodedToken);
+    const { user_id, username } = decodedToken;
     switch (authAction) {
       case TokenState.ACTIVE:
-        // TODO: Include user info in req.locals
+        req.id = user_id;
         return next();
       case TokenState.EXPIRED:
+        // TODO: Remove user session
         return res.status(401).redirect('/login');
       case TokenState.RENEW: {
-        const { user_id, username } = decodedToken;
         const refreshedToken = encodeToken({ user_id, username });
         res.cookie('access_token', refreshedToken, {
           httpOnly: true,

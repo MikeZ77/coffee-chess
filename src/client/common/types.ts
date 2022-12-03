@@ -5,10 +5,7 @@ export type View<S, A> = (dispatch: Dispatch<A>, state: S) => VNode;
 export type Reducer<S, A> = (action: A, state: S) => S;
 export type Dispatch<A> = (action: A) => void;
 export type SimpleComponent<S> = (state: S) => HyperScriptHelperFn;
-export type Component<S, A> = (
-  dispatch: Dispatch<A>,
-  state: S
-) => HyperScriptHelperFn;
+export type Component<S, A> = (dispatch: Dispatch<A>, state: S) => HyperScriptHelperFn;
 
 export type CombineReducers<S, A> = (reducers: Reducers<S, A>) => Reduce<S, A>;
 export type Reduce<S, A> = (action: A, state: S) => S;

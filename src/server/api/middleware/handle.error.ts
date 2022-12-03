@@ -1,7 +1,7 @@
 import type { ErrorRequestHandler } from 'express';
 import { MSSQLError } from 'mssql';
-import { ServerError } from '../../utils/custom.errors';
-import Logger from '../../utils/config.logging.winston';
+import { ServerError } from '@Utils/custom.errors';
+import Logger from '@Utils/config.logging.winston';
 
 interface IErrorCodes {
   [index: number]: ErrorCodeMessage;
@@ -27,7 +27,8 @@ const errorCodes = {
   },
   50101: { statusCode: 403, errorMessage: 'Acount has not been activated.' },
   50102: { statusCode: 401, errorMessage: 'Incorrect username or password.' },
-  50103: { statusCode: 404, errorMessage: 'Username does not exist.' }
+  50103: { statusCode: 404, errorMessage: 'Username does not exist.' },
+  50104: { statusCode: 400, errorMessage: 'Disconnected from game server. Please try again.' }
 };
 
 const getErrorHelper = (errorCode: number) => {

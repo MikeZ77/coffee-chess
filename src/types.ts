@@ -5,29 +5,38 @@ is accessed by both.
 */
 
 /*************************************** PAYLOADS ***************************************/
-export interface RegisterPayload {
+export type RegisterPayload = {
   username: string;
   password: string;
   email: string;
-}
+};
 
-export interface LoginPayload {
+export type LoginPayload = {
   username: string;
   password: string;
-}
+};
 
 /*************************************** RESPONSES **************************************/
-export interface BasicResponse {
+export type BasicResponse = {
   message: string;
-}
+};
 
 /*************************************** STATE OBJECTS **********************************/
+
+export type UserStates = 'IDLE' | 'PLAYING' | 'SEARCHING' | 'DISCONNECTED' | 'OBSERVING';
 
 export type UserSession = {
   userId: string;
   username: string;
-  state: 'IDLE' | 'PLAYING' | 'SEARCHING' | 'DISCONNECTED';
+  state: UserStates;
   playingGame: string | null;
   watchingGame: string | null;
   lastActivity: string;
+};
+
+export type GameSearch = {
+  userId: string;
+  type: '1+0' | '5+0' | '15+0';
+  rating: number;
+  searchStart: string;
 };

@@ -8,13 +8,7 @@ import handleAuthorization from '../middleware/handle.authorization';
 
 const router = Router();
 
-router.post(
-  '/register',
-  validateRegister,
-  handleValidation,
-  register,
-  handleError
-);
+router.post('/register', validateRegister, handleValidation, register, handleError);
 router.get('/activate/:token', activate, handleError);
 router.post('/login', validateLogin, handleValidation, login, handleError);
 router.get('/test', handleAuthorization, test, handleError);

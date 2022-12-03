@@ -23,9 +23,7 @@ export enum TokenState {
 export const encodeToken = (partialSession: IPartialTokenSession) => {
   const currentTime = DateTime.now();
   const issued = currentTime.toString();
-  const expires = currentTime
-    .plus({ hours: parseInt(JWT_EXPIRY_HOURS) })
-    .toString();
+  const expires = currentTime.plus({ hours: parseInt(JWT_EXPIRY_HOURS) }).toString();
   const session = { ...partialSession, issued, expires };
   return encode(session, JWT_SECRET as string);
 };
@@ -44,9 +42,7 @@ export const decodeToken = (token: string) => {
 
 export const checkExpiration = (session: ITokenSession) => {
   const { expires } = session;
-  const timeRemaining = DateTime.fromISO(expires)
-    .diff(DateTime.now(), 'minute')
-    .toObject();
+  const timeRemaining = DateTime.fromISO(expires).diff(DateTime.now(), 'minute').toObject();
 
   if (timeRemaining.minutes == undefined) {
     return TokenState.EXPIRED;

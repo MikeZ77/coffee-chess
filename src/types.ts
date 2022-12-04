@@ -24,7 +24,6 @@ export type BasicResponse = {
 /*************************************** STATE OBJECTS **********************************/
 
 export type UserStates = 'IDLE' | 'PLAYING' | 'SEARCHING' | 'DISCONNECTED' | 'OBSERVING';
-
 export type UserSession = {
   userId: string;
   username: string;
@@ -34,9 +33,10 @@ export type UserSession = {
   lastActivity: string;
 };
 
+export type TimeControls = '1+0' | '5+0' | '15+0';
 export type GameSearch = {
   userId: string;
-  type: '1+0' | '5+0' | '15+0';
+  type: TimeControls;
   rating: number;
   searchStart: string;
 };

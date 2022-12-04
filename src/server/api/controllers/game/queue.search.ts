@@ -1,8 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { RedisClientType } from 'redis';
-import type { UserStates } from '@Types';
+import type { UserStates, GameSearch, TimeControls } from '@Types';
 import sql, { type ConnectionPool } from 'mssql';
 import { ServerError } from '../../../utils/custom.errors';
+import { DateTime } from 'luxon';
 import RedLock from 'redlock';
 import Logger from '@Utils/config.logging.winston';
 
@@ -11,10 +12,10 @@ const { QUEUE_LOCK_TTL, QUEUE_RATING_MATCH } = process.env;
 export default async (req: Request, res: Response, next: NextFunction) => {
   const db: ConnectionPool = req.app.locals.db;
   const redis: RedisClientType = req.app.locals.redis;
-  // TODO: Note that if using a Redis cluster, we need to pass in a client for each node.
-  // @ts-ignore
-  const redlock = new RedLock(redis);
-  const timeControl = req.params.minutes;
+  const ioredis = req.app.locals.ioredis;
+
+  const redlock = new RedLock([ioredis]);
+  const timeControl = <TimeControls>req.params.minutes;
   const userId = req.id;
   const userSesison = `user:session:${userId}`;
   const gameQueue = `game:queue:${timeControl}`;
@@ -36,30 +37,56 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const userState = <UserStates>await redis.json.get(userSesison, {
       path: ['state']
     });
+    if (!rating || !userState || !timeControl) {
+      throw new ServerError(
+        undefined,
+        `endpoint:/game/search/${timeControl}, userId:${userId}, userState:${userState}, rating:${rating}`
+      );
+    }
+
     switch (userState) {
       case 'OBSERVING':
       case 'IDLE': {
-        // Search queue
+        let gameMatch;
         // Set player state to searching
-
-        const lock = await redlock.acquire(gameQueue, lockTTL);
+        const lock = await redlock.acquire([`lock:${gameQueue}`], lockTTL);
         try {
-          console.log(lock);
-        } catch (error) {
-          console.log(error);
+          const queue = await redis.lRange(gameQueue, 0, -1);
+          const gameMatch = queue.find((gameType) => {
+            if (gameType !== 'DUMMY') {
+              const gameFetched = JSON.parse(gameType);
+              const gameRating: number = gameFetched.rating;
+              return rating <= gameRating + ratingDiff || rating >= gameRating - ratingDiff;
+            }
+          });
+          if (gameMatch) {
+            // Dequeue this player
+            await redis
+              .multi()
+              .lRem(gameQueue, 1, gameMatch)
+              .json.set(userSesison, '.state', 'SEARCHING')
+              .exec();
+          } else {
+            // No match is found, so at the player to the queue.
+            const queueNewGame: GameSearch = {
+              userId: userId,
+              type: timeControl,
+              rating: rating,
+              searchStart: DateTime.utc().toString()
+            };
+            await redis
+              .multi()
+              .rPush(gameQueue, JSON.stringify(queueNewGame))
+              .json.set(userSesison, '.state', 'SEARCHING')
+              .exec();
+          }
+        } finally {
+          await lock.release();
         }
-
-        // redlock.lock(gameQueue, lockTTL).then((lock) => {
-        //   console.log(lock);
-        //   // const queue = await redis.lRange(gameQueue, 0, -1);
-        //   // queue.forEach((gameType, idx) => {
-        //   //   console.log(idx, gameType);
-        //   // });
-        //   return lock.unlock().catch((error) => {
-        //     Logger.error(error);
-        //   });
-        // });
-
+        if (gameMatch) {
+          // Create game room and notify game start
+          console.log('Break');
+        }
         break;
       }
       case 'PLAYING': {
@@ -68,12 +95,11 @@ export default async (req: Request, res: Response, next: NextFunction) => {
       case 'SEARCHING': {
         return res.status(400).send('Cancel current game search.');
       }
-      default: {
-        if (userState === 'DISCONNECTED') {
-          throw new ServerError(50104);
-        } else {
-          throw new ServerError(undefined, `Unknown state occured for user id: ${userId}`);
-        }
+      case 'DISCONNECTED': {
+        Logger.warn(
+          `User ${userId} in DISCONNECTED state searching /game/search/${timeControl} `
+        );
+        return res.status(400).send('Not connected to game server. Please try again later.');
       }
     }
     res.status(200).send();

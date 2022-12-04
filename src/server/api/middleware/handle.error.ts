@@ -49,11 +49,9 @@ const handleError: ErrorRequestHandler = (error, req, res, next) => {
         const { statusCode, errorMessage } = getErrorHelper(error.code);
         res.status(statusCode).send(errorMessage);
       }
-      break;
-    default:
-      Logger.error('Unhandled error occured: %o', error);
-      res.status(500).send('Server error.');
   }
+  Logger.error('Unhandled error occured: %o', error);
+  res.status(500).send('Server error.');
 };
 
 export default handleError;

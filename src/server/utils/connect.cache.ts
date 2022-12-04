@@ -1,27 +1,22 @@
 import { createClient } from 'redis';
+import Redis from 'ioredis';
 import Logger from './config.logging.winston';
 
 type RedisClient = ReturnType<typeof createClient>;
-const { CACHE_SERVER } = process.env;
+type IORedisClient = ReturnType<typeof Redis>;
+
+const { REDIS_SERVER, IO_REDIS_SERVER } = process.env;
 
 export const redisConfig = {
-  url: CACHE_SERVER,
-  socket: {
-    reconnectStrategy() {
-      return 5000;
-    }
-  }
+  url: REDIS_SERVER
 };
 
 export const initConnListeners = (
-  conn: RedisClient,
+  conn: RedisClient | IORedisClient,
   connectionType: string
 ) => {
-  conn.on('connect', () => {
-    Logger.info(`${connectionType} connection status: connected`);
-  });
-  conn.on('end', () => {
-    Logger.info(`${connectionType} connection status: disconnected`);
+  conn.on('ready', () => {
+    Logger.info(`${connectionType} connection status: ready`);
   });
   conn.on('reconnecting', () => {
     Logger.warn(`${connectionType} connection status: reconnecting`);
@@ -31,7 +26,7 @@ export const initConnListeners = (
   });
 };
 
-const initRedis = async () => {
+export const initRedis = async () => {
   // TODO: Config should be specified for stage and prod environments
   const redisClientPromise = createClient(redisConfig);
   initConnListeners(redisClientPromise, 'Redis');
@@ -39,4 +34,8 @@ const initRedis = async () => {
   return redisClientPromise;
 };
 
-export default initRedis;
+export const initIoRedis = async () => {
+  const ioredis = new Redis({ host: IO_REDIS_SERVER });
+  initConnListeners(ioredis, 'IO Redis');
+  return ioredis;
+};

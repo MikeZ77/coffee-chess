@@ -6,7 +6,7 @@
 declare global {
   namespace Express {
     interface Request {
-      id?: string;
+      id: string;
     }
   }
 }
@@ -22,7 +22,8 @@ declare global {
       DB_SERVER: string;
       DB_PASSWORD: string;
       DB_USER: string;
-      CACHE_SERVER: string;
+      REDIS_SERVER: string;
+      IO_REDIS_SERVER: string;
       EMAIL_USERNAME: string;
       EMAIL_PASSWORD: string;
       EMAIL_HOST: string;

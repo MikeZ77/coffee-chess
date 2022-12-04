@@ -1,8 +1,5 @@
 // @ts-nocheck
-import {
-  Chessboard,
-  INPUT_EVENT_TYPE
-} from 'cm-chessboard/src/cm-chessboard/Chessboard.js';
+import { Chessboard, INPUT_EVENT_TYPE } from 'cm-chessboard/src/cm-chessboard/Chessboard.js';
 
 const config = {
   position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',

@@ -16,7 +16,8 @@ declare global {
     interface ProcessEnv {
       NOTIFICATION_TIMEOUT_MS: string;
       ENV: 'dev' | 'stage' | 'prod';
-      PORT: '3000';
+      PORT: string;
+      SOCKET_PORT: string;
       API_VERSION: string;
       DB_NAME: string;
       DB_SERVER: string;

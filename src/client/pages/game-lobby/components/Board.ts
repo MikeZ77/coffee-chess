@@ -20,25 +20,18 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
           div({ className: 'tile is-ancestor' }, [
             div({ className: 'tile is-12 is-vertical is-parent' }, [
               div({ className: 'tile is-child is-flex-grow-5 p-1' }, [
-                span({ className: 'icon' }, [
-                  i({ className: 'fas  fa-solid fa-chess-pawn' })
-                ]),
-                span(
-                  { className: 'is-size-5 has-text-grey-darker' },
-                  'Player1 '
-                ),
+                span({ className: 'icon' }, [i({ className: 'fas  fa-solid fa-chess-pawn' })]),
+                span({ className: 'is-size-5 has-text-grey-darker' }, 'Player1 '),
                 span(
                   {
-                    className:
-                      'is-size-5 has-text-weight-semibold has-text-grey'
+                    className: 'is-size-5 has-text-weight-semibold has-text-grey'
                   },
                   '(1800)'
                 )
               ]),
               div(
                 {
-                  className:
-                    'tile is-child box has-background-dark p-1 has-text-centered'
+                  className: 'tile is-child box has-background-dark p-1 has-text-centered'
                 },
                 [
                   div([
@@ -65,8 +58,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                 [
                   div(
                     {
-                      className:
-                        'tile is-child box has-background-dark p-1 has-text-centered'
+                      className: 'tile is-child box has-background-dark p-1 has-text-centered'
                     },
                     [
                       p(
@@ -90,14 +82,10 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                     span({ className: 'icon' }, [
                       i({ className: 'fas fa-solid fa-chess-knight' })
                     ]),
-                    span(
-                      { className: 'is-size-5 has-text-grey-darker' },
-                      'Player2 '
-                    ),
+                    span({ className: 'is-size-5 has-text-grey-darker' }, 'Player2 '),
                     span(
                       {
-                        className:
-                          'is-size-5 has-text-weight-semibold has-text-grey'
+                        className: 'is-size-5 has-text-weight-semibold has-text-grey'
                       },
                       '(1900)'
                     )

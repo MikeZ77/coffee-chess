@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { RedisClientType } from 'redis';
-import type { UserStates, GameSearch, TimeControls } from '@Types';
+import type { UserSession, GameSearch, TimeControls } from '@Types';
 import sql, { type ConnectionPool } from 'mssql';
 import { ServerError } from '../../../utils/custom.errors';
 import { DateTime } from 'luxon';
@@ -34,19 +34,26 @@ export default async (req: Request, res: Response, next: NextFunction) => {
 
     const [record] = result.recordset;
     const { rating } = record;
-    const userState = <UserStates>await redis.json.get(userSesison, {
-      path: ['state']
+    const { state, username } = <UserSession>await redis.json.get(userSesison, {
+      path: ['state', 'username']
     });
-    if (!rating || !userState || !timeControl) {
+    if (!rating || !state || !timeControl) {
       throw new ServerError(
         undefined,
-        `endpoint:/game/search/${timeControl}, userId:${userId}, userState:${userState}, rating:${rating}`
+        `endpoint:/game/search/${timeControl}, userId:${userId}, state:${state}, rating:${rating}`
       );
     }
 
-    switch (userState) {
+    switch (state) {
       case 'OBSERVING':
       case 'IDLE': {
+        const queueNewGame: GameSearch = {
+          userId: userId,
+          usernmae: username,
+          type: timeControl,
+          rating: rating,
+          searchStart: DateTime.utc().toString()
+        };
         let gameMatch;
         // Set player state to searching
         const lock = await redlock.acquire([`lock:${gameQueue}`], lockTTL);
@@ -68,12 +75,6 @@ export default async (req: Request, res: Response, next: NextFunction) => {
               .exec();
           } else {
             // No match is found, so at the player to the queue.
-            const queueNewGame: GameSearch = {
-              userId: userId,
-              type: timeControl,
-              rating: rating,
-              searchStart: DateTime.utc().toString()
-            };
             await redis
               .multi()
               .rPush(gameQueue, JSON.stringify(queueNewGame))
@@ -85,7 +86,8 @@ export default async (req: Request, res: Response, next: NextFunction) => {
         }
         if (gameMatch) {
           // Create game room and notify game start
-          console.log('Break');
+          const pairing = JSON.stringify([queueNewGame, gameMatch]);
+          await redis.publish('channel:game:new', pairing);
         }
         break;
       }

@@ -36,6 +36,7 @@ export type UserSession = {
 export type TimeControls = '1+0' | '5+0' | '15+0';
 export type GameSearch = {
   userId: string;
+  usernmae: string;
   type: TimeControls;
   rating: number;
   searchStart: string;

@@ -4,7 +4,7 @@ It acts as the data definition or contract between the client and the server and
 is accessed by both.
 */
 
-/*************************************** PAYLOADS ***************************************/
+/*********************************** HTTP PAYLOADS ***************************************/
 export type RegisterPayload = {
   username: string;
   password: string;
@@ -16,28 +16,61 @@ export type LoginPayload = {
   password: string;
 };
 
-/*************************************** RESPONSES **************************************/
+/***********************************HTTP RESPONSES **************************************/
 export type BasicResponse = {
   message: string;
 };
 
-/*************************************** STATE OBJECTS **********************************/
+/********************************** STATE OBJECTS **********************************/
 
-export type UserStates = 'IDLE' | 'PLAYING' | 'SEARCHING' | 'DISCONNECTED' | 'OBSERVING';
+export type UserStates =
+  | 'IDLE'
+  | 'PLAYING'
+  | 'SEARCHING'
+  | 'DISCONNECTED'
+  | 'OBSERVING'
+  | 'SEARCHING_OBSERVING';
 export type UserSession = {
   userId: string;
   username: string;
   state: UserStates;
   playingGame: string | null;
-  watchingGame: string | null;
+  observingGame: string | null;
   lastActivity: string;
 };
 
-export type TimeControls = '1+0' | '5+0' | '15+0';
-export type GameSearch = {
+export type TimeControl = '1+0' | '5+0' | '15+0';
+export type QueueRecord = {
   userId: string;
-  usernmae: string;
-  type: TimeControls;
+  username: string;
+  type: TimeControl;
   rating: number;
   searchStart: string;
+};
+
+export type GameState = 'PENDING' | 'IN_PROGRESS' | 'COMPLETE';
+export type GameResult = ('WHITE' | 'BLACK') | null;
+export type GameChat = { username: string; message: string };
+export type Game = {
+  gameId: string;
+  userWhite: string;
+  userWhiteId?: string;
+  userBlack: string;
+  userBlackId: string;
+  watching: string[];
+  type: TimeControl;
+  whiteTime: string;
+  blackTime: string;
+  state: GameState;
+  position: string;
+  gameChat: GameChat[];
+  result: GameResult;
+  startTime: string | null;
+};
+
+/********************************* SOCKET MESSAGES **************************************/
+
+export type InitGameMessage = {
+  type: 'INIT_GAME';
+  payload: Game;
 };

@@ -1,1 +1,1 @@
-export { default as registerNewGameHanlder } from './register.newgame';
+export { default as registerNewGameListener } from './register.newgame';

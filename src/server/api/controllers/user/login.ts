@@ -39,7 +39,7 @@ export default async (
           username: username,
           state: 'IDLE',
           playingGame: null,
-          watchingGame: null,
+          observingGame: null,
           lastActivity: DateTime.utc().toString()
         };
         await redis.json.set(`user:session:${user_id}`, '$', userSession, {

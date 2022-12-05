@@ -8,6 +8,7 @@ import { io } from 'socket.io-client';
 import { combineReducers, reduceGameConsole, reduceSideNavBar } from './reducers/index';
 import { initChessboard } from './utils/chessboard';
 import { initTooltipAttributes, initEventListeners } from './utils/simple.utils';
+import registerSocketRooms from './utils/socket.handlers';
 
 const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement) => {
   const dispatch: Dispatch<AnyActions> = (action) => {
@@ -40,7 +41,7 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
   });
   const socket = io();
   socket.on('connect', () => {
-    console.log(socket.id);
+    registerSocketRooms(socket);
   });
 };
 

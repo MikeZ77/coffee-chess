@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { RedisClientType } from 'redis';
-import type { UserSession, GameSearch, TimeControls } from '@Types';
+import type { UserSession, QueueRecord, TimeControl } from '@Types';
 import sql, { type ConnectionPool } from 'mssql';
 import { ServerError } from '../../../utils/custom.errors';
 import { DateTime } from 'luxon';
@@ -15,7 +15,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   const ioredis = req.app.locals.ioredis;
 
   const redlock = new RedLock([ioredis]);
-  const timeControl = <TimeControls>req.params.minutes;
+  const timeControl = <TimeControl>req.params.minutes;
   const userId = req.id;
   const userSesison = `user:session:${userId}`;
   const gameQueue = `game:queue:${timeControl}`;
@@ -34,6 +34,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
 
     const [record] = result.recordset;
     const { rating } = record;
+    // TODO: Lock needs to come up to this point
     const { state, username } = <UserSession>await redis.json.get(userSesison, {
       path: ['state', 'username']
     });
@@ -47,9 +48,9 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     switch (state) {
       case 'OBSERVING':
       case 'IDLE': {
-        const queueNewGame: GameSearch = {
+        const queueNewGame: QueueRecord = {
           userId: userId,
-          usernmae: username,
+          username: username,
           type: timeControl,
           rating: rating,
           searchStart: DateTime.utc().toString()
@@ -59,7 +60,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
         const lock = await redlock.acquire([`lock:${gameQueue}`], lockTTL);
         try {
           const queue = await redis.lRange(gameQueue, 0, -1);
-          const gameMatch = queue.find((gameType) => {
+          gameMatch = queue.find((gameType) => {
             if (gameType !== 'DUMMY') {
               const gameFetched = JSON.parse(gameType);
               const gameRating: number = gameFetched.rating;
@@ -83,17 +84,18 @@ export default async (req: Request, res: Response, next: NextFunction) => {
           }
         } finally {
           await lock.release();
-        }
-        if (gameMatch) {
-          // Create game room and notify game start
-          const pairing = JSON.stringify([queueNewGame, gameMatch]);
-          await redis.publish('channel:game:new', pairing);
+          if (gameMatch) {
+            // Create game room and notify game start
+            const pairing = JSON.stringify([queueNewGame, gameMatch]);
+            await redis.publish('channel:game:new', pairing);
+          }
         }
         break;
       }
       case 'PLAYING': {
         return res.status(400).send('Game in progress.');
       }
+      case 'SEARCHING_OBSERVING':
       case 'SEARCHING': {
         return res.status(400).send('Cancel current game search.');
       }

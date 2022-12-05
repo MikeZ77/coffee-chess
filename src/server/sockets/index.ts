@@ -1,13 +1,18 @@
 import type { Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
+import type { Redis } from 'ioredis';
 import { initConnListeners } from '../utils/connect.cache';
 import { createAdapter } from '@socket.io/redis-adapter';
 import Logger from '@Utils/config.logging.winston';
-import { registerNewGameHanlder } from './handlers/index';
+import { registerNewGameListener } from './handlers/index';
 
 const { PORT } = process.env;
 
-const initSockets = async (io: ioServer, redisClient: RedisClientType) => {
+const initSockets = async (
+  io: ioServer,
+  redisClient: RedisClientType,
+  ioRedisClient: Redis
+) => {
   const pubClient = redisClient.duplicate();
   const subClient = redisClient.duplicate();
   const subInitGameClient = redisClient.duplicate();
@@ -20,7 +25,8 @@ const initSockets = async (io: ioServer, redisClient: RedisClientType) => {
       Logger.info(`Coffee Chess Socket server running on port ${PORT} ☕ ♟️ 🚀`);
       io.on('connection', (socket) => {
         console.log(`${socket.id} is connected!`);
-        registerNewGameHanlder(io, socket, subInitGameClient);
+        // TODO: Start joining clients to rooms.
+        registerNewGameListener(io, subInitGameClient, ioRedisClient);
       });
     }
   );

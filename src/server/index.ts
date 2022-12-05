@@ -22,5 +22,5 @@ dotenv.config();
   const server = createServer(app);
   initApi(app, server);
   const io = new Server(server);
-  initSockets(io, app.locals.redis);
+  initSockets(io, app.locals.redis, app.locals.ioredis);
 })();

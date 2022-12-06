@@ -70,7 +70,7 @@ export type Game = {
 
 /********************************* SOCKET MESSAGES **************************************/
 
-export type InitGameMessage = {
-  type: 'INIT_GAME';
-  payload: Game;
+export type UserInfo = {
+  userId: string;
+  username: string;
 };

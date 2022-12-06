@@ -4,7 +4,8 @@ import type { Redis } from 'ioredis';
 import { initConnListeners } from '../utils/connect.cache';
 import { createAdapter } from '@socket.io/redis-adapter';
 import Logger from '@Utils/config.logging.winston';
-import { registerNewGameListener } from './handlers/index';
+import { registerNewGameListener, authMiddleware } from './handlers/index';
+import GameManager from './managers/GameManager';
 
 const { PORT } = process.env;
 
@@ -19,14 +20,16 @@ const initSockets = async (
   initConnListeners(pubClient, 'Redis Rooms Publish Client');
   initConnListeners(subClient, 'Redis Rooms Subscribe Client');
   initConnListeners(subInitGameClient, 'Redis New Game Subscriber Client');
+  io.use(authMiddleware);
+  // TODO: Update latency game middleware.
+  registerNewGameListener(io, redisClient, subInitGameClient, ioRedisClient);
   Promise.all([pubClient.connect(), subClient.connect(), subInitGameClient.connect()]).then(
     () => {
       io.adapter(createAdapter(pubClient, subClient));
       Logger.info(`Coffee Chess Socket server running on port ${PORT} ☕ ♟️ 🚀`);
       io.on('connection', (socket) => {
-        console.log(`${socket.id} is connected!`);
-        // TODO: Start joining clients to rooms.
-        registerNewGameListener(io, subInitGameClient, ioRedisClient);
+        Logger.info(`User ${socket.data.username} ${socket.data.userId} is connected.`);
+        new GameManager(io, socket);
       });
     }
   );

@@ -3,10 +3,7 @@ import { State } from '../state';
 import { NavBarAction } from '../actions/index';
 // const { SERVER_FQDN } = process.env;
 
-const reduceSideNavBar: Reducer<State, NavBarAction> = (
-  action,
-  state
-): State => {
+const reduceSideNavBar: Reducer<State, NavBarAction> = (action, state): State => {
   switch (action.type) {
     case 'OPEN_NEW_GAME_MENU': {
       const { newGameMenuOpen } = action;

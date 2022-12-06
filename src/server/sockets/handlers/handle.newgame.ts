@@ -8,7 +8,12 @@ import Logger from '@Utils/config.logging.winston';
 
 const { QUEUE_LOCK_TTL } = process.env;
 
-export default async (io: ioServer, redis: RedisClientType, ioredis: Redis): Promise<void> => {
+export default (
+  io: ioServer,
+  redis: RedisClientType,
+  redisSubscriber: RedisClientType,
+  ioredis: Redis
+): void => {
   /*
       Initializes a game on the server and messages the client to initialize a game:
       1. Check if either client is in state DISCONNECT.
@@ -16,7 +21,7 @@ export default async (io: ioServer, redis: RedisClientType, ioredis: Redis): Pro
       3. If OK create the game instance.
       4. Send an INIT_GAME message to room game:match.
   */
-  await redis.subscribe('channel:game:new', async (message) => {
+  redisSubscriber.subscribe('channel:game:new', async (message) => {
     try {
       const lockTTL = parseInt(QUEUE_LOCK_TTL);
       const redlock = new RedLock([ioredis]);
@@ -26,10 +31,7 @@ export default async (io: ioServer, redis: RedisClientType, ioredis: Redis): Pro
       const gameQueue = `game:queue:${timeControl}`;
       const userSessionSeekingPlayer = `user:session:${seekingPlayer.userId}`;
       const userSessionMatchedPlayer = `user:session:${matchedPlayer.userId}`;
-      let player;
-      let white;
-      let black;
-      let clockTime;
+      let player, white, black, clockTime;
 
       const [seekingPlayerState, matchedPlayerState] = <[UserStates, UserStates]>(
         await Promise.all([
@@ -37,6 +39,7 @@ export default async (io: ioServer, redis: RedisClientType, ioredis: Redis): Pro
           redis.json.get(userSessionMatchedPlayer, { path: ['state'] })
         ])
       );
+
       if (seekingPlayerState === 'DISCONNECTED' && matchedPlayerState === 'DISCONNECTED') {
         return;
       } else if (seekingPlayerState === 'DISCONNECTED') {
@@ -73,9 +76,9 @@ export default async (io: ioServer, redis: RedisClientType, ioredis: Redis): Pro
           clockTime = '15:00:00';
           break;
       }
-
+      const gameId = uuidv4();
       const newGame = {
-        gameId: uuidv4(),
+        gameId: gameId,
         userWhite: white.username,
         userWhiteId: white.userId,
         userBlack: black.username,
@@ -90,25 +93,17 @@ export default async (io: ioServer, redis: RedisClientType, ioredis: Redis): Pro
         result: null,
         startTime: null
       };
-
-      // await io.in('game:match').emit();
-
-      // await redis
-      // .multi()
-      // .json.set(userSessionSeekingPlayer, '.state', seekingPlayerState)
-      // .json.set(userSessionMatchedPlayer, '.state', seekingPlayerState)
-      // .exec();
+      await redis
+        .multi()
+        .json.set(`game:${newGame.gameId}`, '$', newGame)
+        .json.set(userSessionSeekingPlayer, '$.playingGame', newGame.gameId)
+        .json.set(userSessionMatchedPlayer, '$.playingGame', newGame.gameId)
+        .exec();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { userWhiteId, userBlackId, ...rest } = newGame;
+      await io.emit('message:game:match', rest);
     } catch (error) {
       Logger.error(error);
     }
   });
 };
-
-// const lock = await redlock.acquire([`lock:${gameQueue}`], lockTTL);
-// await redis
-//   .multi()
-//   .rPush(gameQueue, JSON.stringify(seekingPlayer))
-//   .json.set(userSessionSeekingPlayer, '.state', seekingPlayerState)
-//   .exec();
-// await lock.release();
-// return;

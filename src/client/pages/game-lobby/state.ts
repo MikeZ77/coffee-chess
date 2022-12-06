@@ -1,4 +1,6 @@
 export interface State {
+  userId: string;
+  username: string;
   reduced: boolean;
   sideNavBar: SideNavBar;
   gameConsole: GameConsole;
@@ -16,6 +18,8 @@ type GameConsole = {
 };
 
 const state: State = {
+  userId: '',
+  username: '',
   reduced: false,
   sideNavBar: {
     newGameMenuOpen: false,

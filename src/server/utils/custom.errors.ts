@@ -5,3 +5,9 @@ export class ServerError extends CustomError {
     super(message);
   }
 }
+
+export class SocketError extends CustomError {
+  public constructor(public message: string) {
+    super(message);
+  }
+}

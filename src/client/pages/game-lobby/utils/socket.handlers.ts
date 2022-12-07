@@ -1,25 +1,34 @@
 import type { Socket } from 'socket.io-client';
 import type { Game, UserInfo } from '@Types';
-import type { SocketActions } from '../actions/index';
+import type { SocketActions, UserAction } from '../actions/index';
 import type { Dispatch } from '@Common/types';
+import type { State } from '../state';
 import { updateUserInfo } from '../actions/index';
+import { COLOR } from 'cm-chessboard/src/cm-chessboard/Chessboard';
 
-export default (socket: Socket, dispatch: Dispatch<SocketActions>) => {
-  const newGame = (newGame: Game) => {
-    console.log(newGame);
-    // socket.on('game:match', currentGame('gameRoomId'));
+// prettier-ignore
+// @ts-ignore
+export const registerGameEvents = (socket: Socket, dispatch: Dispatch<SocketActions>, board) => {
+  const newGameMatch = (message: Game) => {
+    const state = <State>dispatch();
+    const { username } = state;
+    const { userWhite, userBlack } = message;
+    if ([message.userWhite, message.userBlack].includes(state.username)) {
+      const color = username === userWhite ? COLOR.white : COLOR.black;
+      board.setOrientation(color);
+    }
+    // 1. Setup the board
+    // 2. Emit message:game:ready
+    socket.emit('message:game:ready', { ready: true });
   };
 
-  const currentGame = (message: Game) => {
-    console.log('Break');
-  };
+  socket.on('message:game:match', newGameMatch);
+};
 
+export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction>) => {
   const userInfo = (message: UserInfo) => {
-    console.log('message', message);
     dispatch(updateUserInfo(message));
   };
 
-  socket.on('message:game:match', newGame);
-  socket.on('message:game', currentGame);
   socket.on('message:user:info', userInfo);
 };

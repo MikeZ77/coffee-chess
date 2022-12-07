@@ -7,6 +7,15 @@ import { NavBarAction } from '../actions/sideNavBar';
 const { div, span, p, i } = hh(h);
 
 const Board: Component<State, NavBarAction> = (dispatch, state) => {
+  const { currentGame, username } = state;
+  const { ratingBlack, ratingWhite, userWhite, userBlack, whiteTime, blackTime } = currentGame;
+  let player, opponent;
+  username === userWhite
+    ? ((player = { username: userWhite, rating: ratingWhite, clock: whiteTime }),
+      (opponent = { username: userBlack, rating: ratingBlack, clock: blackTime }))
+    : ((player = { username: userBlack, rating: ratingBlack, clock: blackTime }),
+      (opponent = { username: userWhite, rating: ratingWhite, clock: whiteTime }));
+
   return div({ className: 'box' }, [
     div({ className: 'tile is-ancestor' }, [
       div({ className: 'tile is-parent' }, [
@@ -21,12 +30,12 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
             div({ className: 'tile is-12 is-vertical is-parent' }, [
               div({ className: 'tile is-child is-flex-grow-5 p-1' }, [
                 span({ className: 'icon' }, [i({ className: 'fas  fa-solid fa-chess-pawn' })]),
-                span({ className: 'is-size-5 has-text-grey-darker' }, 'Player1 '),
+                span({ className: 'is-size-5 has-text-grey-darker' }, opponent.username),
                 span(
                   {
                     className: 'is-size-5 has-text-weight-semibold has-text-grey'
                   },
-                  '(1800)'
+                  opponent.rating
                 )
               ]),
               div(
@@ -40,7 +49,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                         className: 'is-family-monospace is-size-3',
                         style: 'color: hsl(60,100%,50%);'
                       },
-                      '3:00'
+                      opponent.clock ? opponent.clock : '0:00'
                     )
                   ])
                 ]
@@ -66,7 +75,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                           className: 'is-family-monospace is-size-3',
                           style: 'color: hsl(60,100%,50%);'
                         },
-                        '3:00'
+                        player.clock ? player.clock : '0:00'
                       )
                     ]
                   )
@@ -82,12 +91,12 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                     span({ className: 'icon' }, [
                       i({ className: 'fas fa-solid fa-chess-knight' })
                     ]),
-                    span({ className: 'is-size-5 has-text-grey-darker' }, 'Player2 '),
+                    span({ className: 'is-size-5 has-text-grey-darker' }, player.username),
                     span(
                       {
                         className: 'is-size-5 has-text-weight-semibold has-text-grey'
                       },
-                      '(1900)'
+                      player.rating
                     )
                   ])
                 ]

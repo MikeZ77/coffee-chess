@@ -13,19 +13,15 @@ import {
 } from './reducers/index';
 import { initChessboard } from './utils/chessboard';
 import { initTooltipAttributes, initEventListeners } from './utils/simple.utils';
-import registerSocketRooms from './utils/socket.handlers';
+import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
+import { COLOR } from 'cm-chessboard/src/cm-chessboard/Chessboard';
 
 const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement) => {
-  const dispatch: Dispatch<AnyActions> = (action) => {
+  const dispatch: Dispatch<AnyActions> = (action = undefined) => {
+    if (action === undefined) {
+      return state;
+    }
     state = reduce(<AllActions>action, state);
-    // if (state.pendingRequest != null) {
-    //   const newRequest = { ...state.pendingRequest };
-    //   state.pendingRequest = null;
-    //   sendRequest(newRequest).catch((error) => {
-    //     hanldeError(error, dispatch);
-    //   });
-    // }
-    console.log('state', state);
     const updatedView = view(dispatch, state);
     const patches = diff(currentView, updatedView);
     rootNode = patch(rootNode, patches);
@@ -38,20 +34,21 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
   const reduce = combineReducers({ reduceGameConsole, reduceSideNavBar, reduceUserInfo });
   node.appendChild(rootNode);
 
-  /*  REGISTER SOCKET  */
-  const socket = io();
-  socket.on('connect', () => {
-    socket.removeAllListeners();
-    registerSocketRooms(socket, dispatch);
-  });
   /*  INITIALIZATION   */
-  initChessboard();
+  const board = initChessboard();
   initEventListeners();
   initTooltipAttributes({
     'player-list': 'Player List',
     'current-game': 'Current Game',
     games: 'Games',
     chat: 'Chat'
+  });
+  /*  REGISTER SOCKET  */
+  const socket = io();
+  socket.on('connect', () => {
+    socket.removeAllListeners();
+    registerUserEvents(socket, dispatch);
+    registerGameEvents(socket, dispatch, board);
   });
 };
 

@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 import RedLock from 'redlock';
 import Logger from '@Utils/config.logging.winston';
 
-const { QUEUE_LOCK_TTL, QUEUE_RATING_MATCH } = process.env;
+const { QUEUE_LOCK_TTL_MS, QUEUE_RATING_MATCH } = process.env;
 
 export default async (req: Request, res: Response, next: NextFunction) => {
   /*
@@ -25,7 +25,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.id;
   const userSesison = `user:session:${userId}`;
   const gameQueue = `game:queue:${timeControl}`;
-  const lockTTL = parseInt(QUEUE_LOCK_TTL);
+  const lockTTL = parseInt(QUEUE_LOCK_TTL_MS);
   const ratingDiff = parseInt(QUEUE_RATING_MATCH);
   let gameMatch, queueNewGame, errorMessage;
 
@@ -72,13 +72,21 @@ export default async (req: Request, res: Response, next: NextFunction) => {
             await redis
               .multi()
               .lRem(gameQueue, 1, gameMatch)
-              .json.set(userSesison, '.state', 'SEARCHING')
+              .json.set(
+                userSesison,
+                '.state',
+                state === 'OBSERVING' ? 'SEARCHING_OBSERVING' : 'SEARCHING'
+              )
               .exec();
           } else {
             await redis
               .multi()
               .rPush(gameQueue, JSON.stringify(queueNewGame))
-              .json.set(userSesison, '.state', 'SEARCHING')
+              .json.set(
+                userSesison,
+                '.state',
+                state === 'OBSERVING' ? 'SEARCHING_OBSERVING' : 'SEARCHING'
+              )
               .exec();
           }
           break;

@@ -23,7 +23,7 @@ export type BasicResponse = {
 
 /********************************** STATE OBJECTS **********************************/
 
-export type UserStates =
+export type UserState =
   | 'IDLE'
   | 'PLAYING'
   | 'SEARCHING'
@@ -33,7 +33,7 @@ export type UserStates =
 export type UserSession = {
   userId: string;
   username: string;
-  state: UserStates;
+  state: UserState;
   playingGame: string | null;
   observingGame: string | null;
   lastActivity: string;
@@ -48,15 +48,17 @@ export type QueueRecord = {
   searchStart: string;
 };
 
-export type GameState = 'PENDING' | 'IN_PROGRESS' | 'COMPLETE';
+export type GameState = 'PENDING' | 'ABORT' | 'IN_PROGRESS' | 'COMPLETE';
 export type GameResult = ('WHITE' | 'BLACK') | null;
 export type GameChat = { username: string; message: string };
 export type Game = {
   gameId: string;
   userWhite: string;
   userWhiteId?: string;
+  ratingWhite: number;
   userBlack: string;
-  userBlackId: string;
+  userBlackId?: string;
+  ratingBlack: number;
   watching: string[];
   type: TimeControl;
   whiteTime: string;
@@ -74,3 +76,5 @@ export type UserInfo = {
   userId: string;
   username: string;
 };
+
+export type Confirmation = { ready: boolean };

@@ -1,5 +1,9 @@
 // @ts-nocheck
-import { Chessboard, INPUT_EVENT_TYPE } from 'cm-chessboard/src/cm-chessboard/Chessboard.js';
+import {
+  Chessboard,
+  INPUT_EVENT_TYPE,
+  COLOR
+} from 'cm-chessboard/src/cm-chessboard/Chessboard.js';
 
 const config = {
   position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
@@ -13,7 +17,7 @@ const config = {
 
 export const initChessboard = () => {
   board = new Chessboard(document.getElementById('board'), config);
-
+  // board.setOrientation(COLOR.black);
   board.enableMoveInput(inputHandler);
   function inputHandler(event) {
     switch (event.type) {
@@ -27,4 +31,5 @@ export const initChessboard = () => {
         console.log(`moveInputCanceled`);
     }
   }
+  return board;
 };

@@ -31,9 +31,10 @@ declare global {
       SERVER_FQDN: string;
       JWT_SECRET: string;
       JWT_EXPIRY_HOURS: string;
-      QUEUE_LOCK_TTL: string;
+      QUEUE_LOCK_TTL_MS: string;
       QUEUE_RATING_MATCH: string;
       DEFAULT_RATING: string;
+      GAME_OBJECT_EXPIRY_SECONDS: string;
     }
   }
 }

@@ -1,9 +1,11 @@
 import { GameConsoleAction } from './gameConsole';
 import { NavBarAction } from './sideNavBar';
 import { UserAction } from './userInfo';
+import { GameAction } from './gameBoard';
 
 export { updateChatMessage, sendChatMessage } from './gameConsole';
 export { updateUserInfo } from './userInfo';
+export { initNewGame } from './gameBoard';
 export {
   openNewGameMenu,
   searchOneMinute,
@@ -11,10 +13,11 @@ export {
   searchFifteenMinute
 } from './sideNavBar';
 
-export type AllActions = GameConsoleAction & NavBarAction & UserAction;
-export type AnyActions = GameConsoleAction | NavBarAction | UserAction;
-export type SocketActions = UserAction;
+export type AllActions = GameConsoleAction & NavBarAction & UserAction & GameAction;
+export type AnyActions = GameConsoleAction | NavBarAction | UserAction | GameAction;
+export type SocketActions = UserAction | GameAction;
 
 export type { GameConsoleAction } from './gameConsole';
 export type { NavBarAction } from './sideNavBar';
 export type { UserAction } from './userInfo';
+export type { GameAction } from './gameBoard';

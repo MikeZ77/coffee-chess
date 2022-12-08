@@ -3,8 +3,7 @@ import type { RedisClientType } from 'redis';
 import type { Redis } from 'ioredis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import Logger from '@Utils/config.logging.winston';
-import registerGameHandler from './managers/manage.game';
-import registerUserHandler from './managers/manage.user';
+import { GameManager } from './managers/index';
 import {
   registerNewGameListener,
   registerNewConnectionInfo,
@@ -32,7 +31,7 @@ const initSockets = async (
       io.on('connection', (socket) => {
         Logger.info(`User ${socket.data.username} ${socket.data.userId} is connected.`);
         registerNewConnectionInfo(socket);
-        registerGameHandler(io, socket, redisClient);
+        new GameManager(io, socket, redisClient);
       });
     }
   );

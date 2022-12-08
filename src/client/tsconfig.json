@@ -9,7 +9,8 @@
     "strict": true,
     "paths": {
       "@Common/*": ["common/*"],
-      "@Types": ["../types.ts"]
+      "@Types": ["../types.ts"],
+      "@Public": ["public/*"]
     }
   },
   "include": ["**/*.ts"]

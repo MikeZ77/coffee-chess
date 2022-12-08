@@ -77,7 +77,7 @@ export default (
       await redis
         .multi()
         .json.set(`game:${newGame.gameId}`, '$', newGame)
-        .expire(`game:${newGame.gameId}`, parseInt(GAME_OBJECT_EXPIRY_SECONDS), 'NX')
+        .expire(`game:${newGame.gameId}`, parseInt(GAME_OBJECT_EXPIRY_SECONDS))
         .json.set(userSessionSeekingPlayer, '$.playingGame', newGame.gameId)
         .json.set(userSessionMatchedPlayer, '$.playingGame', newGame.gameId)
         .exec();
@@ -86,7 +86,11 @@ export default (
       await io.emit('message:game:match', rest);
       Logger.info('Paired: %o', matchedGame);
     } catch (error) {
-      Logger.error(error);
+      if (error instanceof Error) {
+        /* TODO: If there is an unexpected error, we need to attempt to rollbacck the game creation
+         so the user is not left in a bad state. Call this from Manager.*/
+        Logger.error(`${error.message}: %o`, error.stack);
+      }
     }
   });
 };

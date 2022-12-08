@@ -35,6 +35,7 @@ declare global {
       QUEUE_RATING_MATCH: string;
       DEFAULT_RATING: string;
       GAME_OBJECT_EXPIRY_SECONDS: string;
+      GAME_ABORT_MS: string;
     }
   }
 }

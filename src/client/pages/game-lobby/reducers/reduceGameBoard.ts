@@ -2,7 +2,7 @@ import { Reducer } from 'common/types';
 import { State } from '../state';
 import { GameAction } from '../actions/index';
 
-const reduceGame: Reducer<State, GameAction> = (action, state): State => {
+const reduceGameBoard: Reducer<State, GameAction> = (action, state): State => {
   switch (action.type) {
     case 'INIT_NEW_GAME': {
       const { currentGame } = action;
@@ -18,4 +18,4 @@ const reduceGame: Reducer<State, GameAction> = (action, state): State => {
   }
 };
 
-export default reduceGame;
+export default reduceGameBoard;

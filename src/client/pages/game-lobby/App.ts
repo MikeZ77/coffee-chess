@@ -9,12 +9,13 @@ import {
   combineReducers,
   reduceGameConsole,
   reduceSideNavBar,
-  reduceUserInfo
+  reduceUserInfo,
+  reduceGameBoard
 } from './reducers/index';
-import { initChessboard } from './utils/chessboard';
+import { boardConfig } from './utils/chessboard';
 import { initTooltipAttributes, initEventListeners } from './utils/simple.utils';
 import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
-import { COLOR } from 'cm-chessboard/src/cm-chessboard/Chessboard';
+import { Chessboard } from 'cm-chessboard/src/cm-chessboard/Chessboard';
 
 const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement) => {
   const dispatch: Dispatch<AnyActions> = (action = undefined) => {
@@ -22,6 +23,7 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
       return state;
     }
     state = reduce(<AllActions>action, state);
+    // console.log('state:', state);
     const updatedView = view(dispatch, state);
     const patches = diff(currentView, updatedView);
     rootNode = patch(rootNode, patches);
@@ -31,11 +33,16 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
   let state = initState;
   let currentView = view(dispatch, state);
   let rootNode = createElement(currentView);
-  const reduce = combineReducers({ reduceGameConsole, reduceSideNavBar, reduceUserInfo });
+  const reduce = combineReducers({
+    reduceGameConsole,
+    reduceSideNavBar,
+    reduceUserInfo,
+    reduceGameBoard
+  });
   node.appendChild(rootNode);
 
   /*  INITIALIZATION   */
-  const board = initChessboard();
+  const board = new Chessboard(document.getElementById('board'), boardConfig);
   initEventListeners();
   initTooltipAttributes({
     'player-list': 'Player List',

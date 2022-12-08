@@ -8,8 +8,25 @@ const { div, span, p, i } = hh(h);
 
 const Board: Component<State, NavBarAction> = (dispatch, state) => {
   const { currentGame, username } = state;
-  const { ratingBlack, ratingWhite, userWhite, userBlack, whiteTime, blackTime } = currentGame;
-  let player, opponent;
+  const { ratingBlack, ratingWhite, userWhite, userBlack } = currentGame;
+  let { whiteTime, blackTime } = currentGame;
+  let player, opponent, whiteTimeTemp, blackTimeTemp;
+
+  const whiteSeconds = parseInt(whiteTime.split(':')[1]);
+  const blackSeconds = parseInt(whiteTime.split(':')[1]);
+
+  if (whiteSeconds >= 20) {
+    whiteTimeTemp = whiteTime.split(':');
+    whiteTimeTemp.pop();
+    whiteTime = whiteTimeTemp.join();
+  }
+
+  if (blackSeconds >= 20) {
+    blackTimeTemp = blackTime.split(':');
+    blackTimeTemp.pop();
+    blackTime = blackTimeTemp.join();
+  }
+
   username === userWhite
     ? ((player = { username: userWhite, rating: ratingWhite, clock: whiteTime }),
       (opponent = { username: userBlack, rating: ratingBlack, clock: blackTime }))

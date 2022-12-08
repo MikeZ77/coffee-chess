@@ -1,4 +1,4 @@
-import type { Game, GameState, TimeControl } from '@Types';
+import type { Game, GameState, TimeControl, GameChat } from '@Types';
 
 export interface State {
   userId: string;
@@ -63,18 +63,3 @@ const state: State = {
 };
 
 export default state;
-
-// gameId: string;
-// userWhite: string;
-// userWhiteId?: string;
-// userBlack: string;
-// userBlackId: string;
-// watching: string[];
-// type: TimeControl;
-// whiteTime: string;
-// blackTime: string;
-// state: GameState;
-// position: string;
-// gameChat: GameChat[];
-// result: GameResult;
-// startTime: string | null;

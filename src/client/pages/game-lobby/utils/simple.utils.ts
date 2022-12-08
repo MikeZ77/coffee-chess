@@ -17,3 +17,13 @@ export const initEventListeners = (): void => {
     }
   });
 };
+
+export enum Sound {
+  START = 'game-start.mp3',
+  MOVE = 'piece-move.mp3',
+  CLOCK = 'tic-toc.wav'
+}
+
+export const playSound = (file: Sound): void => {
+  new Audio(file).play();
+};

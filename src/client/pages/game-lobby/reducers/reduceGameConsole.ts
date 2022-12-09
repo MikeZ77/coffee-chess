@@ -1,15 +1,14 @@
 import type { Reducer } from 'common/types';
-import type { UserConnected } from '@Types';
 import { State } from '../state';
 import { GameConsoleAction } from '../actions/index';
 
 const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): State => {
-  state = { ...state, reduced: true };
   switch (action.type) {
     case 'UPDATE_CHAT_MESSAGE': {
       const { gameChatMessage } = action;
       return {
         ...state,
+        reduced: true,
         gameConsole: { ...state.gameConsole, gameChatMessage }
       };
     }
@@ -18,6 +17,7 @@ const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): St
         The message will then be added by UPDATE_CHAT_LOG.*/
       return {
         ...state,
+        reduced: true,
         gameConsole: { ...state.gameConsole, gameChatMessage: '' }
       };
     }
@@ -27,6 +27,7 @@ const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): St
       gameChat.push(chatMessageFromServer);
       return {
         ...state,
+        reduced: true,
         currentGame: { ...state.currentGame, gameChat: [...gameChat] }
       };
     }

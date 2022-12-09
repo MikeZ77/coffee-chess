@@ -5,7 +5,7 @@ import { GameAction } from './gameBoard';
 
 export { updateChatMessage, sendChatMessage, updateChatLog } from './gameConsole';
 export { updateUserInfo } from './userInfo';
-export { initNewGame } from './gameBoard';
+export { initNewGame, setPlayerColor } from './gameBoard';
 export {
   openNewGameMenu,
   searchOneMinute,
@@ -15,7 +15,7 @@ export {
 
 export type AllActions = GameConsoleAction & NavBarAction & UserAction & GameAction;
 export type AnyActions = GameConsoleAction | NavBarAction | UserAction | GameAction;
-export type SocketActions = UserAction | GameAction;
+export type SocketActions = UserAction | GameAction | GameConsoleAction;
 
 export type { GameConsoleAction } from './gameConsole';
 export type { NavBarAction } from './sideNavBar';

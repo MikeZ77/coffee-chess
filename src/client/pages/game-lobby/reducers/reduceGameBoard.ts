@@ -12,6 +12,14 @@ const reduceGameBoard: Reducer<State, GameAction> = (action, state): State => {
         currentGame: { ...currentGame }
       };
     }
+    case 'SET_PLAYER_COLOR': {
+      const { color } = action;
+      return {
+        ...state,
+        reduced: true,
+        currentGame: { ...state.currentGame, color }
+      };
+    }
     default: {
       return state;
     }

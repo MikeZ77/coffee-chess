@@ -1,4 +1,4 @@
-import type { Game, GameState, TimeControl, GameChat } from '@Types';
+import type { Game, GameState, TimeControl } from '@Types';
 
 export interface State {
   userId: string;
@@ -20,6 +20,7 @@ type GameConsole = {
   gameChatMessage: string;
 };
 
+export type Color = 'w' | 'b' | null;
 type Modify<T, R> = Omit<T, keyof R> & R;
 export type ClientGame = Modify<
   Game,
@@ -28,6 +29,7 @@ export type ClientGame = Modify<
     state: TimeControl | null;
     ratingWhite: number | null;
     ratingBlack: number | null;
+    color: Color;
   }
 >;
 
@@ -58,7 +60,8 @@ const state: State = {
     position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
     gameChat: [{ username: '', message: '' }],
     result: null,
-    startTime: null
+    startTime: null,
+    color: null
   }
 };
 

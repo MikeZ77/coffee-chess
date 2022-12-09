@@ -1,6 +1,7 @@
 import type { Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
 import type { QueueRecord, UserState } from '@Types';
+import { Chess } from 'chess.js';
 import { v4 as uuidv4 } from 'uuid';
 import Logger from '@Utils/config.logging.winston';
 
@@ -26,6 +27,7 @@ export default (
       const gameQueue = `game:queue:${timeControl}`;
       const userSessionSeekingPlayer = `user:session:${seekingPlayer.userId}`;
       const userSessionMatchedPlayer = `user:session:${matchedPlayer.userId}`;
+      const chess = new Chess();
       let white, black, clockTime;
 
       /* 
@@ -69,7 +71,7 @@ export default (
         whiteTime: clockTime,
         blackTime: clockTime,
         state: 'PENDING',
-        position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+        position: chess.fen(),
         gameChat: [],
         result: null,
         startTime: null

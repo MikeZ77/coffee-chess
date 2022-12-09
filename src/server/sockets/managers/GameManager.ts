@@ -43,6 +43,7 @@ export default class GameManager extends Manager {
     }
     if (playersInRoom.length === 2) {
       await this.redis.json.set(`game:${gameId}`, '$.state', 'IN_PROGRESS');
+      // Set startTime
     }
     await this.redis.json.set(`user:session:${this.userId}`, '$.state', 'PLAYING');
     await this.io

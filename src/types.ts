@@ -49,7 +49,7 @@ export type QueueRecord = {
 };
 
 export type GameState = 'PENDING' | 'ABORTED' | 'IN_PROGRESS' | 'COMPLETE';
-export type GameResult = ('WHITE' | 'BLACK') | null;
+export type Color = ('WHITE' | 'BLACK') | null;
 export type GameChat = { username?: string; message: string };
 export type Game = {
   gameId: string;
@@ -66,7 +66,7 @@ export type Game = {
   state: GameState;
   position: string;
   gameChat: GameChat[];
-  result: GameResult;
+  result: Color;
   startTime: string | null;
 };
 

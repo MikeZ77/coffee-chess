@@ -10,21 +10,23 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
   const { currentGame, username } = state;
   const { ratingBlack, ratingWhite, userWhite, userBlack } = currentGame;
   let { whiteTime, blackTime } = currentGame;
-  let player, opponent, whiteTimeTemp, blackTimeTemp;
+  let player, opponent;
 
-  const whiteSeconds = parseInt(whiteTime.split(':')[1]);
-  const blackSeconds = parseInt(whiteTime.split(':')[1]);
+  const [whiteMinutes, whiteSeconds] = whiteTime.split(':').slice(0, 2);
+  const [blackMinutes, blackSeconds] = blackTime.split(':').slice(0, 2);
 
-  if (whiteSeconds >= 20) {
-    whiteTimeTemp = whiteTime.split(':');
-    whiteTimeTemp.pop();
-    whiteTime = whiteTimeTemp.join();
+  if (
+    (parseInt(whiteMinutes) == 0 && parseInt(whiteSeconds) >= 20) ||
+    parseInt(whiteMinutes) >= 1
+  ) {
+    whiteTime = whiteTime.split(':').slice(0, 2).join(':');
   }
 
-  if (blackSeconds >= 20) {
-    blackTimeTemp = blackTime.split(':');
-    blackTimeTemp.pop();
-    blackTime = blackTimeTemp.join();
+  if (
+    (parseInt(blackMinutes) == 0 && parseInt(blackSeconds) >= 20) ||
+    parseInt(blackMinutes) >= 1
+  ) {
+    blackTime = blackTime.split(':').slice(0, 2).join(':');
   }
 
   username === userWhite
@@ -47,12 +49,15 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
             div({ className: 'tile is-12 is-vertical is-parent' }, [
               div({ className: 'tile is-child is-flex-grow-5 p-1' }, [
                 span({ className: 'icon' }, [i({ className: 'fas  fa-solid fa-chess-pawn' })]),
-                span({ className: 'is-size-5 has-text-grey-darker' }, opponent.username),
+                span(
+                  { className: 'is-size-5 has-text-grey-darker' },
+                  opponent.username ? opponent.username : ''
+                ),
                 span(
                   {
                     className: 'is-size-5 has-text-weight-semibold has-text-grey'
                   },
-                  opponent.rating
+                  opponent.rating ? ` (${opponent.rating})` : ''
                 )
               ]),
               div(
@@ -108,12 +113,15 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                     span({ className: 'icon' }, [
                       i({ className: 'fas fa-solid fa-chess-knight' })
                     ]),
-                    span({ className: 'is-size-5 has-text-grey-darker' }, player.username),
+                    span(
+                      { className: 'is-size-5 has-text-grey-darker' },
+                      player.username ? player.username : ''
+                    ),
                     span(
                       {
                         className: 'is-size-5 has-text-weight-semibold has-text-grey'
                       },
-                      player.rating
+                      player.rating ? ` (${player.rating})` : ''
                     )
                   ])
                 ]

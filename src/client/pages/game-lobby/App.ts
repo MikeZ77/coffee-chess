@@ -1,6 +1,6 @@
 import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
-import { View, Dispatch } from '@Common/types';
+import type { View, Dispatch } from '@Common/types';
 import { State } from './state';
 import { AllActions, AnyActions } from './actions/index';
 import sendRequest from '@Common/request';
@@ -12,6 +12,7 @@ import {
   reduceUserInfo,
   reduceGameBoard
 } from './reducers/index';
+import Chess from 'chess.js';
 import { boardConfig } from './utils/chessboard';
 import { initTooltipAttributes, initEventListeners } from './utils/simple.utils';
 import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
@@ -42,7 +43,9 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
   node.appendChild(rootNode);
 
   /*  INITIALIZATION   */
+  // const chess = new Chess();
   const board = new Chessboard(document.getElementById('board'), boardConfig);
+
   initEventListeners();
   initTooltipAttributes({
     'player-list': 'Player List',

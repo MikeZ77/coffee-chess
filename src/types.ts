@@ -49,8 +49,8 @@ export type QueueRecord = {
 };
 
 export type GameState = 'PENDING' | 'ABORTED' | 'IN_PROGRESS' | 'COMPLETE';
-export type Color = ('WHITE' | 'BLACK') | null;
 export type GameChat = { username?: string; message: string };
+export type Color = ('WHITE' | 'BLACK') | null;
 export type Game = {
   gameId: string;
   userWhite: string;
@@ -77,5 +77,7 @@ export type UserInfo = {
   username: string;
 };
 
-export type Confirmation = { ready: boolean };
+export type GameMessage = GameConfirmation | GameAborted;
+export type GameConfirmation = { ready: boolean };
+export type GameAborted = { aborted: boolean };
 export type UserConnected = string;

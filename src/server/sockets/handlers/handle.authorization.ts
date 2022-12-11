@@ -20,6 +20,7 @@ export default (socket: Socket, next: Next) => {
       case TokenState.ACTIVE: {
         socket.data.userId = user_id;
         socket.data.username = username;
+        socket.data.userSession = `user:session:${user_id}`;
         break;
       }
       case TokenState.EXPIRED: {

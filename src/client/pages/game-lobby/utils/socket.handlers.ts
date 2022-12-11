@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { Socket } from 'socket.io-client';
-import type { UserInfo, GameChat } from '@Types';
+import type { UserInfo, GameChat, GameConfirmation } from '@Types';
 import type { ClientGame } from '../state';
 import type { SocketActions, UserAction } from '../actions/index';
 import type { Dispatch } from '@Common/types';
@@ -32,13 +32,12 @@ export const registerGameEvents = (
     const { username } = state;
     const { userWhite, userBlack, position } = message;
     if ([userWhite, userBlack].includes(username)) {
-      socket.emit('message:game:ready', { ready: true });
+      socket.emit('message:game:ready', <GameConfirmation>{ ready: true });
       const color = username === userWhite ? COLOR.white : COLOR.black;
       dispatch(initNewGame(message));
       dispatch(setPlayerColor(color));
       board.setPosition(position, false);
       board.setOrientation(color);
-      // playSound(Sound.START);
     }
   };
 
@@ -73,6 +72,7 @@ export const registerGameEvents = (
     const { color } = state.currentGame;
     dispatch(updateChatLog(message));
     board.enableMoveInput(attachBoardInputHandler, color);
+    playSound(Sound.START);
   };
 
   const opponentMove = (move: ShortMove) => {

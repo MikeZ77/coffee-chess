@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { Socket } from 'socket.io-client';
-import type { UserInfo, GameChat, GameConfirmation } from '@Types';
+import type { UserInfo, GameChat, GameConfirmation, GameAborted } from '@Types';
 import type { ClientGame } from '../state';
 import type { SocketActions, UserAction } from '../actions/index';
 import type { Dispatch } from '@Common/types';
@@ -8,6 +8,7 @@ import type { State } from '../state';
 import type { ShortMove } from 'chess.js';
 import { Sound } from './simple.utils';
 import { playSound } from './simple.utils';
+import { warningToast } from '@Common/toast';
 import Chess from 'chess.js';
 import { updateUserInfo } from '../actions/index';
 import { initNewGame, updateChatLog, setPlayerColor } from '../actions/index';
@@ -72,19 +73,29 @@ export const registerGameEvents = (
     const { color } = state.currentGame;
     dispatch(updateChatLog(message));
     board.enableMoveInput(attachBoardInputHandler, color);
-    playSound(Sound.START);
+    // playSound(Sound.START);
   };
 
   const opponentMove = (move: ShortMove) => {
-    console.log('move', move);
     board.movePiece(move.from, move.to, true);
     chess.move(move);
+  };
+
+  const gameAborted = (message: GameAborted) => {
+    if (message.aborted) {
+      dispatch(updateChatLog('ABORTED'));
+      warningToast('Game aborted. Opponent failed to connect.');
+      board.disableMoveInput();
+      chess.reset();
+      // Play end game sound.
+    }
   };
 
   const chess = new Chess();
   socket.on('message:game:match', newGameMatch);
   socket.on('message:game:connected', gameConnected);
   socket.on('message:game:move', opponentMove);
+  socket.on('message:game:aborted', gameAborted);
 };
 
 export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction>) => {
@@ -96,6 +107,9 @@ export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction
     console.log('Notification', message);
   };
 
+  const userPing = (pong: Function) => pong();
+
   socket.on('message:user:info', userInfo);
+  socket.on('message:user:ping', userPing);
   socket.on('message:user:notification', userNotification);
 };

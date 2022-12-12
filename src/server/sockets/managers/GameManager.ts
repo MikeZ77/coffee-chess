@@ -21,34 +21,55 @@ export default class GameManager extends Manager {
       this.socket.data.gameId = gameId;
       this.socket.data.gameSession = `game:${gameId}`;
       this.socket.data.gameRoom = `room:game:${gameId}`;
+      ack === undefined ? gameHandler(message) : gameHandler(message, ack);
     }
-    ack === undefined ? gameHandler(message) : gameHandler(message, ack);
   };
+
+  // private startGameClock = () => {
+  //   setInterval(async () => {
+
+  //   },250)
+  // };
 
   private setGameAbortWatcher = (gameSession: string, gameRoom: string) => {
     setTimeout(
       async () => {
+        const {
+          state: gameState,
+          userWhiteId,
+          userBlackId,
+          gameId
+        } = <Record<string, string>>await this.redis.json.get(gameSession, {
+          path: ['state', 'userWhiteId', 'userBlackId', 'gameId']
+        });
+
         let gameAborted;
-        const gameState = await this.redis.json.get(gameSession, { path: ['state'] });
-        // One player has not sent its GameConfirmation.
         if (gameState === 'PENDING') {
+          // One player has not sent game confirmation.
           gameAborted = true;
+          Logger.debug('Game pending.');
         } // One or both players have not made a move.
         else if (gameState === 'IN_PROGRESS') {
           // TODO: When the timer runs out check if either player has made a move.
-          console.log();
           gameAborted = true;
+          Logger.debug('Game in progress.');
         } else {
           gameAborted = false;
           Logger.debug('Time expired with no action.');
         }
 
         if (gameAborted) {
-          const payload: GameAborted = { aborted: true };
-          await this.redis.json.set(gameSession, 'state', 'ABORTED');
-          // Set users back to IDLE and playingGame to null
-          // Send notifications that game has been aborted.
-          await this.io.in(gameRoom).emit('message:game:aborted', payload);
+          await this.redis
+            .multi()
+            .json.set(gameSession, 'state', 'ABORTED')
+            .json.set(`user:session:${userWhiteId}`, 'playingGame', null)
+            .json.set(`user:session:${userBlackId}`, 'playingGame', null)
+            .json.set(`user:session:${userWhiteId}`, 'state', 'IDLE')
+            .json.set(`user:session:${userBlackId}`, 'state', 'IDLE')
+            .exec();
+          const aborted: GameAborted = { aborted: true };
+          await this.io.in(gameRoom).emit('message:game:aborted', aborted);
+          await this.io.socketsLeave(gameId);
         }
       },
       parseInt(GAME_ABORT_MS),
@@ -67,25 +88,25 @@ export default class GameManager extends Manager {
     4. If the second player to joins the room, set the game state to IN_PROGRESS.
     5. Emit to message:game:connected
   */
-    const { username, gameSession, gameRoom } = <Record<string, string>>this.socket.data;
     Logger.info(`${this.getUserSignature()}: Game ready signal : %o:`, message);
+    const { username, userSession, gameSession, gameRoom } = <Record<string, string>>(
+      this.socket.data
+    );
     await this.socket.join(gameRoom);
     const playersInRoom = await this.io.in(gameRoom).fetchSockets();
-
     if (playersInRoom.length === 1) {
       this.setGameAbortWatcher(gameSession, gameRoom);
     }
 
     if (playersInRoom.length === 2) {
-      await this.redis.json.set(
-        gameSession,
-        '$',
-        `{"state: IN_PROGRESS", "startTime": ${DateTime.utc().toString()}}`
-      );
+      await Promise.all([
+        this.redis.json.set(gameSession, 'state', 'IN_PROGRESS'),
+        this.redis.json.set(gameSession, 'startTime', DateTime.utc().toString())
+      ]);
       // TODO: Add to the list of games players can observe.
     }
 
-    await this.redis.json.set(gameSession, '$.state', 'PLAYING');
+    await this.redis.json.set(userSession, 'state', 'PLAYING');
     await this.io
       .in(gameRoom)
       .emit('message:game:connected', { message: `${username} Has conncted.` });
@@ -101,24 +122,22 @@ export default class GameManager extends Manager {
     4. Check if the game is over (checkmate, stalemate, draw, threefold repetition, or insufficient material)
   */
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
-    const { userWhite, userBlack, state, position } = <Partial<Game>>await this.redis.json.get(
-      gameSession,
-      {
+    const { userWhite, userBlack, state, position } = <Record<string, string>>(
+      await this.redis.json.get(gameSession, {
         path: ['userWhite', 'userBlack', 'state', 'position']
-      }
+      })
     );
-    this.chess.load(position!);
 
+    if (state !== 'IN_PROGRESS') {
+      return;
+    }
+
+    this.chess.load(position!);
     if (
       (userId === userWhite && this.chess.turn() === 'b') ||
       (userId === userBlack && this.chess.turn() === 'w')
     ) {
       return;
-    }
-
-    if (state !== 'IN_PROGRESS') {
-      return;
-      //
     }
 
     const move = this.chess.move(playerMove);

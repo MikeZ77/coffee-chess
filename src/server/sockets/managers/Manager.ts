@@ -2,9 +2,11 @@ import type { Socket, Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
 import { decodeToken, checkExpiration, TokenState } from '@Utils/auth.token';
 import { SocketError } from '@Utils/custom.errors';
+import { DateTime, Interval } from 'luxon';
 import Logger from '@Utils/config.logging.winston';
 
 type Next = (err?: SocketError | undefined) => void;
+const { CONNECTION_QUALITY_PING_MS = '3000' } = process.env;
 
 export default class Manager {
   protected io;
@@ -22,6 +24,12 @@ export default class Manager {
 
   protected getUserSignature(): string {
     return `${this.userId}::${this.username}`;
+  }
+
+  static getUserSignature(socket: Socket): string {
+    const { userId } = socket.data.userId;
+    const { username } = socket.data.username;
+    return `${userId}::${username}`;
   }
 
   static authMiddleware(socket: Socket, next: Next): void {
@@ -55,6 +63,35 @@ export default class Manager {
     }
     next();
   }
+
+  static getConnectionPing = (socket: Socket, redis: RedisClientType) => {
+    setInterval(() => {
+      const start = DateTime.now();
+      socket.emit('message:user:ping', async () => {
+        try {
+          // console.log(socket.connected);
+          const latency = Interval.fromDateTimes(start, DateTime.now()).length('milliseconds');
+          const userSession = socket.data.userSession;
+          // TODO: Bug where userSession is undefined. Probaably not being set when user reconnects.
+          await redis.json.arrAppend(userSession, 'latency', {
+            timestampUtc: DateTime.utc().toString(),
+            ms: latency
+          });
+          const length = await redis.json.arrLen(userSession, 'latency');
+          if (length > 15) {
+            await redis.json.arrPop(userSession, 'latency', 0);
+          }
+        } catch (error) {
+          if (error instanceof Error) {
+            Logger.error(
+              `${Manager.getUserSignature(socket)}: ${error.message} %o`,
+              error.stack
+            );
+          }
+        }
+      });
+    }, parseInt(CONNECTION_QUALITY_PING_MS));
+  };
 
   protected async getRedis(key: string, values: string[]): Promise<string> {
     return new Promise((resolve, reject) => {

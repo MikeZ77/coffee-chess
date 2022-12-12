@@ -27,9 +27,8 @@ const initSockets = async (
       io.on('connection', (socket) => {
         Logger.info(`User ${socket.data.username} ${socket.data.userId} is connected.`);
         UserManager.sendUserInfo(socket);
+        Manager.getConnectionPing(socket, redisClient);
         new GameManager(io, socket, redisClient);
-        // const userManager = new UserManager(io, socket, redisClient);
-        // userManager.sendUserInfo();
       });
     }
   );

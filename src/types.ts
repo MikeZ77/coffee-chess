@@ -30,6 +30,7 @@ export type UserState =
   | 'DISCONNECTED'
   | 'OBSERVING'
   | 'SEARCHING_OBSERVING';
+type PingInfo = { timestampUtc: string; ms: number };
 export type UserSession = {
   userId: string;
   username: string;
@@ -37,6 +38,7 @@ export type UserSession = {
   playingGame: string | null;
   observingGame: string | null;
   lastActivity: string;
+  latency: PingInfo[];
 };
 
 export type TimeControl = '1+0' | '5+0' | '15+0';

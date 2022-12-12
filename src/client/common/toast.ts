@@ -21,3 +21,14 @@ export const successToast = (message: string): void => {
     duration: 4500
   });
 };
+
+export const warningToast = (message: string): void => {
+  toast({
+    message: message,
+    type: 'is-warning',
+    position: 'bottom-center',
+    dismissible: true,
+    pauseOnHover: true,
+    duration: 6500
+  });
+};

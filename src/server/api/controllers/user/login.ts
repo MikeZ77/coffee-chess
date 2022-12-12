@@ -40,7 +40,8 @@ export default async (
           state: 'IDLE',
           playingGame: null,
           observingGame: null,
-          lastActivity: DateTime.utc().toString()
+          lastActivity: DateTime.utc().toString(),
+          latency: []
         };
         await redis.json.set(`user:session:${user_id}`, '$', userSession, {
           NX: true

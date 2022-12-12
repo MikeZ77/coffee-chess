@@ -48,10 +48,10 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
 
   initEventListeners();
   initTooltipAttributes({
-    'player-list': 'Player List',
-    'current-game': 'Current Game',
-    games: 'Games',
-    chat: 'Chat'
+    '#player-list': 'Player List',
+    '#current-game': 'Current Game',
+    '#games': 'Games',
+    '#chat': 'Chat'
   });
   /*  REGISTER SOCKET  */
   const socket = io();

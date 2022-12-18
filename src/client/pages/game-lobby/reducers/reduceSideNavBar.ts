@@ -15,34 +15,37 @@ const reduceSideNavBar: Reducer<State, NavBarAction> = (action, state): State =>
     }
     case 'SEARCH_ONE_MINUTE': {
       const { oneMinuteSearching } = state.sideNavBar;
+      const { search } = action;
       return {
         ...state,
         reduced: true,
         sideNavBar: {
           ...state.sideNavBar,
-          oneMinuteSearching: !oneMinuteSearching
+          oneMinuteSearching: search ? search : !oneMinuteSearching
         }
       };
     }
     case 'SEARCH_THREE_MINUTE': {
       const { threeMinuteSearching } = state.sideNavBar;
+      const { search } = action;
       return {
         ...state,
         reduced: true,
         sideNavBar: {
           ...state.sideNavBar,
-          threeMinuteSearching: !threeMinuteSearching
+          threeMinuteSearching: search ? search : !threeMinuteSearching
         }
       };
     }
     case 'SEARCH_FIFTEEN_MINUTE': {
       const { fifteenMinuteSearching } = state.sideNavBar;
+      const { search } = action;
       return {
         ...state,
         reduced: true,
         sideNavBar: {
           ...state.sideNavBar,
-          fifteenMinuteSearching: !fifteenMinuteSearching
+          fifteenMinuteSearching: search ? search : !fifteenMinuteSearching
         }
       };
     }

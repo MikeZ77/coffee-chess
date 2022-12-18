@@ -1,5 +1,5 @@
 import { Dispatch } from '@Common/types';
-import axios, { AxiosResponse } from 'axios';
+import type { AxiosResponse, AxiosError } from 'axios';
 import { registerLoading, Action } from '../actions/actions';
 import { errorToast } from '@Common/toast';
 
@@ -10,11 +10,9 @@ export const handleResponse = (response: AxiosResponse) => {
   window.location.assign(`${SERVER_FQDN}/login`);
 };
 
-export const hanldeError = (error: Error, dispatch: Dispatch<Action>) => {
-  if (axios.isAxiosError(error)) {
-    dispatch(registerLoading(false));
-    if (error.response) {
-      errorToast(error.response.data);
-    }
+export const hanldeError = (error: AxiosError<string>, dispatch: Dispatch<Action>) => {
+  dispatch(registerLoading(false));
+  if (error.response) {
+    errorToast(error.response.data);
   }
 };

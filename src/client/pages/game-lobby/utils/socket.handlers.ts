@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { Socket } from 'socket.io-client';
-import type { UserInfo, GameChat, GameConfirmation, GameAborted } from '@Types';
+import type { UserInfo, GameChat, GameConfirmation, GameAborted, GameClock } from '@Types';
 import type { ClientGame } from '../state';
 import type { SocketActions, UserAction } from '../actions/index';
 import type { Dispatch } from '@Common/types';
@@ -91,11 +91,16 @@ export const registerGameEvents = (
     }
   };
 
+  const updateClock = (message: GameClock) => {
+    console.log('GameClock', message);
+  };
+
   const chess = new Chess();
   socket.on('message:game:match', newGameMatch);
   socket.on('message:game:connected', gameConnected);
   socket.on('message:game:move', opponentMove);
   socket.on('message:game:aborted', gameAborted);
+  sokcet.on('message:game:clock', updateClock);
 };
 
 export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction>) => {

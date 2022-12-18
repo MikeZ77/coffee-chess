@@ -36,7 +36,7 @@ const getErrorHelper = (errorCode: number) => {
   return { statusCode, errorMessage };
 };
 
-const handleError: ErrorRequestHandler = (error, req, res, next) => {
+const handleError: ErrorRequestHandler = (error, req, res) => {
   switch (true) {
     case error instanceof MSSQLError:
       if (error.number in errorCodes) {

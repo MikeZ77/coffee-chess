@@ -1,20 +1,16 @@
 import type { Socket, Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
-import type { GameMessage, GameConfirmation, Game, GameAborted } from '@Types';
+import type { GameMessage, GameConfirmation, Game, GameAborted, GameClock } from '@Types';
 import type { ShortMove } from 'chess.js';
 import { Chess } from 'chess.js';
 import { DateTime } from 'luxon';
 import Logger from '@Utils/config.logging.winston';
 import Manager from './Manager';
 
-const { GAME_ABORT_MS } = process.env;
+const { GAME_ABORT_MS, GAME_CLOCK_TICK_MS } = process.env;
 
 export default class GameManager extends Manager {
-  private getGameInformation = async (
-    message: GameMessage,
-    gameHandler: Function,
-    ack?: Function
-  ) => {
+  private trackGame = async (message: GameMessage, gameHandler: Function, ack?: Function) => {
     const userSession = this.socket.data.userSession;
     const gameId = await this.redis.json.get(userSession, { path: ['playingGame'] });
     if (gameId) {
@@ -25,11 +21,55 @@ export default class GameManager extends Manager {
     }
   };
 
-  // private startGameClock = () => {
-  //   setInterval(async () => {
+  private startGameClock = (gameSession: string, gameRoom: string) => {
+    const interval = parseInt(GAME_CLOCK_TICK_MS);
+    const clock = setInterval(
+      async () => {
+        const { state, position, whiteTime, blackTime } = <
+          { state: string; position: string; whiteTime: number; blackTime: number }
+        >await this.redis.json.get(gameSession, {
+          path: ['state', 'position']
+        });
 
-  //   },250)
-  // };
+        if (state === 'ABORTED') {
+          clearInterval(clock);
+        }
+
+        if (whiteTime < interval) {
+          // clearInterval and call function to:
+          // Set game state to COMPLETE
+          // Send game result to client
+          // Call function to store game
+          // Destroy game room
+          Logger.info('White time up');
+        }
+
+        if (blackTime < interval) {
+          Logger.info('Black time up');
+        }
+
+        if (state === 'IN_PROGRESS') {
+          const chess = new Chess(position);
+          if (chess.turn() === 'w') {
+            const clock: GameClock = { whiteTime: whiteTime - interval, blackTime };
+            await Promise.all([
+              this.redis.json.numIncrBy(gameSession, 'whiteTime', -interval),
+              this.io.in(gameRoom).emit('message:game:clock', clock)
+            ]);
+          } else {
+            const clock: GameClock = { whiteTime, blackTime: blackTime - interval };
+            await Promise.all([
+              this.redis.json.numIncrBy(gameSession, 'blackTime', -interval),
+              this.io.in(gameRoom).emit('message:game:clock', clock)
+            ]);
+          }
+        }
+      },
+      interval,
+      gameSession,
+      gameRoom
+    );
+  };
 
   private setGameAbortWatcher = (gameSession: string, gameRoom: string) => {
     setTimeout(
@@ -51,7 +91,7 @@ export default class GameManager extends Manager {
         } // One or both players have not made a move.
         else if (gameState === 'IN_PROGRESS') {
           // TODO: When the timer runs out check if either player has made a move.
-          gameAborted = true;
+          // gameAborted = true;
           Logger.debug('Game in progress.');
         } else {
           gameAborted = false;
@@ -145,16 +185,14 @@ export default class GameManager extends Manager {
       return;
     }
 
-    if (this.chess.history().length === 1) {
-      console.log();
-      // Init start the clock ticks for black
-    } else {
-      console.log();
-      // Init the clock ticks for the opponent.
-    }
+    await Promise.all([
+      this.redis.json.set(gameSession, 'position', this.chess.fen()),
+      this.socket.to(gameRoom).emit('message:game:move', playerMove)
+    ]);
 
-    await this.redis.json.set(gameSession, 'position', this.chess.fen());
-    await this.socket.to(gameRoom).emit('message:game:move', playerMove);
+    if (this.chess.history().length === 1) {
+      this.startGameClock(gameSession, gameRoom);
+    }
   };
 
   private chess;
@@ -162,10 +200,8 @@ export default class GameManager extends Manager {
     super(io, socket, redis);
     this.chess = new Chess();
     socket.on('message:game:ready', (message) =>
-      this.getGameInformation(message, this.constructGameRoom)
+      this.trackGame(message, this.constructGameRoom)
     );
-    socket.on('message:game:move', (message) =>
-      this.getGameInformation(message, this.updateGameMove)
-    );
+    socket.on('message:game:move', (message) => this.trackGame(message, this.updateGameMove));
   }
 }

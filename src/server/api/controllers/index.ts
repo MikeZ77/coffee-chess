@@ -8,4 +8,4 @@ export { default as login } from './user/login';
 export { default as queueSearch } from './game/queue.search';
 
 // TODO: For testing only.
-export { default as test } from './user/temp';
+export { default as test } from './user/test';

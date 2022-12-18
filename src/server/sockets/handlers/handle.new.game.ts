@@ -50,13 +50,13 @@ export default (
 
       switch (timeControl) {
         case '1+0':
-          clockTime = '1:00:00';
+          clockTime = 60000;
           break;
         case '5+0':
-          clockTime = '5:00:00';
+          clockTime = 300000;
           break;
         case '15+0':
-          clockTime = '15:00:00';
+          clockTime = 900000;
           break;
       }
       const gameId = uuidv4();

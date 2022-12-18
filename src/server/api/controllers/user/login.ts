@@ -49,8 +49,8 @@ export default async (
 
         res
           .cookie('access_token', token, {
-            httpOnly: true, // HTTP(S) and not available to client javascript
-            secure: ENV === 'dev' ? false : true // HTTPS
+            httpOnly: ENV === 'dev' ? false : true, // Not available to client javascript
+            secure: ENV === 'dev' ? false : true // HTTPS only
           })
           .status(200)
           .send();

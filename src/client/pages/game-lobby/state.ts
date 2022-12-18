@@ -29,6 +29,8 @@ export type ClientGame = Modify<
     state: TimeControl | null;
     ratingWhite: number | null;
     ratingBlack: number | null;
+    whiteTime: number | null;
+    blackTime: number | null;
     color: Color;
   }
 >;
@@ -54,8 +56,8 @@ const state: State = {
     ratingBlack: null,
     watching: [],
     type: null,
-    whiteTime: '',
-    blackTime: '',
+    whiteTime: null,
+    blackTime: null,
     state: null,
     position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
     gameChat: [{ username: '', message: '' }],

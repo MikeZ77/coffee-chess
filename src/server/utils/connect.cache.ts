@@ -22,7 +22,7 @@ export const initConnListeners = (
     Logger.warn(`${connectionType} connection status: reconnecting`);
   });
   conn.on('error', (error) => {
-    Logger.error(`${connectionType} connection status: error`, error);
+    Logger.error(`${connectionType} connection status: error %o`, error);
   });
 };
 

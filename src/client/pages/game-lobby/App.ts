@@ -5,6 +5,12 @@ import { State } from './state';
 import { AllActions, AnyActions } from './actions/index';
 import sendRequest from '@Common/request';
 import { io } from 'socket.io-client';
+import Chess from 'chess.js';
+// import { hanldeError, handleResponse } from './utils/handlers';
+import { boardConfig } from './utils/chessboard';
+import { initTooltipAttributes, initEventListeners } from './utils/simple.utils';
+import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
+import { Chessboard } from 'cm-chessboard/src/cm-chessboard/Chessboard';
 import {
   combineReducers,
   reduceGameConsole,
@@ -12,19 +18,26 @@ import {
   reduceUserInfo,
   reduceGameBoard
 } from './reducers/index';
-import Chess from 'chess.js';
-import { boardConfig } from './utils/chessboard';
-import { initTooltipAttributes, initEventListeners } from './utils/simple.utils';
-import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
-import { Chessboard } from 'cm-chessboard/src/cm-chessboard/Chessboard';
 
 const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement) => {
   const dispatch: Dispatch<AnyActions> = (action = undefined) => {
     if (action === undefined) {
       return state;
     }
+
+    // if (state.pendingRequest != null) {
+    //   const newRequest = { ...state.pendingRequest };
+    //   state.pendingRequest = null;
+    //   sendRequest<void>(newRequest)
+    //     .then(() => {
+    //       handleResponse();
+    //     })
+    //     .catch((error) => {
+    //       hanldeError(error, dispatch);
+    //     });
+    // }
+
     state = reduce(<AllActions>action, state);
-    // console.log('state:', state);
     const updatedView = view(dispatch, state);
     const patches = diff(currentView, updatedView);
     rootNode = patch(rootNode, patches);

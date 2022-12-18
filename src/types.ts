@@ -63,8 +63,8 @@ export type Game = {
   ratingBlack: number;
   watching: string[];
   type: TimeControl;
-  whiteTime: string;
-  blackTime: string;
+  whiteTime: number;
+  blackTime: number;
   state: GameState;
   position: string;
   gameChat: GameChat[];
@@ -82,4 +82,5 @@ export type UserInfo = {
 export type GameMessage = GameConfirmation | GameAborted;
 export type GameConfirmation = { ready: boolean };
 export type GameAborted = { aborted: boolean };
+export type GameClock = { whiteTime: number; blackTime: number };
 export type UserConnected = string;

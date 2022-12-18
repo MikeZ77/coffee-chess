@@ -9,13 +9,9 @@ import { Action } from './actions/actions';
 import sendRequest from '@Common/request';
 import combineReducers from './utils/combineReducers';
 
-const app = (
-  initState: State,
-  view: View<State, Action>,
-  node: HTMLElement
-) => {
+const app = (initState: State, view: View<State, Action>, node: HTMLElement) => {
   const dispatch: Dispatch<Action> = (action) => {
-    state = reduce(action, state);
+    state = reduce(action!, state);
     if (state.pendingRequest != null) {
       const newRequest = { ...state.pendingRequest };
       state.pendingRequest = null;

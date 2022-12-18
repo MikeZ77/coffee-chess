@@ -1,9 +1,5 @@
 import tippy from 'tippy.js';
 
-// tippy('#myButton', {
-//   content: "I'm a Tippy tooltip!"
-// });
-
 interface Tooltip {
   [key: string]: string;
 }

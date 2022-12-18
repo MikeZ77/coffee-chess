@@ -1,7 +1,7 @@
-import axios from 'axios';
 import { signInLoading, Action } from '../actions/actions';
 import { Dispatch } from '@Common/types';
 import { successToast, errorToast } from '@Common/toast';
+import { type AxiosError } from 'axios';
 
 const { SERVER_FQDN } = process.env;
 
@@ -17,11 +17,9 @@ export const handleResponse = () => {
   window.location.assign(`${SERVER_FQDN}`);
 };
 
-export const hanldeError = (error: Error, dispatch: Dispatch<Action>) => {
-  if (axios.isAxiosError(error)) {
-    if (error.response) {
-      errorToast(error.response.data);
-      dispatch(signInLoading(false));
-    }
+export const hanldeError = (error: AxiosError<string>, dispatch: Dispatch<Action>) => {
+  if (error.response) {
+    errorToast(error.response.data);
+    dispatch(signInLoading(false));
   }
 };

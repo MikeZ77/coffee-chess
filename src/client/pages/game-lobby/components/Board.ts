@@ -3,37 +3,68 @@ import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
 import { NavBarAction } from '../actions/sideNavBar';
+import { type DurationObjectUnits, Duration } from 'luxon';
 
 const { div, span, p, i } = hh(h);
 
 const Board: Component<State, NavBarAction> = (dispatch, state) => {
   const { currentGame, username } = state;
   const { ratingBlack, ratingWhite, userWhite, userBlack } = currentGame;
-  let { whiteTime, blackTime } = currentGame;
-  let player, opponent;
+  const { whiteTime, blackTime } = currentGame;
+  let player,
+    opponent,
+    whiteClockTimeParsed,
+    blackClockTimeParsed,
+    whiteClockTime: DurationObjectUnits | null,
+    blackClockTime: DurationObjectUnits | null;
 
-  const [whiteMinutes, whiteSeconds] = whiteTime.split(':').slice(0, 2);
-  const [blackMinutes, blackSeconds] = blackTime.split(':').slice(0, 2);
+  whiteTime
+    ? (whiteClockTime = Duration.fromMillis(whiteTime)
+        .shiftTo('minutes', 'seconds', 'milliseconds')
+        .toObject())
+    : (whiteClockTime = null);
 
-  if (
-    (parseInt(whiteMinutes) == 0 && parseInt(whiteSeconds) >= 20) ||
-    parseInt(whiteMinutes) >= 1
-  ) {
-    whiteTime = whiteTime.split(':').slice(0, 2).join(':');
+  blackTime
+    ? (blackClockTime = Duration.fromMillis(blackTime)
+        .shiftTo('minutes', 'seconds', 'milliseconds')
+        .toObject())
+    : (blackClockTime = null);
+
+  if (whiteClockTime) {
+    const minutes = <number>whiteClockTime.minutes;
+    const seconds = <number>whiteClockTime.seconds;
+    const milliseconds = <number>whiteClockTime.milliseconds;
+    if ((minutes == 0 && seconds >= 20) || minutes >= 1) {
+      whiteClockTimeParsed = `${minutes}:${String(seconds).padStart(2, '0')}`;
+    } else {
+      whiteClockTimeParsed = `${minutes}:${String(seconds).padStart(2, '0')}:${String(
+        milliseconds
+      ).padStart(2, '0')}`;
+    }
+  } else {
+    whiteClockTimeParsed = '0:00';
   }
 
-  if (
-    (parseInt(blackMinutes) == 0 && parseInt(blackSeconds) >= 20) ||
-    parseInt(blackMinutes) >= 1
-  ) {
-    blackTime = blackTime.split(':').slice(0, 2).join(':');
+  if (blackClockTime) {
+    const minutes = <number>blackClockTime.minutes;
+    const seconds = <number>blackClockTime.seconds;
+    const milliseconds = <number>blackClockTime.milliseconds;
+    if ((minutes == 0 && seconds >= 20) || minutes >= 1) {
+      blackClockTimeParsed = `${minutes}:${String(seconds).padStart(2, '0')}`;
+    } else {
+      blackClockTimeParsed = `${minutes}:${String(seconds).padStart(2, '0')}:${String(
+        milliseconds
+      ).padStart(2, '0')}`;
+    }
+  } else {
+    blackClockTimeParsed = '0:00';
   }
 
   username === userWhite
-    ? ((player = { username: userWhite, rating: ratingWhite, clock: whiteTime }),
-      (opponent = { username: userBlack, rating: ratingBlack, clock: blackTime }))
-    : ((player = { username: userBlack, rating: ratingBlack, clock: blackTime }),
-      (opponent = { username: userWhite, rating: ratingWhite, clock: whiteTime }));
+    ? ((player = { username: userWhite, rating: ratingWhite, clock: whiteClockTimeParsed }),
+      (opponent = { username: userBlack, rating: ratingBlack, clock: blackClockTimeParsed }))
+    : ((player = { username: userBlack, rating: ratingBlack, clock: blackClockTimeParsed }),
+      (opponent = { username: userWhite, rating: ratingWhite, clock: whiteClockTimeParsed }));
 
   return div({ className: 'box' }, [
     div({ className: 'tile is-ancestor' }, [
@@ -71,7 +102,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                         className: 'is-family-monospace is-size-3',
                         style: 'color: hsl(60,100%,50%);'
                       },
-                      opponent.clock ? opponent.clock : '0:00'
+                      opponent.clock
                     )
                   ])
                 ]
@@ -97,7 +128,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                           className: 'is-family-monospace is-size-3',
                           style: 'color: hsl(60,100%,50%);'
                         },
-                        player.clock ? player.clock : '0:00'
+                        player.clock
                       )
                     ]
                   )

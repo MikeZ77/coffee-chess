@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { type RedisClientType, createClient } from 'redis';
-const { SERVER_FQDN } = process.env;
+import { encode, decode } from 'jwt-simple';
+import { DateTime } from 'luxon';
+
+const { SERVER_FQDN, JWT_SECRET } = process.env;
 
 describe('Authentication and authorization', () => {
   let redis: RedisClientType;
@@ -58,6 +61,42 @@ describe('Authentication and authorization', () => {
     const response = await axios.get(`${SERVER_FQDN}/api/v1/user/test`);
     expect(response.request.path).toBe('/login');
     expect(response.status).toBe(200);
+  });
+
+  test('An expired token should get redirected back to login', async () => {
+    const tokenInfo = decode(token, JWT_SECRET);
+    const issued = DateTime.now().minus({ hours: 1 }).toString();
+    const expires = DateTime.now().minus({ minutes: 10 }).toString();
+    const expiredToken = encode({ ...tokenInfo, issued, expires }, JWT_SECRET);
+    const response = await axios.get(`${SERVER_FQDN}/api/v1/user/test`, {
+      headers: {
+        Cookie: `access_token=${expiredToken};`
+      }
+    });
+    expect(response.request.path).toBe('/login');
+    expect(response.status).toBe(200);
+  });
+
+  test('A token which is within the refresh interval should be renewed', async () => {
+    const tokenInfo = decode(token, JWT_SECRET);
+    const issued = DateTime.now().minus({ hours: 1 }).toString();
+    const expires = DateTime.now().plus({ minutes: 10 }).toString();
+    const tokenToRenew = encode({ ...tokenInfo, issued, expires }, JWT_SECRET);
+    const response = await axios.get(`${SERVER_FQDN}/api/v1/user/test`, {
+      headers: {
+        Cookie: `access_token=${tokenToRenew};`
+      }
+    });
+    expect(response.status).toBe(200);
+    const cookies = response.headers['set-cookie'];
+    const [cookie] = <string[]>cookies;
+    const renewedToken = cookie.split('=')[1].split(';')[0];
+    expect(renewedToken).not.toEqual(token);
+  });
+
+  test('The user should be able to sign out', async () => {
+    // Waiting one signout endpoint to be implemented.
+    console.log();
   });
 
   afterAll(async () => {

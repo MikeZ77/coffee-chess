@@ -25,7 +25,7 @@ export const encodeToken = (partialSession: IPartialTokenSession) => {
   const issued = currentTime.toString();
   const expires = currentTime.plus({ hours: parseInt(JWT_EXPIRY_HOURS) }).toString();
   const session = { ...partialSession, issued, expires };
-  return encode(session, JWT_SECRET as string);
+  return encode(session, JWT_SECRET);
 };
 
 export const decodeToken = (token: string) => {
@@ -43,7 +43,7 @@ export const decodeToken = (token: string) => {
 export const checkExpiration = (session: ITokenSession) => {
   const { expires } = session;
   const timeRemaining = DateTime.fromISO(expires).diff(DateTime.now(), 'minute').toObject();
-
+  //TODO: Make the token refresh interval an env variable (right now hardcoded at 15 minutes)
   if (timeRemaining.minutes == undefined) {
     return TokenState.EXPIRED;
   }

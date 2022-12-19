@@ -1,4 +1,11 @@
 import tippy from 'tippy.js';
+import type { Dispatch } from '@Common/types';
+import {
+  type NavBarAction,
+  spinnerSearchOneMinute,
+  spinnerSearchFiveMinute,
+  spinnerSearchFifteenMinute
+} from '../actions/index';
 
 interface Tooltip {
   [key: string]: string;
@@ -27,4 +34,10 @@ export enum Sound {
 
 export const playSound = (file: Sound): void => {
   new Audio(file).play();
+};
+
+export const clearQueueSpinners = (dispatch: Dispatch<NavBarAction>) => {
+  dispatch(spinnerSearchOneMinute(false));
+  dispatch(spinnerSearchFiveMinute(false));
+  dispatch(spinnerSearchFifteenMinute(false));
 };

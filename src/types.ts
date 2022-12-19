@@ -16,9 +16,22 @@ export type LoginPayload = {
   password: string;
 };
 
+export type SearchPayload = void;
+
+export type GamePayloads = SearchPayload;
+
 /***********************************HTTP RESPONSES **************************************/
+export enum ClientErrorCodes {
+  QUEUE_SEARCH_ERROR = 1
+}
+
 export type BasicResponse = {
   message: string;
+};
+
+export type ErrorResponse = {
+  message: string;
+  clientCode?: ClientErrorCodes;
 };
 
 /********************************** STATE OBJECTS **********************************/

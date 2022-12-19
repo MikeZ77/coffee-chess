@@ -4,21 +4,26 @@ import { Component } from 'common/types';
 import { State } from '../state';
 import {
   NavBarAction,
-  searchOneMinute,
-  searchThreeMinute,
-  searchFifteenMinute
+  spinnerSearchOneMinute,
+  spinnerSearchFiveMinute,
+  spinnerSearchFifteenMinute,
+  requestSearchOneMinute,
+  requestSearchMinute,
+  requestSearchFifteenMinute
 } from '../actions/index';
 
 const { ul, li, a, span, i, div } = hh(h);
 
 const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) => {
-  const { oneMinuteSearching, threeMinuteSearching, fifteenMinuteSearching } =
-    state.sideNavBar;
+  const { oneMinuteSearching, fiveMinuteSearching, fifteenMinuteSearching } = state.sideNavBar;
   return ul({}, [
     li(
       {
         onclick: () => {
-          dispatch(searchOneMinute());
+          if (![fiveMinuteSearching, fifteenMinuteSearching].includes(true)) {
+            dispatch(requestSearchOneMinute(!oneMinuteSearching));
+            dispatch(spinnerSearchOneMinute(!oneMinuteSearching));
+          }
         }
       },
       [
@@ -37,14 +42,17 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
     li(
       {
         onclick: () => {
-          dispatch(searchThreeMinute());
+          if (![oneMinuteSearching, fifteenMinuteSearching].includes(true)) {
+            dispatch(spinnerSearchFiveMinute(!fiveMinuteSearching));
+            dispatch(requestSearchMinute(!fiveMinuteSearching));
+          }
         }
       },
       [
         a({ className: 'columns is-flex is-vcentered' }, [
           a('5-Minute'),
           [
-            threeMinuteSearching
+            fiveMinuteSearching
               ? span({ className: 'icon is-medium' }, [
                   i({ className: 'fas fa-circle-notch fa-spin' })
                 ])
@@ -56,7 +64,10 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
     li(
       {
         onclick: () => {
-          dispatch(searchFifteenMinute());
+          if (![oneMinuteSearching, fiveMinuteSearching].includes(true)) {
+            dispatch(spinnerSearchFifteenMinute(!fifteenMinuteSearching));
+            dispatch(requestSearchFifteenMinute(!fifteenMinuteSearching));
+          }
         }
       },
       [

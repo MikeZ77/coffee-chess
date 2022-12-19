@@ -8,9 +8,12 @@ export { updateUserInfo } from './userInfo';
 export { initNewGame, setPlayerColor } from './gameBoard';
 export {
   openNewGameMenu,
-  searchOneMinute,
-  searchThreeMinute,
-  searchFifteenMinute
+  spinnerSearchOneMinute,
+  spinnerSearchFiveMinute,
+  spinnerSearchFifteenMinute,
+  requestSearchOneMinute,
+  requestSearchMinute,
+  requestSearchFifteenMinute
 } from './sideNavBar';
 
 export type AllActions = GameConsoleAction & NavBarAction & UserAction & GameAction;

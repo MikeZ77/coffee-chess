@@ -1,9 +1,11 @@
-import type { Game, GameState, TimeControl } from '@Types';
+import type { Game, GameState, TimeControl, GamePayloads } from '@Types';
+import { HttpRequest } from 'common/types';
 
 export interface State {
   userId: string;
   username: string;
   reduced: boolean;
+  pendingRequest: HttpRequest<GamePayloads> | null;
   sideNavBar: SideNavBar;
   gameConsole: GameConsole;
   currentGame: ClientGame;
@@ -12,7 +14,7 @@ export interface State {
 type SideNavBar = {
   newGameMenuOpen: boolean;
   oneMinuteSearching: boolean;
-  threeMinuteSearching: boolean;
+  fiveMinuteSearching: boolean;
   fifteenMinuteSearching: boolean;
 };
 
@@ -39,10 +41,11 @@ const state: State = {
   userId: '',
   username: '',
   reduced: false,
+  pendingRequest: null,
   sideNavBar: {
     newGameMenuOpen: false,
     oneMinuteSearching: false,
-    threeMinuteSearching: false,
+    fiveMinuteSearching: false,
     fifteenMinuteSearching: false
   },
   gameConsole: {

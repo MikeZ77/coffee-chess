@@ -1,6 +1,5 @@
 import { VNode } from 'virtual-dom';
 import { HyperScriptHelperFn } from 'hyperscript-helpers';
-import { State } from 'pages/game-lobby/state';
 
 export type View<S, A> = (dispatch: Dispatch<A>, state: S) => VNode;
 export type Reducer<S, A> = (action: A, state: S) => S;

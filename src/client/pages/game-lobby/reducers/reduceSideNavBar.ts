@@ -1,7 +1,9 @@
 import { Reducer } from 'common/types';
 import { State } from '../state';
 import { NavBarAction } from '../actions/index';
-// const { SERVER_FQDN } = process.env;
+import type { HttpRequest } from 'common/types';
+
+const { SERVER_FQDN } = process.env;
 
 const reduceSideNavBar: Reducer<State, NavBarAction> = (action, state): State => {
   switch (action.type) {
@@ -13,47 +15,90 @@ const reduceSideNavBar: Reducer<State, NavBarAction> = (action, state): State =>
         sideNavBar: { ...state.sideNavBar, newGameMenuOpen: !newGameMenuOpen }
       };
     }
-    case 'SEARCH_ONE_MINUTE': {
-      const { oneMinuteSearching } = state.sideNavBar;
+    case 'SPINNER_ONE_MINUTE': {
       const { search } = action;
       return {
         ...state,
         reduced: true,
         sideNavBar: {
           ...state.sideNavBar,
-          oneMinuteSearching: search ? search : !oneMinuteSearching
+          oneMinuteSearching: search
         }
       };
     }
-    case 'SEARCH_THREE_MINUTE': {
-      const { threeMinuteSearching } = state.sideNavBar;
+    case 'SPINNER_FIVE_MINUTE': {
       const { search } = action;
       return {
         ...state,
         reduced: true,
         sideNavBar: {
           ...state.sideNavBar,
-          threeMinuteSearching: search ? search : !threeMinuteSearching
+          fiveMinuteSearching: search
         }
+      };
+    }
+    case 'SPINNER_FIFTEEN_MINUTE': {
+      const { search } = action;
+      return {
+        ...state,
+        reduced: true,
+        sideNavBar: {
+          ...state.sideNavBar,
+          fifteenMinuteSearching: search
+        }
+      };
+    }
+    case 'SEARCH_ONE_MINUTE': {
+      const { search } = action;
+      const pendingRequest: HttpRequest = {
+        endpoint: SERVER_FQDN + '/api/v1/game/search/1+0',
+        method: search ? 'POST' : 'DELETE'
+      };
+      return {
+        ...state,
+        reduced: true,
+        pendingRequest
+      };
+    }
+    case 'SEARCH_FIVE_MINUTE': {
+      const { search } = action;
+      const pendingRequest: HttpRequest = {
+        endpoint: SERVER_FQDN + '/api/v1/game/search/5+0',
+        method: search ? 'POST' : 'DELETE'
+      };
+      return {
+        ...state,
+        reduced: true,
+        pendingRequest
       };
     }
     case 'SEARCH_FIFTEEN_MINUTE': {
-      const { fifteenMinuteSearching } = state.sideNavBar;
       const { search } = action;
+      const pendingRequest: HttpRequest = {
+        endpoint: SERVER_FQDN + '/api/v1/game/search/15+0',
+        method: search ? 'POST' : 'DELETE'
+      };
       return {
         ...state,
         reduced: true,
-        sideNavBar: {
-          ...state.sideNavBar,
-          fifteenMinuteSearching: search ? search : !fifteenMinuteSearching
-        }
+        pendingRequest
       };
     }
-
     default: {
       return state;
     }
   }
 };
+
+// let { oneMinuteSearching } = state.sideNavBar;
+// oneMinuteSearching = !oneMinuteSearching;
+// const pendingRequest: HttpRequest = {
+//   endpoint: SERVER_FQDN + '/api/v1/game/search/1+0',
+//   method: oneMinuteSearching ? 'POST' : 'DELETE'
+// };
+
+// ...state,
+// reduced: true,
+// pendingRequest: search ? null : pendingRequest,
 
 export default reduceSideNavBar;

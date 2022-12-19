@@ -4,6 +4,7 @@ import type { UserSession, QueueRecord, TimeControl } from '@Types';
 import sql, { type ConnectionPool } from 'mssql';
 import { DateTime } from 'luxon';
 import RedLock from 'redlock';
+import { ServerError } from '@Utils/custom.errors';
 import Logger from '@Utils/config.logging.winston';
 
 const { QUEUE_LOCK_TTL_MS, QUEUE_RATING_MATCH } = process.env;
@@ -106,15 +107,22 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     } finally {
       await lock.release();
     }
+
+    if (errorMessage) {
+      throw new ServerError(50200, errorMessage);
+    }
+
     if (gameMatch) {
       // Create game room and notify game start
       const pairing = JSON.stringify([queueNewGame, JSON.parse(gameMatch)]);
       await redis.publish('channel:game:new', pairing);
     }
-    return errorMessage
-      ? res.status(400).json({ message: errorMessage })
-      : res.status(200).send();
+
+    res.status(200).send();
   } catch (error) {
+    if (!(error instanceof ServerError)) {
+      return next(new ServerError(50200));
+    }
     next(error);
   }
 };

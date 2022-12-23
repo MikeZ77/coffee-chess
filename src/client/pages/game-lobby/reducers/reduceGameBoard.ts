@@ -20,6 +20,14 @@ const reduceGameBoard: Reducer<State, GameAction> = (action, state): State => {
         currentGame: { ...state.currentGame, color }
       };
     }
+    case 'UPDATE_PLAYER_CLOCK': {
+      const { whiteTime, blackTime } = action.clock;
+      return {
+        ...state,
+        reduced: true,
+        currentGame: { ...state.currentGame, whiteTime, blackTime }
+      };
+    }
     default: {
       return state;
     }

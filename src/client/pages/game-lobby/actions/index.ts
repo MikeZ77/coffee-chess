@@ -5,7 +5,7 @@ import { GameAction } from './gameBoard';
 
 export { updateChatMessage, sendChatMessage, updateChatLog } from './gameConsole';
 export { updateUserInfo } from './userInfo';
-export { initNewGame, setPlayerColor } from './gameBoard';
+export { initNewGame, setPlayerColor, updatePlayerTime } from './gameBoard';
 export {
   openNewGameMenu,
   spinnerSearchOneMinute,

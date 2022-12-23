@@ -28,13 +28,12 @@ export default class GameManager extends Manager {
         const { state, position, whiteTime, blackTime } = <
           { state: string; position: string; whiteTime: number; blackTime: number }
         >await this.redis.json.get(gameSession, {
-          path: ['state', 'position']
+          path: ['state', 'position', 'whiteTime', 'blackTime']
         });
 
         if (state === 'ABORTED') {
           clearInterval(clock);
         }
-
         if (whiteTime < interval) {
           // clearInterval and call function to:
           // Set game state to COMPLETE
@@ -43,11 +42,9 @@ export default class GameManager extends Manager {
           // Destroy game room
           Logger.info('White time up');
         }
-
         if (blackTime < interval) {
           Logger.info('Black time up');
         }
-
         if (state === 'IN_PROGRESS') {
           const chess = new Chess(position);
           if (chess.turn() === 'w') {
@@ -116,6 +113,8 @@ export default class GameManager extends Manager {
       gameSession,
       gameRoom
     );
+    Logger.debug(gameSession);
+    Logger.debug(gameRoom);
   };
 
   private constructGameRoom = async (message: GameConfirmation) => {
@@ -134,7 +133,7 @@ export default class GameManager extends Manager {
     );
     await this.socket.join(gameRoom);
     const playersInRoom = await this.io.in(gameRoom).fetchSockets();
-    if (playersInRoom.length === 1) {
+    if (playersInRoom[0].data.userId === this.userId) {
       this.setGameAbortWatcher(gameSession, gameRoom);
     }
 

@@ -6,12 +6,16 @@ import type { SocketActions, UserAction } from '../actions/index';
 import type { Dispatch } from '@Common/types';
 import type { State } from '../state';
 import type { ShortMove } from 'chess.js';
-import { Sound } from './simple.utils';
-import { playSound } from './simple.utils';
+import { clearQueueSpinners } from './simple.utils';
 import { warningToast } from '@Common/toast';
 import Chess from 'chess.js';
 import { updateUserInfo } from '../actions/index';
-import { initNewGame, updateChatLog, setPlayerColor } from '../actions/index';
+import {
+  initNewGame,
+  updateChatLog,
+  setPlayerColor,
+  updatePlayerTime
+} from '../actions/index';
 import {
   INPUT_EVENT_TYPE,
   MARKER_TYPE,
@@ -37,17 +41,16 @@ export const registerGameEvents = (
       const color = username === userWhite ? COLOR.white : COLOR.black;
       dispatch(initNewGame(message));
       dispatch(setPlayerColor(color));
+      clearQueueSpinners(dispatch);
       board.setPosition(position, false);
       board.setOrientation(color);
     }
   };
 
   const attachBoardInputHandler = (event) => {
-    console.log('event', event);
     event.chessboard.removeMarkers(MARKER_TYPE.dot);
     if (event.type === INPUT_EVENT_TYPE.moveInputStarted) {
       const moves = chess.moves({ square: event.square, verbose: true });
-      console.log('moves', moves);
       for (const move of moves) {
         event.chessboard.addMarker(MARKER_TYPE.dot, move.to);
       }
@@ -91,8 +94,8 @@ export const registerGameEvents = (
     }
   };
 
-  const updateClock = (message: GameClock) => {
-    console.log('GameClock', message);
+  const gameClock = (clock: GameClock) => {
+    dispatch(updatePlayerTime(clock));
   };
 
   const chess = new Chess();
@@ -100,7 +103,7 @@ export const registerGameEvents = (
   socket.on('message:game:connected', gameConnected);
   socket.on('message:game:move', opponentMove);
   socket.on('message:game:aborted', gameAborted);
-  sokcet.on('message:game:clock', updateClock);
+  socket.on('message:game:clock', gameClock);
 };
 
 export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction>) => {

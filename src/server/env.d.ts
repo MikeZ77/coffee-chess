@@ -37,6 +37,8 @@ declare global {
       GAME_OBJECT_EXPIRY_SECONDS: string;
       GAME_ABORT_MS: string;
       GAME_CLOCK_TICK_MS: string;
+      CLIENT_GAME_CLOCK_TICK_MS: string;
+      MAX_MOVE_CORRECTION_LATENCY_MS: string;
     }
   }
 }

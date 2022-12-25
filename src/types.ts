@@ -95,5 +95,6 @@ export type UserInfo = {
 export type GameMessage = GameConfirmation | GameAborted;
 export type GameConfirmation = { ready: boolean };
 export type GameAborted = { aborted: boolean };
-export type GameClock = { whiteTime: number; blackTime: number };
+export type GameClock = { whiteTime: number; blackTime: number; timestampUtc?: string };
+export type GameMove = { from: string; to: string; timestampUtc?: string };
 export type UserConnected = string;

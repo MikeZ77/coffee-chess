@@ -7,7 +7,7 @@ import { AllActions, AnyActions } from './actions/index';
 import sendRequest from '@Common/request';
 import { io } from 'socket.io-client';
 import { hanldeError } from './utils/request.handlers';
-import { boardConfig } from './utils/chessboard';
+import { boardConfig } from './utils/chess';
 import { initTooltipAttributes, initEventListeners } from './utils/simple.utils';
 import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
 import { Chessboard } from 'cm-chessboard/src/cm-chessboard/Chessboard';

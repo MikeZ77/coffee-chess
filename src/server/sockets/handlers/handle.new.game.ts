@@ -74,6 +74,7 @@ export default (
         blackTime: clockTime,
         state: 'PENDING',
         position: chess.fen(),
+        history: [],
         gameChat: [],
         result: null,
         startTime: null

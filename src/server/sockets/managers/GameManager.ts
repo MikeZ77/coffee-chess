@@ -55,6 +55,7 @@ export default class GameManager extends Manager {
                 blackTime,
                 timestampUtc: DateTime.utc().toString()
               };
+              // Logger.info(' White: %o', clock);
               await Promise.all([
                 this.redis.json.numIncrBy(gameSession, 'whiteTime', -delta),
                 this.io.in(gameRoom).emit('message:game:clock', clock)
@@ -69,6 +70,7 @@ export default class GameManager extends Manager {
                 blackTime: blackTime - delta,
                 timestampUtc: DateTime.utc().toString()
               };
+              // Logger.info('Black: %o', clock);
               await Promise.all([
                 this.redis.json.numIncrBy(gameSession, 'blackTime', -delta),
                 this.io.in(gameRoom).emit('message:game:clock', clock)
@@ -180,9 +182,9 @@ export default class GameManager extends Manager {
     const maxMoveLatency = parseInt(MAX_MOVE_CORRECTION_LATENCY_MS);
     const { timestampUtc, ...playerMove } = gameMove;
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
-    const { userWhite, userBlack, state, position } = <Record<string, string>>(
+    const { userWhite, userBlack, state, position, history } = <Record<string, string>>(
       await this.redis.json.get(gameSession, {
-        path: ['userWhite', 'userBlack', 'state', 'position']
+        path: ['userWhite', 'userBlack', 'state', 'position', 'history']
       })
     );
 
@@ -190,13 +192,13 @@ export default class GameManager extends Manager {
       return;
     }
 
-    // if (
-    //   !timestampUtc ||
-    //   !DateTime.fromISO(timestampUtc) ||
-    //   endTime.diff(DateTime.fromISO(timestampUtc), ['milliseconds']).milliseconds < 0
-    // ) {
-    //   return;
-    // }
+    if (
+      !(typeof timestampUtc === 'string') ||
+      !DateTime.fromISO(timestampUtc) ||
+      !(endTime.diff(DateTime.fromISO(timestampUtc), ['milliseconds']).milliseconds >= 0)
+    ) {
+      return;
+    }
 
     this.chess.load(position!);
     if (
@@ -210,20 +212,23 @@ export default class GameManager extends Manager {
     if (!move) {
       return;
     }
-    // {color: 'b', from: 'f7', to: 'f5', flags: 'b', piece: 'p', …}
-    // const sentTime = DateTime.fromISO(timestampUtc);
-    // const colorTurn = this.chess.turn() === 'w' ? 'whiteTime' : 'blackTime';
-    // const delta = endTime.diff(sentTime, ['milliseconds']).milliseconds;
-    // delta > maxMoveLatency
-    //   ? await this.redis.json.numIncrBy(gameSession, colorTurn, maxMoveLatency)
-    //   : await this.redis.json.numIncrBy(gameSession, colorTurn, delta);
+
+    const { from, to, color } = move;
+    const nextPosition = this.chess.fen();
+    const sentTime = DateTime.fromISO(timestampUtc);
+    const colorTurn = color === 'w' ? 'whiteTime' : 'blackTime';
+    const delta = endTime.diff(sentTime, ['milliseconds']).milliseconds;
 
     await Promise.all([
+      delta > maxMoveLatency
+        ? this.redis.json.numIncrBy(gameSession, colorTurn, maxMoveLatency)
+        : this.redis.json.numIncrBy(gameSession, colorTurn, delta),
       this.redis.json.set(gameSession, 'position', this.chess.fen()),
+      this.redis.json.arrAppend(gameSession, 'history', { from, to, position: nextPosition }),
       this.socket.to(gameRoom).emit('message:game:move', playerMove)
     ]);
 
-    if (this.chess.history().length === 1) {
+    if (!history.length) {
       this.startGameClock(gameSession, gameRoom);
     }
   };

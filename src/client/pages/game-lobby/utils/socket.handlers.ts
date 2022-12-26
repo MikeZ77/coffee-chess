@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Socket } from 'socket.io-client';
 import type {
   UserInfo,
@@ -9,7 +8,7 @@ import type {
   GameMove
 } from '@Types';
 import type { ClientGame } from '../state';
-import type { SocketActions, UserAction } from '../actions/index';
+import type { UserAction, AnyActions } from '../actions/index';
 import type { Dispatch } from '@Common/types';
 import type { State } from '../state';
 import { DateTime } from 'luxon';
@@ -17,7 +16,7 @@ import { clearQueueSpinners } from './simple.utils';
 import { ClientClock } from './chess';
 import { warningToast } from '@Common/toast';
 import Chess from 'chess.js';
-import { updateUserInfo } from '../actions/index';
+import { updateUserInfo, updatePlayerTime } from '../actions/index';
 import { initNewGame, updateChatLog, setPlayerColor } from '../actions/index';
 import {
   INPUT_EVENT_TYPE,
@@ -29,7 +28,8 @@ const { GAME_CLOCK_SERVER_SYNC_MS } = process.env;
 
 export const registerGameEvents = (
   socket: Socket,
-  dispatch: Dispatch<SocketActions>,
+  dispatch: Dispatch<AnyActions, State>,
+  // @ts-ignore
   board
 ) => {
   const newGameMatch = (message: ClientGame) => {
@@ -52,6 +52,7 @@ export const registerGameEvents = (
     }
   };
 
+  // @ts-ignore
   const attachBoardInputHandler = (event) => {
     event.chessboard.removeMarkers(MARKER_TYPE.dot);
     if (event.type === INPUT_EVENT_TYPE.moveInputStarted) {
@@ -62,7 +63,7 @@ export const registerGameEvents = (
       return moves.length > 0;
     }
     if (event.type === INPUT_EVENT_TYPE.validateMoveInput) {
-      const result = chess.move(event.squareTo);
+      const result = chess.move({ from: event.squareFrom, to: event.squareTo });
       //TODO: If its not the users turn then do not return.
       if (result) {
         const gameMove: GameMove = {
@@ -93,15 +94,15 @@ export const registerGameEvents = (
   };
 
   const opponentMove = (move: GameMove) => {
-    console.log('Move', move);
-    board.movePiece(move.from, move.to, true);
-    chess.move(move);
+    const { from, to } = move;
+    board.movePiece(from, to, true);
+    chess.move({ from, to });
     chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
   };
 
   const gameAborted = (message: GameAborted) => {
     if (message.aborted) {
-      dispatch(updateChatLog('ABORTED'));
+      dispatch(updateChatLog({ username: undefined, message: 'ABORTED' }));
       warningToast('Game aborted. Opponent failed to connect.');
       board.disableMoveInput();
       chess.reset();
@@ -111,36 +112,37 @@ export const registerGameEvents = (
 
   const syncWithServerClock = (clock: GameClock) => {
     const { whiteTime, blackTime, timestampUtc } = clock;
-    const startTime = DateTime.fromISO(timestampUtc);
+    const startTime = DateTime.fromISO(timestampUtc!);
     const currentTime = DateTime.utc();
     const latency = currentTime.diff(startTime, ['milliseconds']).milliseconds;
+    const state = <State>dispatch();
     const whiteServerTime = whiteTime + latency;
     const blackServerTime = blackTime + latency;
+    const whiteClientTime = <number>state.currentGame.whiteTime;
+    const blackClientTime = <number>state.currentGame.blackTime;
     const syncDelta = parseInt(GAME_CLOCK_SERVER_SYNC_MS);
-    const state = <State>dispatch();
 
-    // console.log('White', Math.abs(whiteServerTime - state.currentGame.whiteTime));
-    // console.log('Black', Math.abs(blackServerTime - state.currentGame.blackTime));
+    // console.log('White', Math.abs(whiteServerTime - whiteClientTime));
+    // console.log('Black', Math.abs(blackServerTime - blackClientTime));
 
-    if (Math.abs(whiteServerTime - state.currentGame.whiteTime) > syncDelta) {
-      dispatch(
-        updatePlayerTime({
-          whiteTime: whiteServerTime,
-          blackTime: state.currentGame.blackTime
-        })
-      );
+    if (Math.abs(whiteServerTime - whiteClientTime) > syncDelta) {
+      const time: GameClock = {
+        whiteTime: whiteServerTime,
+        blackTime: blackClientTime
+      };
+      dispatch(updatePlayerTime(time));
     }
 
-    if (Math.abs(blackServerTime - state.currentGame.blackTime) > syncDelta) {
-      dispatch(
-        updatePlayerTime({
-          whiteTime: state.currentGame.whiteTime,
-          blackTime: blackServerTime
-        })
-      );
+    if (Math.abs(blackServerTime - blackClientTime) > syncDelta) {
+      const time: GameClock = {
+        whiteTime: whiteClientTime,
+        blackTime: blackServerTime
+      };
+      dispatch(updatePlayerTime(time));
     }
   };
 
+  // @ts-ignore
   const chess = new Chess();
   const clock = new ClientClock();
   socket.on('message:game:match', newGameMatch);

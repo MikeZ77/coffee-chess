@@ -63,6 +63,7 @@ const state: State = {
     blackTime: null,
     state: null,
     position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+    history: [],
     gameChat: [{ username: '', message: '' }],
     result: null,
     startTime: null,

@@ -20,7 +20,7 @@ import {
 } from './reducers/index';
 
 const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement) => {
-  const dispatch: Dispatch<AnyActions> = (action = undefined) => {
+  const dispatch: Dispatch<AnyActions, State> = (action = undefined) => {
     if (action === undefined) {
       return state;
     }

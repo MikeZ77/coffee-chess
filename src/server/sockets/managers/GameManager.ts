@@ -1,6 +1,13 @@
 import type { Socket, Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
-import type { GameMessage, GameConfirmation, GameMove, GameAborted, GameClock } from '@Types';
+import type {
+  GameMessage,
+  GameConfirmation,
+  GameMove,
+  GameAborted,
+  GameClock,
+  GameDrawOffer
+} from '@Types';
 import type { ShortMove } from 'chess.js';
 import { Chess } from 'chess.js';
 import { DateTime } from 'luxon';
@@ -182,9 +189,9 @@ export default class GameManager extends Manager {
     const maxMoveLatency = parseInt(MAX_MOVE_CORRECTION_LATENCY_MS);
     const { timestampUtc, ...playerMove } = gameMove;
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
-    const { userWhite, userBlack, state, position, history } = <Record<string, string>>(
+    const { userWhiteId, userBlackId, state, position, history } = <Record<string, string>>(
       await this.redis.json.get(gameSession, {
-        path: ['userWhite', 'userBlack', 'state', 'position', 'history']
+        path: ['userWhiteId', 'userBlackId', 'state', 'position', 'history']
       })
     );
 
@@ -194,7 +201,7 @@ export default class GameManager extends Manager {
 
     if (
       !(typeof timestampUtc === 'string') ||
-      !DateTime.fromISO(timestampUtc) ||
+      !DateTime.fromISO(timestampUtc).isValid ||
       !(endTime.diff(DateTime.fromISO(timestampUtc), ['milliseconds']).milliseconds >= 0)
     ) {
       return;
@@ -202,8 +209,9 @@ export default class GameManager extends Manager {
 
     this.chess.load(position!);
     if (
-      (userId === userWhite && this.chess.turn() === 'b') ||
-      (userId === userBlack && this.chess.turn() === 'w')
+      ![userWhiteId, userBlackId].includes(userId) ||
+      (userId === userWhiteId && this.chess.turn() === 'b') ||
+      (userId === userBlackId && this.chess.turn() === 'w')
     ) {
       return;
     }
@@ -233,6 +241,27 @@ export default class GameManager extends Manager {
     }
   };
 
+  private handleDrawOffer = async (offer: GameDrawOffer) => {
+    Logger.debug('draw offer %o', offer);
+    const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
+    const { pendingDrawOfferFrom, userWhiteId, userBlackId } = <Record<string, string>>(
+      await this.redis.json.get(gameSession, {
+        path: ['pendingDrawOfferFrom', 'userWhiteId', 'userBlackId']
+      })
+    );
+
+    if (![userWhiteId, userBlackId].includes(userId)) {
+      return;
+    }
+
+    if (!pendingDrawOfferFrom) {
+      await Promise.all([
+        this.socket.to(gameRoom).emit('message:game:draw:offer', <GameDrawOffer>offer),
+        this.redis.json.set(gameSession, 'pendingDrawOfferFrom', userId)
+      ]);
+    }
+  };
+
   private chess;
   private startTime;
   constructor(io: ioServer, socket: Socket, redis: RedisClientType) {
@@ -241,6 +270,9 @@ export default class GameManager extends Manager {
     this.startTime = DateTime.now();
     socket.on('message:game:ready', (message) =>
       this.trackGame(message, this.constructGameRoom)
+    );
+    socket.on('message:game:draw:offer', (message) =>
+      this.trackGame(message, this.handleDrawOffer)
     );
     socket.on('message:game:move', (message) => this.trackGame(message, this.updateGameMove));
   }

@@ -4,7 +4,9 @@ import { Component } from 'common/types';
 import { State } from '../state';
 import { GameChat } from '@Types';
 import { updateChatMessage, GameConsoleAction, sendChatMessage } from '../actions/index';
+import events from 'events';
 
+const clientEvent = new events.EventEmitter();
 const { div, footer, a, button, i, span, p, input } = hh(h);
 
 const renderChatMessages = (messages: GameChat[]): HyperScriptHelperFn[] => {
@@ -24,7 +26,7 @@ const renderChatMessages = (messages: GameChat[]): HyperScriptHelperFn[] => {
 };
 
 const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
-  const { gameChat } = state.currentGame;
+  const { gameChat, pendingDrawOfferFrom, state: gameState } = state.currentGame;
   return div({ className: 'card' }, [
     div({ className: 'card-content', style: 'height: 48vh' }, [
       div({ className: 'content' }, [])
@@ -64,8 +66,32 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
       ]),
       a({ className: 'card-footer-item' }, [
         div({ className: 'buttons' }, [
-          button({ className: 'button is-rounded is-small is-warning' }, 'Draw'),
-          button({ className: 'button is-rounded is-small is-danger' }, 'Resign')
+          button(
+            {
+              className: 'button is-rounded is-small is-warning',
+              onclick: (e: Event) => {
+                e.preventDefault();
+                console.log(gameState, pendingDrawOfferFrom);
+                if (gameState === 'IN_PROGRESS' && !pendingDrawOfferFrom) {
+                  console.log(gameState, pendingDrawOfferFrom);
+                  clientEvent.emit('event:game:draw:offer');
+                }
+              }
+            },
+            'Draw'
+          ),
+          button(
+            {
+              className: 'button is-rounded is-small is-danger',
+              onclick: (e: Event) => {
+                e.preventDefault();
+                if (gameState === 'IN_PROGRESS') {
+                  clientEvent.emit('event:game:resign');
+                }
+              }
+            },
+            'Resign'
+          )
         ])
       ])
     ]),

@@ -9,7 +9,8 @@ import {
   spinnerSearchFifteenMinute,
   requestSearchOneMinute,
   requestSearchMinute,
-  requestSearchFifteenMinute
+  requestSearchFifteenMinute,
+  setAudioNewGame
 } from '../actions/index';
 
 const { ul, li, a, span, i, div } = hh(h);
@@ -23,6 +24,7 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
           if (![fiveMinuteSearching, fifteenMinuteSearching].includes(true)) {
             dispatch(requestSearchOneMinute(!oneMinuteSearching));
             dispatch(spinnerSearchOneMinute(!oneMinuteSearching));
+            dispatch(setAudioNewGame());
           }
         }
       },
@@ -45,6 +47,7 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
           if (![oneMinuteSearching, fifteenMinuteSearching].includes(true)) {
             dispatch(spinnerSearchFiveMinute(!fiveMinuteSearching));
             dispatch(requestSearchMinute(!fiveMinuteSearching));
+            dispatch(setAudioNewGame());
           }
         }
       },
@@ -67,6 +70,7 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
           if (![oneMinuteSearching, fiveMinuteSearching].includes(true)) {
             dispatch(spinnerSearchFifteenMinute(!fifteenMinuteSearching));
             dispatch(requestSearchFifteenMinute(!fifteenMinuteSearching));
+            dispatch(setAudioNewGame());
           }
         }
       },

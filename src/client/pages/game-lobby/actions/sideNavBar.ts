@@ -5,7 +5,8 @@ export type NavBarAction =
   | { type: 'SPINNER_FIFTEEN_MINUTE'; search: boolean }
   | { type: 'SEARCH_ONE_MINUTE'; search: boolean }
   | { type: 'SEARCH_FIVE_MINUTE'; search: boolean }
-  | { type: 'SEARCH_FIFTEEN_MINUTE'; search: boolean };
+  | { type: 'SEARCH_FIFTEEN_MINUTE'; search: boolean }
+  | { type: 'SET_GAME_AUDIO' };
 
 export const openNewGameMenu = (newGameMenuOpen: boolean): NavBarAction => {
   return {
@@ -36,4 +37,8 @@ export const requestSearchMinute = (search: boolean): NavBarAction => {
 
 export const requestSearchFifteenMinute = (search: boolean): NavBarAction => {
   return { type: 'SEARCH_FIFTEEN_MINUTE', search };
+};
+
+export const setAudioNewGame = (): NavBarAction => {
+  return { type: 'SET_GAME_AUDIO' };
 };

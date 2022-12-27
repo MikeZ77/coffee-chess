@@ -81,6 +81,7 @@ export type Game = {
   blackTime: number;
   state: GameState;
   position: string;
+  pendingDrawOfferFrom: string | null;
   history: GameHistory[];
   gameChat: GameChat[];
   result: Color;
@@ -99,4 +100,5 @@ export type GameConfirmation = { ready: boolean };
 export type GameAborted = { aborted: boolean };
 export type GameClock = { whiteTime: number; blackTime: number; timestampUtc?: string };
 export type GameMove = { from: string; to: string; timestampUtc?: string };
+export type GameDrawOffer = { drawOffer: boolean };
 export type UserConnected = string;

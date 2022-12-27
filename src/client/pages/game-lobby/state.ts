@@ -9,6 +9,7 @@ export interface State {
   sideNavBar: SideNavBar;
   gameConsole: GameConsole;
   currentGame: ClientGame;
+  audio: Audio;
 }
 
 type SideNavBar = {
@@ -27,8 +28,8 @@ type Modify<T, R> = Omit<T, keyof R> & R;
 export type ClientGame = Modify<
   Game,
   {
-    type: GameState | null;
-    state: TimeControl | null;
+    type: TimeControl | null;
+    state: GameState | null;
     ratingWhite: number | null;
     ratingBlack: number | null;
     whiteTime: number | null;
@@ -36,6 +37,12 @@ export type ClientGame = Modify<
     color: Color;
   }
 >;
+
+type Audio = {
+  newGameSound: HTMLAudioElement | null;
+  pieceMoveSound: HTMLAudioElement | null;
+  lowTimeSound: HTMLAudioElement | null;
+};
 
 const state: State = {
   userId: '',
@@ -63,11 +70,17 @@ const state: State = {
     blackTime: null,
     state: null,
     position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+    pendingDrawOfferFrom: null,
     history: [],
     gameChat: [{ username: '', message: '' }],
     result: null,
     startTime: null,
     color: null
+  },
+  audio: {
+    newGameSound: null,
+    pieceMoveSound: null,
+    lowTimeSound: null
   }
 };
 

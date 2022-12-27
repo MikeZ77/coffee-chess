@@ -5,7 +5,7 @@ import { GameAction } from './gameBoard';
 
 export { updateChatMessage, sendChatMessage, updateChatLog } from './gameConsole';
 export { updateUserInfo } from './userInfo';
-export { initNewGame, setPlayerColor, updatePlayerTime } from './gameBoard';
+export { initNewGame, setPlayerColor, updatePlayerTime, updateGameState } from './gameBoard';
 export {
   openNewGameMenu,
   spinnerSearchOneMinute,
@@ -13,7 +13,8 @@ export {
   spinnerSearchFifteenMinute,
   requestSearchOneMinute,
   requestSearchMinute,
-  requestSearchFifteenMinute
+  requestSearchFifteenMinute,
+  setAudioNewGame
 } from './sideNavBar';
 
 export type AllActions = GameConsoleAction & NavBarAction & UserAction & GameAction;

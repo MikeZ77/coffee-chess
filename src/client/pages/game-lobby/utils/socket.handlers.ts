@@ -5,18 +5,20 @@ import type {
   GameConfirmation,
   GameAborted,
   GameClock,
-  GameMove
+  GameMove,
+  GameDrawOffer
 } from '@Types';
 import type { ClientGame } from '../state';
 import type { UserAction, AnyActions } from '../actions/index';
 import type { Dispatch } from '@Common/types';
 import type { State } from '../state';
 import { DateTime } from 'luxon';
+import events from 'events';
 import { clearQueueSpinners } from './simple.utils';
 import { ClientClock } from './chess';
 import { warningToast } from '@Common/toast';
 import Chess from 'chess.js';
-import { updateUserInfo, updatePlayerTime } from '../actions/index';
+import { updateUserInfo, updatePlayerTime, updateGameState } from '../actions/index';
 import { initNewGame, updateChatLog, setPlayerColor } from '../actions/index';
 import {
   INPUT_EVENT_TYPE,
@@ -82,15 +84,16 @@ export const registerGameEvents = (
 
   const gameConnected = (message: GameChat) => {
     /*
-      Game is not IN_PROGRESS and we can make moves.
+      Game is IN_PROGRESS and we can make moves.
         1. Add the player connected server message to the game chat log.
         2. Enable the board.
     */
     const state = <State>dispatch();
     const { color } = state.currentGame;
     dispatch(updateChatLog(message));
+    dispatch(updateGameState('IN_PROGRESS'));
     board.enableMoveInput(attachBoardInputHandler, color);
-    // playSound(Sound.START);
+    state.audio.newGameSound?.play();
   };
 
   const opponentMove = (move: GameMove) => {
@@ -142,14 +145,36 @@ export const registerGameEvents = (
     }
   };
 
+  const offerDraw = () => {
+    console.log('offer draw');
+    socket.emit('message:game:draw:offer', <GameDrawOffer>{ drawOffer: true });
+  };
+
+  const acceptDraw = () => {
+    console.log('accept draw');
+  };
+
+  const opponentDrawOffer = (offer: GameDrawOffer) => {
+    console.log('server offer draw', offer);
+  };
+
+  const resign = () => {
+    console.log('resign');
+  };
+
   // @ts-ignore
   const chess = new Chess();
   const clock = new ClientClock();
+  const clientEvent = new events.EventEmitter();
   socket.on('message:game:match', newGameMatch);
   socket.on('message:game:connected', gameConnected);
   socket.on('message:game:move', opponentMove);
   socket.on('message:game:aborted', gameAborted);
   socket.on('message:game:clock', syncWithServerClock);
+  socket.on('message:game:draw:offer', opponentDrawOffer);
+  clientEvent.on('event:game:draw:offer', offerDraw);
+  clientEvent.on('event:game:draw:accept', acceptDraw);
+  clientEvent.on('event:game:resign', resign);
 };
 
 export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction>) => {

@@ -25,6 +25,16 @@ const initApi = (app: Express, server: Server) => {
     handleAuthorization,
     express.static(path.resolve(__dirname, `${PUBLIC}/sounds/game-start.mp3`))
   );
+  app.use(
+    '/piece-move.mp3',
+    handleAuthorization,
+    express.static(path.resolve(__dirname, `${PUBLIC}/sounds/piece-move.mp3`))
+  );
+  app.use(
+    '/tic-toc.wav',
+    handleAuthorization,
+    express.static(path.resolve(__dirname, `${PUBLIC}/sounds/tic-toc.wav`))
+  );
   app.use(express.static(path.resolve(__dirname, '../../../dist/client')));
   app.use(routers.pageRouter);
   app.use(`/api/${API_VERSION}`, routers.apiRouter);

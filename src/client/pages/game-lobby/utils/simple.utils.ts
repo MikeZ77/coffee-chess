@@ -6,6 +6,7 @@ import {
   spinnerSearchFiveMinute,
   spinnerSearchFifteenMinute
 } from '../actions/index';
+import events from 'events';
 
 interface Tooltip {
   [key: string]: string;
@@ -31,3 +32,5 @@ export const clearQueueSpinners = (dispatch: Dispatch<NavBarAction>) => {
   dispatch(spinnerSearchFiveMinute(false));
   dispatch(spinnerSearchFifteenMinute(false));
 };
+
+export const clientEvent = new events.EventEmitter();

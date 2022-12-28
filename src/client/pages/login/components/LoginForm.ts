@@ -44,16 +44,12 @@ const LoginForm: Component<State, Action> = (dispatch, state) => {
     ]),
     button(
       {
-        className: `button is-primary mr-2 ${
-          state.loading ? 'is-loading' : ''
-        }`,
+        className: `button is-primary mr-2 ${state.loading ? 'is-loading' : ''}`,
         disabled: state.loading ? 'disabled' : '',
         onclick: (e: Event) => {
           e.preventDefault();
           dispatch(signInLoading(true));
-          dispatch(
-            signIn({ username: state.username, password: state.password })
-          );
+          dispatch(signIn({ username: state.username, password: state.password }));
         }
       },
       'Sign in'

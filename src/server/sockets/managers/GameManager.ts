@@ -11,6 +11,7 @@ import type {
 import type { ShortMove } from 'chess.js';
 import { Chess } from 'chess.js';
 import { DateTime } from 'luxon';
+import calculateUpdatedEloRating from '../../utils/elo.calculator';
 import Logger from '@Utils/config.logging.winston';
 import Manager from './Manager';
 
@@ -31,7 +32,7 @@ export default class GameManager extends Manager {
   private startGameClock = (gameSession: string, gameRoom: string) => {
     const interval = parseInt(GAME_CLOCK_TICK_MS);
     this.startTime = DateTime.now();
-    const clock = setInterval(
+    this.clockInterval = setInterval(
       async () => {
         const { state, position, whiteTime, blackTime } = <
           { state: string; position: string; whiteTime: number; blackTime: number }
@@ -40,12 +41,16 @@ export default class GameManager extends Manager {
         });
 
         if (state === 'ABORTED') {
-          clearInterval(clock);
+          clearInterval(<number>this.clockInterval);
+        }
+
+        if (state === 'COMPLETE') {
+          clearInterval(<number>this.clockInterval);
         }
 
         const chess = new Chess(position);
         const endTime = DateTime.now();
-        const delta = endTime.diff(this.startTime, ['milliseconds']).milliseconds;
+        const delta = endTime.diff(<DateTime>this.startTime, ['milliseconds']).milliseconds;
 
         if (state === 'IN_PROGRESS') {
           if (chess.turn() === 'w') {
@@ -221,28 +226,64 @@ export default class GameManager extends Manager {
       return;
     }
 
-    const { from, to, color } = move;
-    const nextPosition = this.chess.fen();
-    const sentTime = DateTime.fromISO(timestampUtc);
-    const colorTurn = color === 'w' ? 'whiteTime' : 'blackTime';
-    const delta = endTime.diff(sentTime, ['milliseconds']).milliseconds;
+    if (this.chess.in_checkmate()) {
+      // Set game state to COMPLETE (clock will clear).
+      // Set result to BLACK or WHITE.
+      // Call function to compute elo change and store game.
+      // Send checkmate gameStatusNotification to clients.
+      const { color } = move;
+      const result = color === 'w' ? 'WHITE' : 'BLACK';
+      const { ratingBlack, ratingWhite } = <Record<string, number>>await this.redis.json.get(
+        gameSession,
+        {
+          path: ['ratingBlack', 'ratingWhite']
+        }
+      );
+      const { newWhiteRating, newBlackRating } = calculateUpdatedEloRating(
+        ratingWhite,
+        ratingBlack,
+        result
+      );
+      // message:game:complete
+    } else if (
+      this.chess.in_draw() ||
+      this.chess.in_stalemate() ||
+      this.chess.in_threefold_repetition()
+    ) {
+      console.log('Draw');
+      // Set game state to COMPLETE (clock will clear).
+      // Set result to DRAW.
+      // Call function to compute elo change and store game.
+      // Send draw gameStatusNotification to clients.
+    } else {
+      const { from, to, color } = move;
+      const nextPosition = this.chess.fen();
+      const sentTime = DateTime.fromISO(timestampUtc);
+      const colorTurn = color === 'w' ? 'whiteTime' : 'blackTime';
+      const delta = endTime.diff(sentTime, ['milliseconds']).milliseconds;
 
-    await Promise.all([
-      delta > maxMoveLatency
-        ? this.redis.json.numIncrBy(gameSession, colorTurn, maxMoveLatency)
-        : this.redis.json.numIncrBy(gameSession, colorTurn, delta),
-      this.redis.json.set(gameSession, 'position', this.chess.fen()),
-      this.redis.json.arrAppend(gameSession, 'history', { from, to, position: nextPosition }),
-      this.socket.to(gameRoom).emit('message:game:move', playerMove)
-    ]);
+      await Promise.all([
+        delta > maxMoveLatency
+          ? this.redis.json.numIncrBy(gameSession, colorTurn, maxMoveLatency)
+          : this.redis.json.numIncrBy(gameSession, colorTurn, delta),
+        this.redis.json.set(gameSession, 'position', this.chess.fen()),
+        this.redis.json.set(gameSession, 'pendingDrawOfferFrom', null),
+        this.redis.json.arrAppend(gameSession, 'history', {
+          from,
+          to,
+          position: nextPosition
+        }),
+        this.socket.to(gameRoom).emit('message:game:move', playerMove)
+      ]);
 
-    if (!history.length) {
-      this.startGameClock(gameSession, gameRoom);
+      if (!history.length) {
+        this.startGameClock(gameSession, gameRoom);
+      }
     }
   };
 
   private handleDrawOffer = async (offer: GameDrawOffer) => {
-    Logger.debug('draw offer %o', offer);
+    // Logger.debug('draw offer %o', offer);
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
     const { pendingDrawOfferFrom, userWhiteId, userBlackId } = <Record<string, string>>(
       await this.redis.json.get(gameSession, {
@@ -262,17 +303,33 @@ export default class GameManager extends Manager {
     }
   };
 
+  private handleAcceptDrawOffer = async (offer: GameDrawOffer) => {
+    /* 
+      1. Check that the user accepting the draw is the user who was offered the draw.
+      TODO: Go through the "end game" steps.
+    */
+    Logger.debug('Accepted draw offer %o', offer);
+    const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
+    Logger.debug('clock interval', this.clockInterval === null);
+  };
+
   private chess;
-  private startTime;
+  private startTime: DateTime | null;
+  private clockInterval: number | null;
   constructor(io: ioServer, socket: Socket, redis: RedisClientType) {
     super(io, socket, redis);
     this.chess = new Chess();
-    this.startTime = DateTime.now();
+    this.startTime = null;
+    this.clockInterval = null;
+
     socket.on('message:game:ready', (message) =>
       this.trackGame(message, this.constructGameRoom)
     );
     socket.on('message:game:draw:offer', (message) =>
       this.trackGame(message, this.handleDrawOffer)
+    );
+    socket.on('message:game:draw:accept', (message) =>
+      this.trackGame(message, this.handleAcceptDrawOffer)
     );
     socket.on('message:game:move', (message) => this.trackGame(message, this.updateGameMove));
   }

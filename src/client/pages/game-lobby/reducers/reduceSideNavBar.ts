@@ -92,7 +92,8 @@ const reduceSideNavBar: Reducer<State, NavBarAction> = (action, state): State =>
           ...state.audio,
           newGameSound: new Audio('game-start.mp3'),
           pieceMoveSound: new Audio('piece-move.mp3'),
-          lowTimeSound: new Audio('tic-toc.wav')
+          lowTimeSound: new Audio('tic-toc.wav'),
+          notificationSound: new Audio('notification.wav')
         }
       };
     }

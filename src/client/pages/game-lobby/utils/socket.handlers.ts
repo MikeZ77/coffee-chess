@@ -13,13 +13,18 @@ import type { UserAction, AnyActions } from '../actions/index';
 import type { Dispatch } from '@Common/types';
 import type { State } from '../state';
 import { DateTime } from 'luxon';
-import events from 'events';
 import { clearQueueSpinners } from './simple.utils';
 import { ClientClock } from './chess';
 import { warningToast } from '@Common/toast';
 import Chess from 'chess.js';
-import { updateUserInfo, updatePlayerTime, updateGameState } from '../actions/index';
+import {
+  updateUserInfo,
+  updatePlayerTime,
+  updateGameState,
+  updateDrawOffer
+} from '../actions/index';
 import { initNewGame, updateChatLog, setPlayerColor } from '../actions/index';
+import { clientEvent } from './simple.utils';
 import {
   INPUT_EVENT_TYPE,
   MARKER_TYPE,
@@ -74,9 +79,17 @@ export const registerGameEvents = (
           timestampUtc: DateTime.utc().toString()
         };
         socket.emit('message:game:move', gameMove);
+        const {
+          currentGame: { pendingDrawOfferFrom },
+          audio: { pieceMoveSound }
+        } = <State>dispatch();
         chess.turn() === 'w'
           ? clock.startWhiteClock(dispatch)
           : clock.startBlackClock(dispatch);
+        pieceMoveSound?.play();
+        if (pendingDrawOfferFrom) {
+          dispatch(updateDrawOffer(null));
+        }
         return result;
       }
     }
@@ -101,11 +114,12 @@ export const registerGameEvents = (
     board.movePiece(from, to, true);
     chess.move({ from, to });
     chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
+    dispatch(updateDrawOffer(null));
   };
 
   const gameAborted = (message: GameAborted) => {
     if (message.aborted) {
-      dispatch(updateChatLog({ username: undefined, message: 'ABORTED' }));
+      dispatch(updateChatLog(<GameChat>{ username: undefined, message: 'ABORTED' }));
       warningToast('Game aborted. Opponent failed to connect.');
       board.disableMoveInput();
       chess.reset();
@@ -129,49 +143,81 @@ export const registerGameEvents = (
     // console.log('Black', Math.abs(blackServerTime - blackClientTime));
 
     if (Math.abs(whiteServerTime - whiteClientTime) > syncDelta) {
-      const time: GameClock = {
-        whiteTime: whiteServerTime,
-        blackTime: blackClientTime
-      };
-      dispatch(updatePlayerTime(time));
+      dispatch(
+        updatePlayerTime(<GameClock>{
+          whiteTime: whiteServerTime,
+          blackTime: blackClientTime
+        })
+      );
     }
 
     if (Math.abs(blackServerTime - blackClientTime) > syncDelta) {
-      const time: GameClock = {
-        whiteTime: whiteClientTime,
-        blackTime: blackServerTime
-      };
-      dispatch(updatePlayerTime(time));
+      dispatch(
+        updatePlayerTime(<GameClock>{
+          whiteTime: whiteClientTime,
+          blackTime: blackServerTime
+        })
+      );
     }
   };
 
   const offerDraw = () => {
-    console.log('offer draw');
     socket.emit('message:game:draw:offer', <GameDrawOffer>{ drawOffer: true });
+    const {
+      username,
+      currentGame: { userWhite, userBlack }
+    } = <State>dispatch();
+    const user = username === userWhite ? userWhite : userBlack;
+    dispatch(updateDrawOffer(user));
+    dispatch(
+      updateChatLog(<GameChat>{
+        username: undefined,
+        message: `${user} has offered a draw.`
+      })
+    );
   };
 
   const acceptDraw = () => {
-    console.log('accept draw');
+    socket.emit('message:game:draw:accept', <GameDrawOffer>{ drawOffer: true });
   };
 
   const opponentDrawOffer = (offer: GameDrawOffer) => {
-    console.log('server offer draw', offer);
+    if (offer.drawOffer) {
+      const {
+        username,
+        currentGame: { userWhite, userBlack },
+        audio: { notificationSound }
+      } = <State>dispatch();
+      const opponent = username === userWhite ? userBlack : userWhite;
+      dispatch(updateDrawOffer(opponent));
+      dispatch(
+        updateChatLog(<GameChat>{
+          username: undefined,
+          message: `${opponent} has offered a draw.`
+        })
+      );
+      notificationSound?.play();
+    }
   };
 
   const resign = () => {
     console.log('resign');
   };
 
+  const gameComplete = () => {
+    console.log('complete');
+  };
+
   // @ts-ignore
   const chess = new Chess();
   const clock = new ClientClock();
-  const clientEvent = new events.EventEmitter();
   socket.on('message:game:match', newGameMatch);
   socket.on('message:game:connected', gameConnected);
   socket.on('message:game:move', opponentMove);
   socket.on('message:game:aborted', gameAborted);
   socket.on('message:game:clock', syncWithServerClock);
   socket.on('message:game:draw:offer', opponentDrawOffer);
+  socket.on('message:game:complete', gameComplete);
   clientEvent.on('event:game:draw:offer', offerDraw);
   clientEvent.on('event:game:draw:accept', acceptDraw);
   clientEvent.on('event:game:resign', resign);

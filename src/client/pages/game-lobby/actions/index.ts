@@ -3,7 +3,12 @@ import { NavBarAction } from './sideNavBar';
 import { UserAction } from './userInfo';
 import { GameAction } from './gameBoard';
 
-export { updateChatMessage, sendChatMessage, updateChatLog } from './gameConsole';
+export {
+  updateChatMessage,
+  sendChatMessage,
+  updateChatLog,
+  updateDrawOffer
+} from './gameConsole';
 export { updateUserInfo } from './userInfo';
 export { initNewGame, setPlayerColor, updatePlayerTime, updateGameState } from './gameBoard';
 export {

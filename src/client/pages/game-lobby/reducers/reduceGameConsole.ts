@@ -31,6 +31,14 @@ const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): St
         currentGame: { ...state.currentGame, gameChat: [...gameChat] }
       };
     }
+    case 'UPDATE_DRAW_OFFER': {
+      const { pendingDrawOfferFrom } = action;
+      return {
+        ...state,
+        reduced: true,
+        currentGame: { ...state.currentGame, pendingDrawOfferFrom }
+      };
+    }
     default: {
       return state;
     }

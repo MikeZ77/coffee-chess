@@ -6,13 +6,14 @@ import {
   spinnerSearchFiveMinute,
   spinnerSearchFifteenMinute
 } from '../actions/index';
+import { gameCompleteToast } from '@Common/toast';
 import events from 'events';
 
-interface Tooltip {
+interface ITooltip {
   [key: string]: string;
 }
 
-export const initTooltipAttributes = (tooltipInfo: Tooltip): void => {
+export const initTooltipAttributes = (tooltipInfo: ITooltip): void => {
   for (const [id, message] of Object.entries(tooltipInfo)) {
     tippy(id, { content: message });
   }
@@ -34,3 +35,32 @@ export const clearQueueSpinners = (dispatch: Dispatch<NavBarAction>) => {
 };
 
 export const clientEvent = new events.EventEmitter();
+
+export interface IGameMessageData {
+  gameMessage: string;
+  userWhite: string;
+  userBlack: string;
+  newWhiteRating: number;
+  newBlackRating: number;
+  ratingWhite: number;
+  ratingBlack: number;
+}
+
+export const gameCompleteToastHelper = (gameData: IGameMessageData): void => {
+  const {
+    gameMessage,
+    userWhite,
+    userBlack,
+    newWhiteRating,
+    newBlackRating,
+    ratingWhite,
+    ratingBlack
+  } = gameData;
+  gameCompleteToast(
+    `
+    ${gameMessage}\n
+    ${userWhite} rating ${newWhiteRating - <number>ratingWhite} (${newWhiteRating}) \n
+    ${userBlack} rating ${newBlackRating - <number>ratingBlack} (${newBlackRating}) 
+    `
+  );
+};

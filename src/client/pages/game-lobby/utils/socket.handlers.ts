@@ -6,14 +6,15 @@ import type {
   GameAborted,
   GameClock,
   GameMove,
-  GameDrawOffer
+  GameDrawOffer,
+  GameComplete
 } from '@Types';
 import type { ClientGame } from '../state';
 import type { UserAction, AnyActions } from '../actions/index';
 import type { Dispatch } from '@Common/types';
 import type { State } from '../state';
+import { clearQueueSpinners, clientEvent, gameCompleteToastHelper } from './simple.utils';
 import { DateTime } from 'luxon';
-import { clearQueueSpinners } from './simple.utils';
 import { ClientClock } from './chess';
 import { warningToast } from '@Common/toast';
 import Chess from 'chess.js';
@@ -24,7 +25,6 @@ import {
   updateDrawOffer
 } from '../actions/index';
 import { initNewGame, updateChatLog, setPlayerColor } from '../actions/index';
-import { clientEvent } from './simple.utils';
 import {
   INPUT_EVENT_TYPE,
   MARKER_TYPE,
@@ -201,11 +201,51 @@ export const registerGameEvents = (
   };
 
   const resign = () => {
+    // Emit resignation to server
     console.log('resign');
   };
 
-  const gameComplete = () => {
-    console.log('complete');
+  const gameComplete = (message: GameComplete) => {
+    const { type, newBlackRating, newWhiteRating, result } = message;
+    board.disableMoveInput();
+    clock.stopClocks();
+    const {
+      currentGame: { userWhite, userBlack, ratingWhite, ratingBlack }
+    } = <State>dispatch();
+    const gameData = {
+      userWhite,
+      userBlack,
+      newWhiteRating,
+      newBlackRating,
+      ratingWhite: <number>ratingWhite,
+      ratingBlack: <number>ratingBlack
+    };
+
+    switch (type) {
+      case 'RESIGN': {
+        gameCompleteToastHelper({
+          ...gameData,
+          gameMessage: `${result === 'WHITE' ? 'White' : 'Black'} wins by resignation`
+        });
+        break;
+      }
+      case 'CHECKMATE': {
+        gameCompleteToastHelper({
+          ...gameData,
+          gameMessage: 'Checkmate.'
+        });
+        break;
+      }
+      case 'DRAW': {
+        gameCompleteToastHelper({
+          ...gameData,
+          gameMessage: 'Game drawn.'
+        });
+        break;
+      }
+    }
+    // Dispatch game result
+    // Play end game sound
   };
 
   // @ts-ignore

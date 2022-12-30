@@ -32,3 +32,14 @@ export const warningToast = (message: string): void => {
     duration: 6500
   });
 };
+
+export const gameCompleteToast = (message: string): void => {
+  toast({
+    message: message,
+    type: 'is-primary',
+    position: 'center',
+    dismissible: true,
+    pauseOnHover: true,
+    duration: 15000
+  });
+};

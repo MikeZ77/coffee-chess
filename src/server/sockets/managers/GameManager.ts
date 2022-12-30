@@ -6,7 +6,10 @@ import type {
   GameMove,
   GameAborted,
   GameClock,
-  GameDrawOffer
+  GameDrawOffer,
+  GameComplete,
+  GameState,
+  Result
 } from '@Types';
 import type { ShortMove } from 'chess.js';
 import { Chess } from 'chess.js';
@@ -220,7 +223,7 @@ export default class GameManager extends Manager {
     ) {
       return;
     }
-
+    //TODO: Handle promotions.
     const move = this.chess.move(<ShortMove>playerMove);
     if (!move) {
       return;
@@ -233,28 +236,17 @@ export default class GameManager extends Manager {
       // Send checkmate gameStatusNotification to clients.
       const { color } = move;
       const result = color === 'w' ? 'WHITE' : 'BLACK';
-      const { ratingBlack, ratingWhite } = <Record<string, number>>await this.redis.json.get(
-        gameSession,
-        {
-          path: ['ratingBlack', 'ratingWhite']
-        }
-      );
-      const { newWhiteRating, newBlackRating } = calculateUpdatedEloRating(
-        ratingWhite,
-        ratingBlack,
-        result
-      );
-      // message:game:complete
+      await this.handleGameCompletion(result, 'COMPLETE', <ShortMove>playerMove);
     } else if (
       this.chess.in_draw() ||
       this.chess.in_stalemate() ||
       this.chess.in_threefold_repetition()
     ) {
-      console.log('Draw');
       // Set game state to COMPLETE (clock will clear).
       // Set result to DRAW.
       // Call function to compute elo change and store game.
       // Send draw gameStatusNotification to clients.
+      await this.handleGameCompletion('DRAW', 'COMPLETE', <ShortMove>playerMove);
     } else {
       const { from, to, color } = move;
       const nextPosition = this.chess.fen();
@@ -280,6 +272,47 @@ export default class GameManager extends Manager {
         this.startGameClock(gameSession, gameRoom);
       }
     }
+  };
+
+  private handleGameCompletion = async (
+    result: Result,
+    state: GameState,
+    playerMove: ShortMove
+  ) => {
+    const { gameRoom, gameSession } = <Record<string, string>>this.socket.data;
+    const { ratingBlack, ratingWhite, userWhiteId, userBlackId } = <Record<string, number>>(
+      await this.redis.json.get(gameSession, {
+        path: ['ratingBlack', 'ratingWhite', 'userWhiteId', 'userBlackId']
+      })
+    );
+    const { newWhiteRating, newBlackRating } = calculateUpdatedEloRating(
+      ratingWhite,
+      ratingBlack,
+      result,
+      50 // Get number of player games, hardcoded for now non-provisional for now.
+    );
+
+    // TODO: Send rating update to the DB.
+    const whiteUserSession = `user:session:${userWhiteId}`;
+    const blackUserSession = `user:session:${userBlackId}`;
+    const newWhiteRatingRounded = Math.round(newWhiteRating);
+    const newBlackRatingRounded = Math.round(newBlackRating);
+
+    await Promise.all([
+      this.redis.json.set(gameSession, 'state', state),
+      this.redis.json.set(gameSession, 'result', result),
+      this.redis.json.set(whiteUserSession, 'state', 'IDLE'),
+      this.redis.json.set(whiteUserSession, 'playingGame', null),
+      this.redis.json.set(blackUserSession, 'state', 'IDLE'),
+      this.redis.json.set(blackUserSession, 'playingGame', null),
+      this.socket.to(gameRoom).emit('message:game:move', playerMove),
+      this.io.in(gameRoom).emit('message:game:complete', <GameComplete>{
+        type: 'CHECKMATE',
+        newWhiteRating: newWhiteRatingRounded,
+        newBlackRating: newBlackRatingRounded,
+        result
+      })
+    ]);
   };
 
   private handleDrawOffer = async (offer: GameDrawOffer) => {

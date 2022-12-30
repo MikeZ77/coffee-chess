@@ -1,5 +1,10 @@
 {
   "preset": "ts-jest",
   "testEnvironment": "node",
-  "setupFiles": ["dotenv/config"]
+  "setupFiles": ["dotenv/config"],
+  "moduleNameMapper": {
+    "^@Utils/(.*)$": "<rootDir>/utils/$1",
+    "^@Types$": "<rootDir>/src/types.ts$",
+    "^@Public$": "<rootDir>../client/public/$1"
+  }
 }

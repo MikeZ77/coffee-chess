@@ -61,4 +61,13 @@ export class ClientClock {
       this.startTime = endTime;
     }, CLIENT_GAME_CLOCK_TICK_MS);
   };
+
+  public stopClocks = () => {
+    if (this.whiteInterval) {
+      clearInterval(this.whiteInterval);
+    }
+    if (this.blackInterval) {
+      clearInterval(this.blackInterval);
+    }
+  };
 }

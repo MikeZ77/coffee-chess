@@ -101,6 +101,7 @@ export type GameAborted = { aborted: boolean };
 export type GameClock = { whiteTime: number; blackTime: number; timestampUtc?: string };
 export type GameMove = { from: string; to: string; timestampUtc?: string };
 export type GameDrawOffer = { drawOffer: boolean };
+export type GameResign = { resign: boolean };
 export type ResultReason = 'RESIGN' | 'DRAW' | 'CHECKMATE' | 'TIME_WHITE' | 'TIME_BLACK';
 export type GameComplete = {
   type: ResultReason;

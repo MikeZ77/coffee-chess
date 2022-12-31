@@ -36,6 +36,14 @@ const reduceGameBoard: Reducer<State, GameAction> = (action, state): State => {
         currentGame: { ...state.currentGame, state: gameState }
       };
     }
+    case 'UPDATE_GAME_RESULT': {
+      const { gameResult } = action;
+      return {
+        ...state,
+        reduced: true,
+        currentGame: { ...state.currentGame, result: gameResult }
+      };
+    }
     default: {
       return state;
     }

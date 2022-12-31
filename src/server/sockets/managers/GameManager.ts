@@ -8,8 +8,10 @@ import type {
   GameClock,
   GameDrawOffer,
   GameComplete,
-  GameState,
-  Result
+  GameHistory,
+  Result,
+  ResultReason,
+  GameResign
 } from '@Types';
 import type { ShortMove } from 'chess.js';
 import { Chess } from 'chess.js';
@@ -197,11 +199,17 @@ export default class GameManager extends Manager {
     const maxMoveLatency = parseInt(MAX_MOVE_CORRECTION_LATENCY_MS);
     const { timestampUtc, ...playerMove } = gameMove;
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
-    const { userWhiteId, userBlackId, state, position, history } = <Record<string, string>>(
-      await this.redis.json.get(gameSession, {
-        path: ['userWhiteId', 'userBlackId', 'state', 'position', 'history']
-      })
-    );
+    const { userWhiteId, userBlackId, state, position, history } = <
+      {
+        userWhiteId: string;
+        userBlackId: string;
+        state: string;
+        position: string;
+        history: GameHistory[];
+      }
+    >await this.redis.json.get(gameSession, {
+      path: ['userWhiteId', 'userBlackId', 'state', 'position', 'history']
+    });
 
     if (state !== 'IN_PROGRESS') {
       return;
@@ -215,20 +223,26 @@ export default class GameManager extends Manager {
       return;
     }
 
-    this.chess.load(position!);
+    const _chess = new Chess(position);
     if (
       ![userWhiteId, userBlackId].includes(userId) ||
-      (userId === userWhiteId && this.chess.turn() === 'b') ||
-      (userId === userBlackId && this.chess.turn() === 'w')
+      (userId === userWhiteId && _chess.turn() === 'b') ||
+      (userId === userBlackId && _chess.turn() === 'w')
     ) {
       return;
     }
-    //TODO: Handle promotions.
+
+    if (history.length) {
+      const { from: prevFrom, to: prevTo } = <GameHistory>history.pop();
+      this.chess.move(<ShortMove>{ from: prevFrom, to: prevTo });
+    }
+
     const move = this.chess.move(<ShortMove>playerMove);
     if (!move) {
       return;
     }
 
+    //TODO: Handle promotions.
     if (this.chess.in_checkmate()) {
       // Set game state to COMPLETE (clock will clear).
       // Set result to BLACK or WHITE.
@@ -236,17 +250,13 @@ export default class GameManager extends Manager {
       // Send checkmate gameStatusNotification to clients.
       const { color } = move;
       const result = color === 'w' ? 'WHITE' : 'BLACK';
-      await this.handleGameCompletion(result, 'COMPLETE', <ShortMove>playerMove);
+      await this.handleGameCompletion(result, 'CHECKMATE', <ShortMove>playerMove);
     } else if (
       this.chess.in_draw() ||
       this.chess.in_stalemate() ||
       this.chess.in_threefold_repetition()
     ) {
-      // Set game state to COMPLETE (clock will clear).
-      // Set result to DRAW.
-      // Call function to compute elo change and store game.
-      // Send draw gameStatusNotification to clients.
-      await this.handleGameCompletion('DRAW', 'COMPLETE', <ShortMove>playerMove);
+      await this.handleGameCompletion('DRAW', 'DRAW', <ShortMove>playerMove);
     } else {
       const { from, to, color } = move;
       const nextPosition = this.chess.fen();
@@ -276,8 +286,8 @@ export default class GameManager extends Manager {
 
   private handleGameCompletion = async (
     result: Result,
-    state: GameState,
-    playerMove: ShortMove
+    resultType: ResultReason,
+    playerMove?: ShortMove
   ) => {
     const { gameRoom, gameSession } = <Record<string, string>>this.socket.data;
     const { ratingBlack, ratingWhite, userWhiteId, userBlackId } = <Record<string, number>>(
@@ -299,15 +309,17 @@ export default class GameManager extends Manager {
     const newBlackRatingRounded = Math.round(newBlackRating);
 
     await Promise.all([
-      this.redis.json.set(gameSession, 'state', state),
+      this.redis.json.set(gameSession, 'state', 'COMPLETE'),
       this.redis.json.set(gameSession, 'result', result),
       this.redis.json.set(whiteUserSession, 'state', 'IDLE'),
       this.redis.json.set(whiteUserSession, 'playingGame', null),
       this.redis.json.set(blackUserSession, 'state', 'IDLE'),
       this.redis.json.set(blackUserSession, 'playingGame', null),
-      this.socket.to(gameRoom).emit('message:game:move', playerMove),
+      playerMove
+        ? this.socket.to(gameRoom).emit('message:game:move', playerMove)
+        : Promise.resolve(),
       this.io.in(gameRoom).emit('message:game:complete', <GameComplete>{
-        type: 'CHECKMATE',
+        type: resultType,
         newWhiteRating: newWhiteRatingRounded,
         newBlackRating: newBlackRatingRounded,
         result
@@ -316,7 +328,6 @@ export default class GameManager extends Manager {
   };
 
   private handleDrawOffer = async (offer: GameDrawOffer) => {
-    // Logger.debug('draw offer %o', offer);
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
     const { pendingDrawOfferFrom, userWhiteId, userBlackId } = <Record<string, string>>(
       await this.redis.json.get(gameSession, {
@@ -346,6 +357,23 @@ export default class GameManager extends Manager {
     Logger.debug('clock interval', this.clockInterval === null);
   };
 
+  private handleResignation = async (message: GameResign) => {
+    const { userId, gameSession } = <Record<string, string>>this.socket.data;
+    const { userWhiteId, userBlackId } = <Record<string, string>>await this.redis.json.get(
+      gameSession,
+      {
+        path: ['userWhiteId', 'userBlackId']
+      }
+    );
+
+    if (![userWhiteId, userBlackId].includes(userId)) {
+      return;
+    }
+
+    const result = userId === userWhiteId ? 'BLACK' : 'WHITE';
+    this.handleGameCompletion(result, 'RESIGN');
+  };
+
   private chess;
   private startTime: DateTime | null;
   private clockInterval: number | null;
@@ -363,6 +391,9 @@ export default class GameManager extends Manager {
     );
     socket.on('message:game:draw:accept', (message) =>
       this.trackGame(message, this.handleAcceptDrawOffer)
+    );
+    socket.on('message:game:resign', (message) =>
+      this.trackGame(message, this.handleResignation)
     );
     socket.on('message:game:move', (message) => this.trackGame(message, this.updateGameMove));
   }

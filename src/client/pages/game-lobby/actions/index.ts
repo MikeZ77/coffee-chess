@@ -10,7 +10,13 @@ export {
   updateDrawOffer
 } from './gameConsole';
 export { updateUserInfo } from './userInfo';
-export { initNewGame, setPlayerColor, updatePlayerTime, updateGameState } from './gameBoard';
+export {
+  initNewGame,
+  setPlayerColor,
+  updatePlayerTime,
+  updateGameState,
+  updateGameResult
+} from './gameBoard';
 export {
   openNewGameMenu,
   spinnerSearchOneMinute,

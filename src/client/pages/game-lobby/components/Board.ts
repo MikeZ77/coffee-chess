@@ -1,15 +1,51 @@
-import hh from 'hyperscript-helpers';
+import hh, { type HyperScriptHelperFn } from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
 import { NavBarAction } from '../actions/sideNavBar';
 import { type DurationObjectUnits, Duration } from 'luxon';
+import { Result } from '@Types';
 
-const { div, span, p, i } = hh(h);
+const { div, span, p, i, br } = hh(h);
+
+type PlayerInfo = {
+  username: string;
+  color: 'BLACK' | 'WHITE';
+  rating: number;
+  clock: string;
+};
+
+const renderResultHelper = (result: Result, player: PlayerInfo): HyperScriptHelperFn => {
+  const getSpanIcon = (color: 'red' | 'green' | 'grey'): HyperScriptHelperFn => {
+    return span({ className: 'icon' }, [
+      i({
+        className: `fas fa-solid fa-chess-king ${
+          color === 'red' ? 'fa-flip-vertical' : color === 'grey' ? 'fa-flip-horizontal' : ''
+        }`,
+        style: `color: ${color};`
+      }),
+      span(`${color === 'red' ? '0-1' : color === 'green' ? '1-0' : '0.5-0.5'}`)
+    ]);
+  };
+
+  if (result === 'BLACK' && player.color === 'BLACK') {
+    return getSpanIcon('green');
+  } else if (result === 'WHITE' && player.color === 'BLACK') {
+    return getSpanIcon('red');
+  } else if (result === 'BLACK' && player.color === 'WHITE') {
+    return getSpanIcon('red');
+  } else if (result === 'WHITE' && player.color === 'WHITE') {
+    return getSpanIcon('green');
+  } else if (result === 'DRAW') {
+    return getSpanIcon('grey');
+  } else {
+    return span();
+  }
+};
 
 const Board: Component<State, NavBarAction> = (dispatch, state) => {
   const { currentGame, username } = state;
-  const { ratingBlack, ratingWhite, userWhite, userBlack } = currentGame;
+  const { ratingBlack, ratingWhite, userWhite, userBlack, result } = currentGame;
   const { whiteTime, blackTime } = currentGame;
   let player,
     opponent,
@@ -61,10 +97,30 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
   }
 
   username === userWhite
-    ? ((player = { username: userWhite, rating: ratingWhite, clock: whiteClockTimeParsed }),
-      (opponent = { username: userBlack, rating: ratingBlack, clock: blackClockTimeParsed }))
-    : ((player = { username: userBlack, rating: ratingBlack, clock: blackClockTimeParsed }),
-      (opponent = { username: userWhite, rating: ratingWhite, clock: whiteClockTimeParsed }));
+    ? ((player = {
+        username: userWhite,
+        color: 'WHITE',
+        rating: ratingWhite,
+        clock: whiteClockTimeParsed
+      }),
+      (opponent = {
+        username: userBlack,
+        color: 'BLACK',
+        rating: ratingBlack,
+        clock: blackClockTimeParsed
+      }))
+    : ((player = {
+        username: userBlack,
+        rating: ratingBlack,
+        color: 'BLACK',
+        clock: blackClockTimeParsed
+      }),
+      (opponent = {
+        username: userWhite,
+        color: 'WHITE',
+        rating: ratingWhite,
+        clock: whiteClockTimeParsed
+      }));
 
   return div({ className: 'box' }, [
     div({ className: 'tile is-ancestor' }, [
@@ -79,7 +135,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
           div({ className: 'tile is-ancestor' }, [
             div({ className: 'tile is-12 is-vertical is-parent' }, [
               div({ className: 'tile is-child is-flex-grow-5 p-1' }, [
-                span({ className: 'icon' }, [i({ className: 'fas  fa-solid fa-chess-pawn' })]),
+                span({ className: 'icon' }, [i({ className: 'fas fa-solid fa-chess-pawn' })]),
                 span(
                   { className: 'is-size-5 has-text-grey-darker' },
                   opponent.username ? opponent.username : ''
@@ -89,7 +145,9 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                     className: 'is-size-5 has-text-weight-semibold has-text-grey'
                   },
                   opponent.rating ? ` (${opponent.rating})` : ''
-                )
+                ),
+                br(),
+                renderResultHelper(result, <PlayerInfo>opponent)
               ]),
               div(
                 {
@@ -141,6 +199,8 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                 },
                 [
                   div({ style: 'bottom: 0; position: absolute;' }, [
+                    renderResultHelper(result, <PlayerInfo>player),
+                    br(),
                     span({ className: 'icon' }, [
                       i({ className: 'fas fa-solid fa-chess-knight' })
                     ]),

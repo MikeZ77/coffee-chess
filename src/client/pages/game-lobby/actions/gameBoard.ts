@@ -1,11 +1,12 @@
 import type { ClientGame, Color } from '../state';
-import type { GameClock, GameState } from '@Types';
+import type { GameClock, GameState, Result } from '@Types';
 
 export type GameAction =
   | { type: 'INIT_NEW_GAME'; currentGame: ClientGame }
   | { type: 'SET_PLAYER_COLOR'; color: Color }
   | { type: 'UPDATE_PLAYER_CLOCK'; clock: GameClock }
-  | { type: 'UPDATE_GAME_STATE'; gameState: GameState };
+  | { type: 'UPDATE_GAME_STATE'; gameState: GameState }
+  | { type: 'UPDATE_GAME_RESULT'; gameResult: Result };
 
 export const initNewGame = (currentGame: ClientGame): GameAction => {
   return {
@@ -32,5 +33,12 @@ export const updateGameState = (gameState: GameState): GameAction => {
   return {
     type: 'UPDATE_GAME_STATE',
     gameState
+  };
+};
+
+export const updateGameResult = (gameResult: Result): GameAction => {
+  return {
+    type: 'UPDATE_GAME_RESULT',
+    gameResult
   };
 };

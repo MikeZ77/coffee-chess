@@ -51,7 +51,7 @@ export default class Manager {
           break;
         }
         case TokenState.EXPIRED: {
-          Logger.warning(`User: ${user_id} expired token: ${token}`);
+          Logger.warn(`User: ${user_id} expired token: ${token}`);
           return next(new SocketError('Expired session. Please login again.'));
         }
       }
@@ -104,7 +104,7 @@ export default class Manager {
             resolve(<string>gameId);
           } else {
             reject(new SocketError('Null redis response.'));
-            Logger.warning(`Game ready signal for no game ${this.getUserSignature()}`);
+            Logger.warn(`Game ready signal for no game ${this.getUserSignature()}`);
           }
         });
     });

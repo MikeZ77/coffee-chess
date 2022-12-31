@@ -7,7 +7,8 @@ import type {
   GameClock,
   GameMove,
   GameDrawOffer,
-  GameComplete
+  GameComplete,
+  GameResign
 } from '@Types';
 import type { ClientGame } from '../state';
 import type { UserAction, AnyActions } from '../actions/index';
@@ -22,7 +23,8 @@ import {
   updateUserInfo,
   updatePlayerTime,
   updateGameState,
-  updateDrawOffer
+  updateDrawOffer,
+  updateGameResult
 } from '../actions/index';
 import { initNewGame, updateChatLog, setPlayerColor } from '../actions/index';
 import {
@@ -201,8 +203,7 @@ export const registerGameEvents = (
   };
 
   const resign = () => {
-    // Emit resignation to server
-    console.log('resign');
+    socket.emit('message:game:resign', <GameResign>{ resign: true });
   };
 
   const gameComplete = (message: GameComplete) => {
@@ -244,7 +245,7 @@ export const registerGameEvents = (
         break;
       }
     }
-    // Dispatch game result
+    dispatch(updateGameResult(result));
     // Play end game sound
   };
 

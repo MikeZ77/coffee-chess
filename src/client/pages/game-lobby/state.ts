@@ -21,6 +21,8 @@ type SideNavBar = {
 
 type GameConsole = {
   gameChatMessage: string;
+  timeout: boolean;
+  disableChat: boolean;
 };
 
 export type Color = 'w' | 'b' | null;
@@ -57,7 +59,9 @@ const state: State = {
     fifteenMinuteSearching: false
   },
   gameConsole: {
-    gameChatMessage: ''
+    gameChatMessage: '',
+    timeout: false,
+    disableChat: false
   },
   currentGame: {
     gameId: '',

@@ -2,12 +2,16 @@ import tippy from 'tippy.js';
 import type { Dispatch } from '@Common/types';
 import {
   type NavBarAction,
+  type GameConsoleAction,
+  setChatTimeout,
   spinnerSearchOneMinute,
   spinnerSearchFiveMinute,
   spinnerSearchFifteenMinute
 } from '../actions/index';
 import { gameCompleteToast } from '@Common/toast';
 import events from 'events';
+
+const { GAME_CHAT_CLIENT_TIMOUT_MS } = process.env;
 
 interface ITooltip {
   [key: string]: string;
@@ -63,4 +67,11 @@ export const gameCompleteToastHelper = (gameData: IGameMessageData): void => {
     ${userBlack} rating ${newBlackRating - <number>ratingBlack} (${newBlackRating}) 
     `
   );
+};
+
+export const initChatTimeout = (dispatch: Dispatch<GameConsoleAction>): void => {
+  dispatch(setChatTimeout(true));
+  setTimeout(() => {
+    dispatch(setChatTimeout(false));
+  }, parseInt(GAME_CHAT_CLIENT_TIMOUT_MS));
 };

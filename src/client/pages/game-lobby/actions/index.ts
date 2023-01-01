@@ -5,9 +5,11 @@ import { GameAction } from './gameBoard';
 
 export {
   updateChatMessage,
-  sendChatMessage,
+  clearChatMessage,
   updateChatLog,
-  updateDrawOffer
+  updateDrawOffer,
+  setChatTimeout,
+  setDisableChat
 } from './gameConsole';
 export { updateUserInfo } from './userInfo';
 export {

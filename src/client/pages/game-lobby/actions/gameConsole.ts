@@ -2,9 +2,11 @@ import { GameChat } from '@Types';
 
 export type GameConsoleAction =
   | { type: 'UPDATE_CHAT_MESSAGE'; gameChatMessage: string }
-  | { type: 'SEND_CHAT_MESSAGE' }
+  | { type: 'CLEAR_CHAT_MESSAGE' }
   | { type: 'UPDATE_CHAT_LOG'; chatMessageFromServer: GameChat }
-  | { type: 'UPDATE_DRAW_OFFER'; pendingDrawOfferFrom: string | null };
+  | { type: 'UPDATE_DRAW_OFFER'; pendingDrawOfferFrom: string | null }
+  | { type: 'SET_CHAT_TIMEOUT'; timeout: boolean }
+  | { type: 'SET_DISABLE_CHAT'; disableChat: boolean };
 
 export const updateChatMessage = (gameChatMessage: string): GameConsoleAction => {
   return {
@@ -13,9 +15,9 @@ export const updateChatMessage = (gameChatMessage: string): GameConsoleAction =>
   };
 };
 
-export const sendChatMessage = (): GameConsoleAction => {
+export const clearChatMessage = (): GameConsoleAction => {
   return {
-    type: 'SEND_CHAT_MESSAGE'
+    type: 'CLEAR_CHAT_MESSAGE'
   };
 };
 
@@ -30,5 +32,19 @@ export const updateDrawOffer = (pendingDrawOfferFrom: string | null): GameConsol
   return {
     type: 'UPDATE_DRAW_OFFER',
     pendingDrawOfferFrom
+  };
+};
+
+export const setChatTimeout = (timeout: boolean): GameConsoleAction => {
+  return {
+    type: 'SET_CHAT_TIMEOUT',
+    timeout
+  };
+};
+
+export const setDisableChat = (disableChat: boolean): GameConsoleAction => {
+  return {
+    type: 'SET_DISABLE_CHAT',
+    disableChat
   };
 };

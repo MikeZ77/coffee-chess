@@ -12,9 +12,7 @@ const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): St
         gameConsole: { ...state.gameConsole, gameChatMessage }
       };
     }
-    case 'SEND_CHAT_MESSAGE': {
-      /* TODO: This should send gameChatMessage to the server and then clear it.
-        The message will then be added by UPDATE_CHAT_LOG.*/
+    case 'CLEAR_CHAT_MESSAGE': {
       return {
         ...state,
         reduced: true,
@@ -37,6 +35,22 @@ const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): St
         ...state,
         reduced: true,
         currentGame: { ...state.currentGame, pendingDrawOfferFrom }
+      };
+    }
+    case 'SET_CHAT_TIMEOUT': {
+      const { timeout } = action;
+      return {
+        ...state,
+        reduced: true,
+        gameConsole: { ...state.gameConsole, timeout }
+      };
+    }
+    case 'SET_DISABLE_CHAT': {
+      const { disableChat } = action;
+      return {
+        ...state,
+        reduced: true,
+        gameConsole: { ...state.gameConsole, disableChat }
       };
     }
     default: {

@@ -3,7 +3,7 @@ import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
 import { GameChat } from '@Types';
-import { updateChatMessage, GameConsoleAction, sendChatMessage } from '../actions/index';
+import { updateChatMessage, GameConsoleAction, setDisableChat } from '../actions/index';
 import { clientEvent } from '../utils/simple.utils';
 
 const { div, footer, a, button, i, span, p, input } = hh(h);
@@ -25,8 +25,11 @@ const renderChatMessages = (messages: GameChat[]): HyperScriptHelperFn[] => {
 };
 
 const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
-  const { gameChat, pendingDrawOfferFrom, state: gameState } = state.currentGame;
-  const { username } = state;
+  const {
+    username,
+    gameConsole: { disableChat },
+    currentGame: { gameChat, pendingDrawOfferFrom, state: gameState }
+  } = state;
 
   return div({ className: 'card' }, [
     div({ className: 'card-content', style: 'height: 48vh' }, [
@@ -114,6 +117,20 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
       ])
     ]),
     div({ className: 'card-content p-0 pl-3', style: 'height: 24vh' }, [
+      span(
+        {
+          className: 'icon is-small m-2',
+          style: 'cursor: pointer; float: right;',
+          onclick: () => {
+            dispatch(setDisableChat(!disableChat));
+          }
+        },
+        [
+          disableChat
+            ? i({ className: 'fas fa-solid fa-comment-slash' })
+            : i({ className: 'fas fa-solid fa-comment' })
+        ]
+      ),
       div(
         '#game-chat',
         {
@@ -145,7 +162,7 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
           {
             className: 'button is-success',
             onclick: () => {
-              dispatch(sendChatMessage());
+              clientEvent.emit('event:game:send:chat');
             }
           },
           [span({ className: 'icon' }, [i({ className: 'fas fa-regular fa-message' })])]

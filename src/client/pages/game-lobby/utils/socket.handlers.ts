@@ -14,7 +14,12 @@ import type { ClientGame } from '../state';
 import type { UserAction, AnyActions } from '../actions/index';
 import type { Dispatch } from '@Common/types';
 import type { State } from '../state';
-import { clearQueueSpinners, clientEvent, gameCompleteToastHelper } from './simple.utils';
+import {
+  clearQueueSpinners,
+  clientEvent,
+  gameCompleteToastHelper,
+  initChatTimeout
+} from './simple.utils';
 import { DateTime } from 'luxon';
 import { ClientClock } from './chess';
 import { warningToast } from '@Common/toast';
@@ -24,7 +29,8 @@ import {
   updatePlayerTime,
   updateGameState,
   updateDrawOffer,
-  updateGameResult
+  updateGameResult,
+  clearChatMessage
 } from '../actions/index';
 import { initNewGame, updateChatLog, setPlayerColor } from '../actions/index';
 import {
@@ -33,7 +39,7 @@ import {
   COLOR
 } from 'cm-chessboard/src/cm-chessboard/Chessboard';
 
-const { GAME_CLOCK_SERVER_SYNC_MS } = process.env;
+const { GAME_CLOCK_SERVER_SYNC_MS, GAME_CHAT_CLIENT_TIMOUT_MS } = process.env;
 
 export const registerGameEvents = (
   socket: Socket,
@@ -249,6 +255,27 @@ export const registerGameEvents = (
     // Play end game sound
   };
 
+  const sendChatMessage = () => {
+    const {
+      gameConsole: { gameChatMessage, timeout }
+    } = <State>dispatch();
+    if (!timeout) {
+      socket.emit('message:game:chat', gameChatMessage);
+      dispatch(clearChatMessage());
+      initChatTimeout(dispatch);
+    } else {
+      warningToast(
+        `Wait ${Math.round(
+          parseInt(GAME_CHAT_CLIENT_TIMOUT_MS) / 1000
+        )} before sending a message.`
+      );
+    }
+  };
+
+  const gameChat = (message: GameChat) => {
+    console.log('placeholder', message);
+  };
+
   // @ts-ignore
   const chess = new Chess();
   const clock = new ClientClock();
@@ -259,9 +286,11 @@ export const registerGameEvents = (
   socket.on('message:game:clock', syncWithServerClock);
   socket.on('message:game:draw:offer', opponentDrawOffer);
   socket.on('message:game:complete', gameComplete);
+  socket.on('message:game:chat', gameChat);
   clientEvent.on('event:game:draw:offer', offerDraw);
   clientEvent.on('event:game:draw:accept', acceptDraw);
   clientEvent.on('event:game:resign', resign);
+  clientEvent.on('event:game:send:chat', sendChatMessage);
 };
 
 export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction>) => {

@@ -11,16 +11,23 @@ import type {
   GameHistory,
   Result,
   ResultReason,
-  GameResign
+  GameResign,
+  GameChat
 } from '@Types';
 import type { ShortMove } from 'chess.js';
 import { Chess } from 'chess.js';
 import { DateTime } from 'luxon';
+import Filter from 'bad-words';
 import calculateUpdatedEloRating from '../../utils/elo.calculator';
 import Logger from '@Utils/config.logging.winston';
 import Manager from './Manager';
 
-const { GAME_ABORT_MS, GAME_CLOCK_TICK_MS, MAX_MOVE_CORRECTION_LATENCY_MS } = process.env;
+const {
+  GAME_ABORT_MS,
+  GAME_CLOCK_TICK_MS,
+  MAX_MOVE_CORRECTION_LATENCY_MS,
+  GAME_CHAT_TIMEOUT_MS
+} = process.env;
 
 export default class GameManager extends Manager {
   private trackGame = async (message: GameMessage, gameHandler: Function, ack?: Function) => {
@@ -374,12 +381,41 @@ export default class GameManager extends Manager {
     this.handleGameCompletion(result, 'RESIGN');
   };
 
+  private broadcastGameChat = async (message: string) => {
+    const { userId, username, gameSession, gameRoom } = <Record<string, string>>(
+      this.socket.data
+    );
+    const { userWhiteId, userBlackId } = <Record<string, string>>await this.redis.json.get(
+      gameSession,
+      {
+        path: ['userWhiteId', 'userBlackId']
+      }
+    );
+
+    if (![userWhiteId, userBlackId].includes(userId)) {
+      return;
+    }
+
+    if (!(await this.redis.exists(`chat:game:timeout:${userId}`))) {
+      await this.redis.set(`chat:game:timeout:${userId}`, gameSession, {
+        EX: parseInt(GAME_CHAT_TIMEOUT_MS)
+      });
+      // TODO: Include timestamp on GameChat to limit rate of messages.
+      this.socket.to(gameRoom).emit('message:game:chat', <GameChat>{
+        username,
+        message: this.chatFilter.clean(message)
+      });
+    }
+  };
+
   private chess;
+  private chatFilter;
   private startTime: DateTime | null;
   private clockInterval: number | null;
   constructor(io: ioServer, socket: Socket, redis: RedisClientType) {
     super(io, socket, redis);
     this.chess = new Chess();
+    this.chatFilter = new Filter();
     this.startTime = null;
     this.clockInterval = null;
 
@@ -394,6 +430,9 @@ export default class GameManager extends Manager {
     );
     socket.on('message:game:resign', (message) =>
       this.trackGame(message, this.handleResignation)
+    );
+    socket.on('message:game:chat', (message) =>
+      this.trackGame(message, this.broadcastGameChat)
     );
     socket.on('message:game:move', (message) => this.trackGame(message, this.updateGameMove));
   }

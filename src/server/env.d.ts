@@ -39,6 +39,7 @@ declare global {
       GAME_CLOCK_TICK_MS: string;
       CLIENT_GAME_CLOCK_TICK_MS: string;
       MAX_MOVE_CORRECTION_LATENCY_MS: string;
+      GAME_CHAT_TIMEOUT_MS: string;
     }
   }
 }

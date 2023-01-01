@@ -6,7 +6,7 @@ import { NavBarAction } from '../actions/sideNavBar';
 import { type DurationObjectUnits, Duration } from 'luxon';
 import { Result } from '@Types';
 
-const { div, span, p, i, br } = hh(h);
+const { div, span, p, i } = hh(h);
 
 type PlayerInfo = {
   username: string;
@@ -24,7 +24,7 @@ const renderResultHelper = (result: Result, player: PlayerInfo): HyperScriptHelp
         }`,
         style: `color: ${color};`
       }),
-      span(`${color === 'red' ? '0-1' : color === 'green' ? '1-0' : '0.5-0.5'}`)
+      span(`${color === 'red' ? '[0-1]' : color === 'green' ? '[1-0]' : '[0.5-0.5]'}`)
     ]);
   };
 
@@ -142,11 +142,10 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                 ),
                 span(
                   {
-                    className: 'is-size-5 has-text-weight-semibold has-text-grey'
+                    className: 'is-size-5 has-text-weight-semibold has-text-grey mr-4'
                   },
                   opponent.rating ? ` (${opponent.rating})` : ''
                 ),
-                br(),
                 renderResultHelper(result, <PlayerInfo>opponent)
               ]),
               div(
@@ -199,8 +198,6 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                 },
                 [
                   div({ style: 'bottom: 0; position: absolute;' }, [
-                    renderResultHelper(result, <PlayerInfo>player),
-                    br(),
                     span({ className: 'icon' }, [
                       i({ className: 'fas fa-solid fa-chess-knight' })
                     ]),
@@ -210,10 +207,11 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                     ),
                     span(
                       {
-                        className: 'is-size-5 has-text-weight-semibold has-text-grey'
+                        className: 'is-size-5 has-text-weight-semibold has-text-grey mr-4'
                       },
                       player.rating ? ` (${player.rating})` : ''
-                    )
+                    ),
+                    renderResultHelper(result, <PlayerInfo>player)
                   ])
                 ]
               )

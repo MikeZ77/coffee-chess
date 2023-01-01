@@ -11,8 +11,6 @@ import {
 import { gameCompleteToast } from '@Common/toast';
 import events from 'events';
 
-const { GAME_CHAT_CLIENT_TIMOUT_MS } = process.env;
-
 interface ITooltip {
   [key: string]: string;
 }
@@ -60,18 +58,23 @@ export const gameCompleteToastHelper = (gameData: IGameMessageData): void => {
     ratingWhite,
     ratingBlack
   } = gameData;
+  const whiteDelta = newWhiteRating - <number>ratingWhite;
+  const blackDelta = newBlackRating - <number>ratingBlack;
   gameCompleteToast(
     `
     ${gameMessage}\n
-    ${userWhite} rating ${newWhiteRating - <number>ratingWhite} (${newWhiteRating}) \n
-    ${userBlack} rating ${newBlackRating - <number>ratingBlack} (${newBlackRating}) 
+    ${userWhite} rating ${whiteDelta > 0 ? '+' : ''}${whiteDelta} (${newWhiteRating})
+    ${userBlack} rating ${blackDelta > 0 ? '+' : ''}${blackDelta} (${newBlackRating}) 
     `
   );
 };
 
-export const initChatTimeout = (dispatch: Dispatch<GameConsoleAction>): void => {
+export const initChatTimeout = (
+  dispatch: Dispatch<GameConsoleAction>,
+  chatTimeoutMs: number
+): void => {
   dispatch(setChatTimeout(true));
   setTimeout(() => {
     dispatch(setChatTimeout(false));
-  }, parseInt(GAME_CHAT_CLIENT_TIMOUT_MS));
+  }, chatTimeoutMs);
 };

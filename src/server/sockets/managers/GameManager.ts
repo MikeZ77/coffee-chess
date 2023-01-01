@@ -26,7 +26,7 @@ const {
   GAME_ABORT_MS,
   GAME_CLOCK_TICK_MS,
   MAX_MOVE_CORRECTION_LATENCY_MS,
-  GAME_CHAT_TIMEOUT_MS
+  GAME_CHAT_TIMEOUT_SEC
 } = process.env;
 
 export default class GameManager extends Manager {
@@ -63,7 +63,7 @@ export default class GameManager extends Manager {
         const chess = new Chess(position);
         const endTime = DateTime.now();
         const delta = endTime.diff(<DateTime>this.startTime, ['milliseconds']).milliseconds;
-
+        // Logger.debug('delta %o', delta);
         if (state === 'IN_PROGRESS') {
           if (chess.turn() === 'w') {
             if (whiteTime - delta <= 0) {
@@ -110,31 +110,42 @@ export default class GameManager extends Manager {
     );
   };
 
-  private setGameAbortWatcher = (gameSession: string, gameRoom: string) => {
+  private setGameAbortWatcher = (
+    gameSession: string,
+    gameRoom: string,
+    color: 'WHITE' | 'BLACK'
+  ) => {
     setTimeout(
       async () => {
         const {
           state: gameState,
           userWhiteId,
           userBlackId,
-          gameId
+          gameId,
+          history
         } = <Record<string, string>>await this.redis.json.get(gameSession, {
-          path: ['state', 'userWhiteId', 'userBlackId', 'gameId']
+          path: ['state', 'userWhiteId', 'userBlackId', 'gameId', 'history']
         });
 
-        let gameAborted;
+        let gameAborted = false;
         if (gameState === 'PENDING') {
           // One player has not sent game confirmation.
           gameAborted = true;
           Logger.debug('Game pending.');
         } // One or both players have not made a move.
         else if (gameState === 'IN_PROGRESS') {
-          // TODO: When the timer runs out check if either player has made a move.
-          // gameAborted = true;
-          Logger.debug('Game in progress.');
+          if (color === 'WHITE') {
+            if (history.length === 0) {
+              gameAborted = true;
+            }
+          }
+          if (color === 'BLACK') {
+            if (history.length === 1) {
+              gameAborted = true;
+            }
+          }
         } else {
-          gameAborted = false;
-          Logger.debug('Time expired with no action.');
+          Logger.debug('Abort time expired with no action.');
         }
 
         if (gameAborted) {
@@ -176,7 +187,8 @@ export default class GameManager extends Manager {
     await this.socket.join(gameRoom);
     const playersInRoom = await this.io.in(gameRoom).fetchSockets();
     if (playersInRoom[0].data.userId === this.userId) {
-      this.setGameAbortWatcher(gameSession, gameRoom);
+      // The first player in the room sets the game abort watcher.
+      this.setGameAbortWatcher(gameSession, gameRoom, 'WHITE');
     }
 
     if (playersInRoom.length === 2) {
@@ -285,8 +297,10 @@ export default class GameManager extends Manager {
         this.socket.to(gameRoom).emit('message:game:move', playerMove)
       ]);
 
-      if (!history.length) {
+      if (this.chess.history().length === 1) {
+        // White starts the clock and sets the game abort watcher for black.
         this.startGameClock(gameSession, gameRoom);
+        this.setGameAbortWatcher(gameSession, gameRoom, 'BLACK');
       }
     }
   };
@@ -398,10 +412,10 @@ export default class GameManager extends Manager {
 
     if (!(await this.redis.exists(`chat:game:timeout:${userId}`))) {
       await this.redis.set(`chat:game:timeout:${userId}`, gameSession, {
-        EX: parseInt(GAME_CHAT_TIMEOUT_MS)
+        EX: parseInt(GAME_CHAT_TIMEOUT_SEC)
       });
       // TODO: Include timestamp on GameChat to limit rate of messages.
-      this.socket.to(gameRoom).emit('message:game:chat', <GameChat>{
+      this.io.in(gameRoom).emit('message:game:chat', <GameChat>{
         username,
         message: this.chatFilter.clean(message)
       });

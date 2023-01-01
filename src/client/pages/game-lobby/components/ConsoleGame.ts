@@ -127,8 +127,8 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
         },
         [
           disableChat
-            ? i({ className: 'fas fa-solid fa-comment-slash' })
-            : i({ className: 'fas fa-solid fa-comment' })
+            ? i({ className: 'fas fa-solid fa-comment' })
+            : i({ className: 'fas fa-solid fa-comment-slash' })
         ]
       ),
       div(

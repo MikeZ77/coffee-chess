@@ -39,8 +39,6 @@ import {
   COLOR
 } from 'cm-chessboard/src/cm-chessboard/Chessboard';
 
-const { GAME_CLOCK_SERVER_SYNC_MS, GAME_CHAT_CLIENT_TIMOUT_MS } = process.env;
-
 export const registerGameEvents = (
   socket: Socket,
   dispatch: Dispatch<AnyActions, State>,
@@ -114,6 +112,7 @@ export const registerGameEvents = (
     dispatch(updateChatLog(message));
     dispatch(updateGameState('IN_PROGRESS'));
     board.enableMoveInput(attachBoardInputHandler, color);
+    // chess.reset();
     state.audio.newGameSound?.play();
   };
 
@@ -127,10 +126,11 @@ export const registerGameEvents = (
 
   const gameAborted = (message: GameAborted) => {
     if (message.aborted) {
-      dispatch(updateChatLog(<GameChat>{ username: undefined, message: 'ABORTED' }));
-      warningToast('Game aborted. Opponent failed to connect.');
       board.disableMoveInput();
-      chess.reset();
+      clock.stopClocks();
+      dispatch(updateGameState('ABORTED'));
+      dispatch(updateChatLog(<GameChat>{ username: undefined, message: 'ABORTED' }));
+      warningToast('Game aborted.');
       // Play end game sound.
     }
   };
@@ -145,12 +145,13 @@ export const registerGameEvents = (
     const blackServerTime = blackTime + latency;
     const whiteClientTime = <number>state.currentGame.whiteTime;
     const blackClientTime = <number>state.currentGame.blackTime;
+    const { GAME_CLOCK_SERVER_SYNC_MS } = process.env;
     const syncDelta = parseInt(GAME_CLOCK_SERVER_SYNC_MS);
 
     // console.log('White', Math.abs(whiteServerTime - whiteClientTime));
     // console.log('Black', Math.abs(blackServerTime - blackClientTime));
 
-    if (Math.abs(whiteServerTime - whiteClientTime) > syncDelta) {
+    if (Math.abs(whiteServerTime - whiteClientTime) > syncDelta!) {
       dispatch(
         updatePlayerTime(<GameClock>{
           whiteTime: whiteServerTime,
@@ -159,7 +160,7 @@ export const registerGameEvents = (
       );
     }
 
-    if (Math.abs(blackServerTime - blackClientTime) > syncDelta) {
+    if (Math.abs(blackServerTime - blackClientTime) > syncDelta!) {
       dispatch(
         updatePlayerTime(<GameClock>{
           whiteTime: whiteClientTime,
@@ -252,6 +253,7 @@ export const registerGameEvents = (
       }
     }
     dispatch(updateGameResult(result));
+    dispatch(updateGameState('COMPLETE'));
     // Play end game sound
   };
 
@@ -259,21 +261,27 @@ export const registerGameEvents = (
     const {
       gameConsole: { gameChatMessage, timeout }
     } = <State>dispatch();
+    const { GAME_CHAT_CLIENT_TIMEOUT_MS } = process.env;
+    const chatTimeoutMs = parseInt(GAME_CHAT_CLIENT_TIMEOUT_MS);
     if (!timeout) {
       socket.emit('message:game:chat', gameChatMessage);
       dispatch(clearChatMessage());
-      initChatTimeout(dispatch);
+      initChatTimeout(dispatch, chatTimeoutMs);
     } else {
       warningToast(
-        `Wait ${Math.round(
-          parseInt(GAME_CHAT_CLIENT_TIMOUT_MS) / 1000
-        )} before sending a message.`
+        `Wait ${Math.round(chatTimeoutMs / 1000)} seconds before sending a message.`
       );
     }
   };
 
-  const gameChat = (message: GameChat) => {
-    console.log('placeholder', message);
+  const updateGameChat = (chatMessage: GameChat) => {
+    const { username, message } = chatMessage;
+    dispatch(
+      updateChatLog({
+        username,
+        message
+      })
+    );
   };
 
   // @ts-ignore
@@ -286,7 +294,7 @@ export const registerGameEvents = (
   socket.on('message:game:clock', syncWithServerClock);
   socket.on('message:game:draw:offer', opponentDrawOffer);
   socket.on('message:game:complete', gameComplete);
-  socket.on('message:game:chat', gameChat);
+  socket.on('message:game:chat', updateGameChat);
   clientEvent.on('event:game:draw:offer', offerDraw);
   clientEvent.on('event:game:draw:accept', acceptDraw);
   clientEvent.on('event:game:resign', resign);

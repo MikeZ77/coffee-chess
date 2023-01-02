@@ -44,6 +44,14 @@ const reduceGameBoard: Reducer<State, GameAction> = (action, state): State => {
         currentGame: { ...state.currentGame, result: gameResult }
       };
     }
+    case 'SET_BOARD_POSITION': {
+      const { position } = action;
+      return {
+        ...state,
+        reduced: true,
+        currentGame: { ...state.currentGame, position }
+      };
+    }
     default: {
       return state;
     }

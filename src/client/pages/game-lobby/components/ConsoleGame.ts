@@ -2,7 +2,7 @@ import hh, { HyperScriptHelperFn } from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
-import { GameChat } from '@Types';
+import { GameChat, GameHistory } from '@Types';
 import { updateChatMessage, GameConsoleAction, setDisableChat } from '../actions/index';
 import { clientEvent } from '../utils/simple.utils';
 
@@ -24,16 +24,46 @@ const renderChatMessages = (messages: GameChat[]): HyperScriptHelperFn[] => {
   return chatElements;
 };
 
+const renderMoveHistory = (history: GameHistory[]): HyperScriptHelperFn[] => {
+  const moveHistory: HyperScriptHelperFn[] = [];
+  history.forEach((move, index) => {
+    const { to: moveTo, position } = move;
+    const moveNumber = (index + 1) / 2;
+    moveHistory.push(
+      span(
+        `${history.length === index + 1 ? '#latest-move .move-history' : '.move-history'}`,
+        {
+          style: 'cursor: pointer;',
+          onclick: () => {
+            clientEvent.emit('event:game:history:position', position);
+          }
+        },
+        [
+          span(
+            { className: 'has-text-weight-semibold' },
+            `${!Number.isInteger(moveNumber) ? Math.ceil(moveNumber).toString() + '. ' : ''}`
+          ),
+          span(`${moveTo} `)
+        ]
+      )
+    );
+  });
+  return moveHistory;
+};
+
 const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
   const {
     username,
     gameConsole: { disableChat },
-    currentGame: { gameChat, pendingDrawOfferFrom, state: gameState }
+    currentGame: { gameChat, pendingDrawOfferFrom, state: gameState, history }
   } = state;
 
   return div({ className: 'card' }, [
-    div({ className: 'card-content', style: 'height: 48vh' }, [
-      div({ className: 'content' }, [])
+    div({ className: 'card-content p-4', style: 'height: 48vh' }, [
+      div(
+        { className: 'content', style: 'height: 100%; overflow-y: auto;' },
+        renderMoveHistory(history)
+      )
     ]),
     footer({ className: 'card-footer', style: 'border-bottom: 1px solid #ededed; ' }, [
       a({ className: 'card-footer-item' }, [
@@ -117,20 +147,20 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
       ])
     ]),
     div({ className: 'card-content p-0 pl-3', style: 'height: 24vh' }, [
-      span(
-        {
-          className: 'icon is-small m-2',
-          style: 'cursor: pointer; float: right;',
-          onclick: () => {
-            dispatch(setDisableChat(!disableChat));
-          }
-        },
-        [
-          disableChat
-            ? i({ className: 'fas fa-solid fa-comment' })
-            : i({ className: 'fas fa-solid fa-comment-slash' })
-        ]
-      ),
+      // span(
+      //   {
+      //     className: 'icon is-small m-2',
+      //     style: 'cursor: pointer; float: right;',
+      //     onclick: () => {
+      //       dispatch(setDisableChat(!disableChat));
+      //     }
+      //   },
+      //   [
+      //     disableChat
+      //       ? i({ className: 'fas fa-solid fa-comment' })
+      //       : i({ className: 'fas fa-solid fa-comment-slash' })
+      //   ]
+      // ),
       div(
         '#game-chat',
         {

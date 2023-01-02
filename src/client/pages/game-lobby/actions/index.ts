@@ -9,7 +9,8 @@ export {
   updateChatLog,
   updateDrawOffer,
   setChatTimeout,
-  setDisableChat
+  setDisableChat,
+  updateConsoleMoveHistory
 } from './gameConsole';
 export { updateUserInfo } from './userInfo';
 export {

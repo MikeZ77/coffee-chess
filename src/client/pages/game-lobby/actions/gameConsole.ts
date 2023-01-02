@@ -1,4 +1,4 @@
-import { GameChat } from '@Types';
+import { GameChat, GameHistory } from '@Types';
 
 export type GameConsoleAction =
   | { type: 'UPDATE_CHAT_MESSAGE'; gameChatMessage: string }
@@ -6,7 +6,8 @@ export type GameConsoleAction =
   | { type: 'UPDATE_CHAT_LOG'; chatMessageFromServer: GameChat }
   | { type: 'UPDATE_DRAW_OFFER'; pendingDrawOfferFrom: string | null }
   | { type: 'SET_CHAT_TIMEOUT'; timeout: boolean }
-  | { type: 'SET_DISABLE_CHAT'; disableChat: boolean };
+  | { type: 'SET_DISABLE_CHAT'; disableChat: boolean }
+  | { type: 'UPDATE_GAME_HISTORY'; move: GameHistory };
 
 export const updateChatMessage = (gameChatMessage: string): GameConsoleAction => {
   return {
@@ -46,5 +47,12 @@ export const setDisableChat = (disableChat: boolean): GameConsoleAction => {
   return {
     type: 'SET_DISABLE_CHAT',
     disableChat
+  };
+};
+
+export const updateConsoleMoveHistory = (move: GameHistory): GameConsoleAction => {
+  return {
+    type: 'UPDATE_GAME_HISTORY',
+    move
   };
 };

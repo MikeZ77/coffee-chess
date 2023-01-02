@@ -53,6 +53,16 @@ const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): St
         gameConsole: { ...state.gameConsole, disableChat }
       };
     }
+    case 'UPDATE_GAME_HISTORY': {
+      const history = state.currentGame.history;
+      history.push(action.move);
+      return {
+        ...state,
+        reduced: true,
+        currentGame: { ...state.currentGame, history: [...history] }
+      };
+    }
+
     default: {
       return state;
     }

@@ -32,7 +32,12 @@ import {
   updateGameResult,
   clearChatMessage
 } from '../actions/index';
-import { initNewGame, updateChatLog, setPlayerColor } from '../actions/index';
+import {
+  initNewGame,
+  updateChatLog,
+  setPlayerColor,
+  updateConsoleMoveHistory
+} from '../actions/index';
 import {
   INPUT_EVENT_TYPE,
   MARKER_TYPE,
@@ -79,11 +84,8 @@ export const registerGameEvents = (
       const result = chess.move({ from: event.squareFrom, to: event.squareTo });
       //TODO: If its not the users turn then do not return.
       if (result) {
-        const gameMove: GameMove = {
-          from: result.from,
-          to: result.to,
-          timestampUtc: DateTime.utc().toString()
-        };
+        const { from, to } = result;
+        const gameMove: GameMove = { from, to, timestampUtc: DateTime.utc().toString() };
         socket.emit('message:game:move', gameMove);
         const {
           currentGame: { pendingDrawOfferFrom },
@@ -93,6 +95,7 @@ export const registerGameEvents = (
           ? clock.startWhiteClock(dispatch)
           : clock.startBlackClock(dispatch);
         pieceMoveSound?.play();
+        dispatch(updateConsoleMoveHistory({ from, to, position: chess.fen() }));
         if (pendingDrawOfferFrom) {
           dispatch(updateDrawOffer(null));
         }
@@ -121,6 +124,7 @@ export const registerGameEvents = (
     board.movePiece(from, to, true);
     chess.move({ from, to });
     chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
+    dispatch(updateConsoleMoveHistory({ from, to, position: chess.fen() }));
     dispatch(updateDrawOffer(null));
   };
 
@@ -284,6 +288,10 @@ export const registerGameEvents = (
     );
   };
 
+  const setPosition = (position: string) => {
+    board.setPosition(position);
+  };
+
   // @ts-ignore
   const chess = new Chess();
   const clock = new ClientClock();
@@ -299,6 +307,7 @@ export const registerGameEvents = (
   clientEvent.on('event:game:draw:accept', acceptDraw);
   clientEvent.on('event:game:resign', resign);
   clientEvent.on('event:game:send:chat', sendChatMessage);
+  clientEvent.on('event:game:history:position', setPosition);
 };
 
 export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction>) => {

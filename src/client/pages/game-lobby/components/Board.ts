@@ -24,6 +24,7 @@ const renderResultHelper = (result: Result, player: PlayerInfo): HyperScriptHelp
         }`,
         style: `color: ${color};`
       }),
+      span({ className: 'mr-2' }),
       span(`${color === 'red' ? '[0-1]' : color === 'green' ? '[1-0]' : '[0.5-0.5]'}`)
     ]);
   };

@@ -31,7 +31,7 @@ const renderMoveHistory = (history: GameHistory[]): HyperScriptHelperFn[] => {
     const moveNumber = (index + 1) / 2;
     moveHistory.push(
       span(
-        `${history.length === index + 1 ? '#latest-move .move-history' : '.move-history'}`,
+        `#${position.replaceAll('/', '_').replaceAll(' ', '_')} ${'.move-history'}`,
         {
           style: 'cursor: pointer;',
           onclick: () => {
@@ -69,32 +69,64 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
       a({ className: 'card-footer-item' }, [
         div({ className: 'field has-addons' }, [
           p({ className: 'control m-0' }, [
-            button({ className: 'button is-fullwidth' }, [
-              span({ className: 'icon is-small' }, [
-                i({ className: 'fas fa-regular fa-backward' })
-              ])
-            ])
+            button(
+              {
+                className: 'button is-fullwidth',
+                onclick: () => {
+                  clientEvent.emit('event:game:history:start');
+                }
+              },
+              [
+                span({ className: 'icon is-small' }, [
+                  i({ className: 'fas fa-regular fa-backward' })
+                ])
+              ]
+            )
           ]),
           p({ className: 'control m-0' }, [
-            button({ className: 'button is-fullwidth' }, [
-              span({ className: 'icon is-small' }, [
-                i({ className: 'fas fa-regular fa-backward-step' })
-              ])
-            ])
+            button(
+              {
+                className: 'button is-fullwidth',
+                onclick: () => {
+                  clientEvent.emit('event:game:history:prev');
+                }
+              },
+              [
+                span({ className: 'icon is-small' }, [
+                  i({ className: 'fas fa-regular fa-backward-step' })
+                ])
+              ]
+            )
           ]),
           p({ className: 'control m-0' }, [
-            button({ className: 'button is-fullwidth' }, [
-              span({ className: 'icon is-small' }, [
-                i({ className: 'fas fa-regular fa-forward-step' })
-              ])
-            ])
+            button(
+              {
+                className: 'button is-fullwidth',
+                onclick: () => {
+                  clientEvent.emit('event:game:history:next');
+                }
+              },
+              [
+                span({ className: 'icon is-small' }, [
+                  i({ className: 'fas fa-regular fa-forward-step' })
+                ])
+              ]
+            )
           ]),
           p({ className: 'control m-0' }, [
-            button({ className: 'button is-fullwidth' }, [
-              span({ className: 'icon is-small' }, [
-                i({ className: 'fas fa-regular fa-forward' })
-              ])
-            ])
+            button(
+              {
+                className: 'button is-fullwidth',
+                onclick: () => {
+                  clientEvent.emit('event:game:history:current');
+                }
+              },
+              [
+                span({ className: 'icon is-small' }, [
+                  i({ className: 'fas fa-regular fa-forward' })
+                ])
+              ]
+            )
           ])
         ])
       ]),

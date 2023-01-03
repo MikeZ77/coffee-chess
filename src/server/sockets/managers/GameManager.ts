@@ -214,6 +214,7 @@ export default class GameManager extends Manager {
     3. Update the game clock.
     4. Check if the game is over (checkmate, stalemate, draw, threefold repetition, or insufficient material)
   */
+    Logger.debug('gameMove %o', gameMove);
     const endTime = DateTime.utc();
     const maxMoveLatency = parseInt(MAX_MOVE_CORRECTION_LATENCY_MS);
     const { timestampUtc, ...playerMove } = gameMove;
@@ -282,7 +283,7 @@ export default class GameManager extends Manager {
       const sentTime = DateTime.fromISO(timestampUtc);
       const colorTurn = color === 'w' ? 'whiteTime' : 'blackTime';
       const delta = endTime.diff(sentTime, ['milliseconds']).milliseconds;
-
+      Logger.debug('playerMove %o', playerMove);
       await Promise.all([
         delta > maxMoveLatency
           ? this.redis.json.numIncrBy(gameSession, colorTurn, maxMoveLatency)

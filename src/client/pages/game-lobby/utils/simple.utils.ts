@@ -78,3 +78,19 @@ export const initChatTimeout = (
     dispatch(setChatTimeout(false));
   }, chatTimeoutMs);
 };
+
+export const highlightCurrentMoveHistory = (
+  currentPosition: string,
+  prevPosition?: string
+) => {
+  console.log('currentPosition', currentPosition);
+  console.log('prevPosition', prevPosition);
+  if (prevPosition) {
+    document.getElementById(
+      prevPosition.replaceAll('/', '_').replaceAll(' ', '_')
+    )!.style.backgroundColor = '';
+  }
+  document.getElementById(
+    currentPosition.replaceAll('/', '_').replaceAll(' ', '_')
+  )!.style.backgroundColor = 'honeydew';
+};

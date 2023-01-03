@@ -18,7 +18,8 @@ export {
   setPlayerColor,
   updatePlayerTime,
   updateGameState,
-  updateGameResult
+  updateGameResult,
+  setBoardPosition
 } from './gameBoard';
 export {
   openNewGameMenu,

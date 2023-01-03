@@ -143,7 +143,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                 ),
                 span(
                   {
-                    className: 'is-size-5 has-text-weight-semibold has-text-grey mr-4'
+                    className: 'is-size-5 has-text-weight-semibold has-text-grey mr-5'
                   },
                   opponent.rating ? ` (${opponent.rating})` : ''
                 ),
@@ -208,7 +208,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                     ),
                     span(
                       {
-                        className: 'is-size-5 has-text-weight-semibold has-text-grey mr-4'
+                        className: 'is-size-5 has-text-weight-semibold has-text-grey mr-5'
                       },
                       player.rating ? ` (${player.rating})` : ''
                     ),

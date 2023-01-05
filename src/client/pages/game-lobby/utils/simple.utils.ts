@@ -79,18 +79,26 @@ export const initChatTimeout = (
   }, chatTimeoutMs);
 };
 
+export const parsePositionId = (id: string) => {
+  return id.replaceAll('/', '_').replaceAll(' ', '_');
+};
+
 export const highlightCurrentMoveHistory = (
   currentPosition: string,
   prevPosition?: string
 ) => {
-  console.log('currentPosition', currentPosition);
-  console.log('prevPosition', prevPosition);
-  if (prevPosition) {
-    document.getElementById(
-      prevPosition.replaceAll('/', '_').replaceAll(' ', '_')
-    )!.style.backgroundColor = '';
+  // console.log('currentPosition', currentPosition);
+  // console.log('prevPosition', prevPosition);
+  if (prevPosition !== undefined) {
+    const prevPositionParsed = parsePositionId(prevPosition);
+    const nextMove = document.getElementById(prevPositionParsed);
+    if (nextMove) {
+      nextMove.style.backgroundColor = '';
+    }
   }
-  document.getElementById(
-    currentPosition.replaceAll('/', '_').replaceAll(' ', '_')
-  )!.style.backgroundColor = 'honeydew';
+  const currentPositionParsed = parsePositionId(currentPosition);
+  const currentMove = document.getElementById(currentPositionParsed);
+  if (currentMove) {
+    currentMove.style.backgroundColor = 'honeydew';
+  }
 };

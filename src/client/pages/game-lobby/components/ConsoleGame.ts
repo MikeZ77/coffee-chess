@@ -4,7 +4,7 @@ import { Component } from 'common/types';
 import { State } from '../state';
 import { GameChat, GameHistory } from '@Types';
 import { updateChatMessage, GameConsoleAction, setDisableChat } from '../actions/index';
-import { clientEvent } from '../utils/simple.utils';
+import { clientEvent, parsePositionId } from '../utils/simple.utils';
 
 const { div, footer, a, button, i, span, p, input } = hh(h);
 
@@ -31,7 +31,7 @@ const renderMoveHistory = (history: GameHistory[]): HyperScriptHelperFn[] => {
     const moveNumber = (index + 1) / 2;
     moveHistory.push(
       span(
-        `#${position.replaceAll('/', '_').replaceAll(' ', '_')} ${'.move-history'}`,
+        `#${parsePositionId(position)} ${'.move-history'}`,
         {
           style: 'cursor: pointer;',
           onclick: () => {

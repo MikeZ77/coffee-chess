@@ -137,9 +137,8 @@ export const registerGameEvents = (
     board.movePiece(from, to, true);
     chess.move({ from, to });
     chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
+    dispatch(setBoardPosition(chess.fen()));
     dispatch(updateConsoleMoveHistory({ from, to, position: chess.fen() }));
-    console.log('chess.fen()', chess.fen());
-    console.log('prevPosition', prevPosition);
     highlightCurrentMoveHistory(chess.fen(), prevPosition);
     dispatch(updateDrawOffer(null));
   };
@@ -352,10 +351,10 @@ export const registerGameEvents = (
       const index = history.findIndex((move) => {
         return move.position === position;
       });
-      const prevMove = history[index - 1];
-      const { from, to, position: prevPosition } = prevMove;
-      dispatch(setBoardPosition(prevPosition));
+      const { from, to } = history[index];
+      const { position: prevPosition } = history[index - 1];
       board.movePiece(to, from, true);
+      dispatch(setBoardPosition(prevPosition));
       highlightCurrentMoveHistory(prevPosition, position);
     }
   };
@@ -380,6 +379,7 @@ export const registerGameEvents = (
     const currentPosition = history[history.length - 1].position;
     if (position !== currentPosition) {
       board.setPosition(currentPosition);
+      highlightCurrentMoveHistory(currentPosition, position);
       if (chess.turn() === color && state === 'IN_PROGRESS') {
         board.enableMoveInput(attachBoardInputHandler, color);
       }

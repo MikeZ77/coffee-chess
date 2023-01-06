@@ -80,7 +80,27 @@ export const registerGameEvents = (
       }
       return moves.length > 0;
     }
+
     if (event.type === INPUT_EVENT_TYPE.validateMoveInput) {
+      console.log('event.squareTo', event.squareTo);
+      if (
+        (event.squareTo.charAt(1) === '8' || event.squareTo.charAt(1) === '1') &&
+        event.piece.charAt(1) === 'p'
+      ) {
+        const color = event.squareTo.charAt(1) === '8' ? COLOR.white : COLOR.black;
+        // @ts-ignore
+        event.chessboard.showPromotionDialog(event.squareTo, color, (promotionEvent) => {
+          console.log('promotionEvent', promotionEvent);
+          console.log('Piece selected', promotionEvent.piece);
+          if (promotionEvent.piece) {
+            console.log('promotionEvent.square', promotionEvent.square);
+            console.log('promotionEvent.piece', promotionEvent.piece);
+            event.chessboard.setPiece(promotionEvent.square, promotionEvent.piece, true);
+          } else {
+            event.chessboard.setPosition(chess.fen());
+          }
+        });
+      }
       const result = chess.move({ from: event.squareFrom, to: event.squareTo });
       //TODO: If its not the users turn then do not return.
       if (result) {
@@ -94,7 +114,6 @@ export const registerGameEvents = (
           },
           audio: { pieceMoveSound }
         } = <State>dispatch();
-        // console.log('history1', history);
         chess.turn() === 'w'
           ? clock.startWhiteClock(dispatch)
           : clock.startBlackClock(dispatch);

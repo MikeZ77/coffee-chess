@@ -4,6 +4,7 @@ import type { GameClock } from '@Types';
 import type { GameAction } from '../actions/index';
 import type { State } from '../state';
 import { updatePlayerTime } from '../actions/index';
+import { PromotionDialog } from 'cm-chessboard/src/cm-chessboard/extensions/promotion-dialog/PromotionDialog';
 import { DateTime } from 'luxon';
 import Chess from 'chess.js';
 
@@ -20,7 +21,8 @@ export const boardConfig = {
     aspectRatio: 1,
     moveFromMarker: undefined,
     moveToMarker: undefined
-  }
+  },
+  extensions: [{ class: PromotionDialog, props: {} }]
 };
 
 export class ClientClock {

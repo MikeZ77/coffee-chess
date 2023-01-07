@@ -278,7 +278,7 @@ export default class GameManager extends Manager {
     ) {
       await this.handleGameCompletion('DRAW', 'DRAW', <ShortMove>playerMove);
     } else {
-      const { from, to, color } = move;
+      const { from, to, color, piece } = move;
       const nextPosition = this.chess.fen();
       const sentTime = DateTime.fromISO(timestampUtc);
       const colorTurn = color === 'w' ? 'whiteTime' : 'blackTime';
@@ -293,7 +293,8 @@ export default class GameManager extends Manager {
         this.redis.json.arrAppend(gameSession, 'history', {
           from,
           to,
-          position: nextPosition
+          position: nextPosition,
+          piece
         }),
         this.socket.to(gameRoom).emit('message:game:move', playerMove)
       ]);

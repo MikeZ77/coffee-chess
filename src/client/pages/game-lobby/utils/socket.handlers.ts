@@ -104,7 +104,7 @@ export const registerGameEvents = (
       const result = chess.move({ from: event.squareFrom, to: event.squareTo });
       //TODO: If its not the users turn then do not return.
       if (result) {
-        const { from, to } = result;
+        const { from, to, piece } = result;
         const gameMove: GameMove = { from, to, timestampUtc: DateTime.utc().toString() };
         socket.emit('message:game:move', gameMove);
         const {
@@ -118,9 +118,8 @@ export const registerGameEvents = (
           ? clock.startWhiteClock(dispatch)
           : clock.startBlackClock(dispatch);
         dispatch(setBoardPosition(chess.fen()));
-        dispatch(updateConsoleMoveHistory({ from, to, position: chess.fen() }));
+        dispatch(updateConsoleMoveHistory({ from, to, position: chess.fen(), piece }));
         pieceMoveSound?.play();
-        // console.log('history2', history);
         history.length === 0
           ? highlightCurrentMoveHistory(chess.fen())
           : highlightCurrentMoveHistory(chess.fen(), history[history.length - 1].position);
@@ -154,10 +153,10 @@ export const registerGameEvents = (
     // console.log('prevPositionOpponentMove', prevPosition);
     board.setPosition(prevPosition);
     board.movePiece(from, to, true);
-    chess.move({ from, to });
+    const { piece } = chess.move({ from, to });
     chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
     dispatch(setBoardPosition(chess.fen()));
-    dispatch(updateConsoleMoveHistory({ from, to, position: chess.fen() }));
+    dispatch(updateConsoleMoveHistory({ from, to, position: chess.fen(), piece }));
     highlightCurrentMoveHistory(chess.fen(), prevPosition);
     dispatch(updateDrawOffer(null));
   };

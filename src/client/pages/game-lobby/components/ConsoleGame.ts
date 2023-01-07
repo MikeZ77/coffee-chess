@@ -5,6 +5,7 @@ import { State } from '../state';
 import { GameChat, GameHistory } from '@Types';
 import { updateChatMessage, GameConsoleAction, setDisableChat } from '../actions/index';
 import { clientEvent, parsePositionId } from '../utils/simple.utils';
+import Chess from 'chess.js';
 
 const { div, footer, a, button, i, span, p, input } = hh(h);
 
@@ -24,28 +25,67 @@ const renderChatMessages = (messages: GameChat[]): HyperScriptHelperFn[] => {
   return chatElements;
 };
 
+const getPieceIcon = (piece: string, index: number): HyperScriptHelperFn => {
+  const black = index % 2 === 1;
+  switch (piece) {
+    case 'p': {
+      return span({ className: 'icon is-small' }, [
+        i({ className: `fas ${black ? 'fa-solid' : 'fa-regular'} fa-chess-pawn fa-xs` })
+      ]);
+    }
+    case 'n':
+      return span({ className: 'icon is-small' }, [
+        i({
+          className: `fas ${black ? 'fa-solid' : 'fa-regular'} fa-chess-knight fa-xs`
+        })
+      ]);
+    case 'b':
+      return span({ className: 'icon is-small' }, [
+        i({
+          className: `fas ${black ? 'fa-solid' : 'fa-regular'} fa-chess-bishop fa-xs`
+        })
+      ]);
+    case 'r':
+      return span({ className: 'icon is-small' }, [
+        i({ className: `fas ${black ? 'fa-solid' : 'fa-regular'} fa-chess-rook fa-xs` })
+      ]);
+    case 'q':
+      return span({ className: 'icon is-small' }, [
+        i({ className: `fas ${black ? 'fa-solid' : 'fa-regular'} fa-chess-queen fa-xs` })
+      ]);
+    case 'k':
+      return span({ className: 'icon is-small' }, [
+        i({ className: `fas ${black ? 'fa-solid' : 'fa-regular'} fa-chess-king fa-xs` })
+      ]);
+    default:
+      return span({ className: 'icon is-small' }, [
+        i({ className: 'fa-regular question fa-xs' })
+      ]);
+  }
+};
+
 const renderMoveHistory = (history: GameHistory[]): HyperScriptHelperFn[] => {
   const moveHistory: HyperScriptHelperFn[] = [];
   history.forEach((move, index) => {
-    const { to: moveTo, position } = move;
+    const { to: moveTo, position, piece } = move;
     const moveNumber = (index + 1) / 2;
     moveHistory.push(
-      span(
-        `#${parsePositionId(position)} ${'.move-history'}`,
-        {
-          style: 'cursor: pointer;',
-          onclick: () => {
-            clientEvent.emit('event:game:history:position', position);
-          }
-        },
-        [
-          span(
-            { className: 'has-text-weight-semibold' },
-            `${!Number.isInteger(moveNumber) ? Math.ceil(moveNumber).toString() + '. ' : ''}`
-          ),
-          span(`${moveTo} `)
-        ]
-      )
+      span([
+        span(
+          { className: 'has-text-weight-semibold' },
+          `${!Number.isInteger(moveNumber) ? Math.ceil(moveNumber).toString() + '. ' : ''}`
+        ),
+        span(
+          `#${parsePositionId(position)} ${'.move-history'}`,
+          {
+            style: 'cursor: pointer;',
+            onclick: () => {
+              clientEvent.emit('event:game:history:position', position);
+            }
+          },
+          [getPieceIcon(piece, index), span(`${moveTo} `)]
+        )
+      ])
     );
   });
   return moveHistory;
@@ -76,11 +116,7 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
                   clientEvent.emit('event:game:history:start');
                 }
               },
-              [
-                span({ className: 'icon is-small' }, [
-                  i({ className: 'fas fa-regular fa-backward' })
-                ])
-              ]
+              [span({ className: 'icon is-small' }, [i({ className: 'fas fa-backward' })])]
             )
           ]),
           p({ className: 'control m-0' }, [
@@ -93,7 +129,7 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
               },
               [
                 span({ className: 'icon is-small' }, [
-                  i({ className: 'fas fa-regular fa-backward-step' })
+                  i({ className: 'fas fa-backward-step' })
                 ])
               ]
             )
@@ -106,11 +142,7 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
                   clientEvent.emit('event:game:history:next');
                 }
               },
-              [
-                span({ className: 'icon is-small' }, [
-                  i({ className: 'fas fa-regular fa-forward-step' })
-                ])
-              ]
+              [span({ className: 'icon is-small' }, [i({ className: 'fas fa-forward-step' })])]
             )
           ]),
           p({ className: 'control m-0' }, [
@@ -121,11 +153,7 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
                   clientEvent.emit('event:game:history:current');
                 }
               },
-              [
-                span({ className: 'icon is-small' }, [
-                  i({ className: 'fas fa-regular fa-forward' })
-                ])
-              ]
+              [span({ className: 'icon is-small' }, [i({ className: 'fas fa-forward' })])]
             )
           ])
         ])

@@ -1,5 +1,6 @@
 import type { Socket, Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
+import type { ServerMessage } from '@Types';
 import { decodeToken, checkExpiration, TokenState } from '@Utils/auth.token';
 import { SocketError } from '@Utils/custom.errors';
 import { DateTime, Interval } from 'luxon';
@@ -91,6 +92,22 @@ export default class Manager {
         }
       });
     }, parseInt(CONNECTION_QUALITY_PING_MS));
+  };
+
+  static checkClientConnections = async (io: ioServer, socket: Socket) => {
+    const userId = socket.data.userId;
+    const allSockets = await io.fetchSockets();
+    const userSockets = allSockets.filter((socket) => (socket.data.userId = userId));
+    if (userSockets.length > 1) {
+      // Sockets are already sorted ascending by time of handshake.
+      const socketToRemove = userSockets.pop();
+      if (socketToRemove) {
+        io.to(socketToRemove.id).emit('message:user:notification', <ServerMessage>{
+          type: 'MULTIPLE_WINDOWS'
+        });
+        socketToRemove.disconnect();
+      }
+    }
   };
 
   protected async getRedis(key: string, values: string[]): Promise<string> {

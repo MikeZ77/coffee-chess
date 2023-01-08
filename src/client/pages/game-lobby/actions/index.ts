@@ -12,7 +12,7 @@ export {
   setDisableChat,
   updateConsoleMoveHistory
 } from './gameConsole';
-export { updateUserInfo } from './userInfo';
+export { updateUserInfo, disablePage } from './userInfo';
 export {
   initNewGame,
   setPlayerColor,

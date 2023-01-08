@@ -13,6 +13,13 @@ const reduceUserInfo: Reducer<State, UserAction> = (action, state): State => {
         username
       };
     }
+    case 'DISABLE_PAGE': {
+      return {
+        ...state,
+        reduced: true,
+        disablePage: true
+      };
+    }
     default: {
       return state;
     }

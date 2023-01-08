@@ -102,6 +102,10 @@ export type UserInfo = {
   username: string;
 };
 
+export type ServerMessage =
+  | { type: 'MULTIPLE_WINDOWS' }
+  | { type: 'SERVER_MESSAGE'; data: string };
+
 export type GameMessage = GameConfirmation | GameAborted;
 export type GameConfirmation = { ready: boolean };
 export type GameAborted = { aborted: boolean };

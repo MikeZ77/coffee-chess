@@ -102,3 +102,17 @@ export const highlightCurrentMoveHistory = (
     currentMove.style.backgroundColor = 'honeydew';
   }
 };
+
+// export const registerMultipleInstancesCheck = () => {
+//   const channel = new BroadcastChannel('coffee-chess-origin');
+//   channel.onmessage = (event) => {
+//     if (event.data === 'NEW_INSTANCE') {
+//       channel.postMessage('DISABLE_PAGE');
+//     }
+//     if (event.data === 'DISABLE_PAGE') {
+//       console.log(event.data);
+//       // Dispatch a modal and disable screen
+//     }
+//   };
+//   channel.postMessage('NEW_INSTANCE');
+// };

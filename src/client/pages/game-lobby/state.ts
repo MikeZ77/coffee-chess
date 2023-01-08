@@ -5,6 +5,7 @@ export interface State {
   userId: string;
   username: string;
   reduced: boolean;
+  disablePage: boolean;
   pendingRequest: HttpRequest<GamePayloads> | null;
   sideNavBar: SideNavBar;
   gameConsole: GameConsole;
@@ -51,6 +52,7 @@ const state: State = {
   userId: '',
   username: '',
   reduced: false,
+  disablePage: false,
   pendingRequest: null,
   sideNavBar: {
     newGameMenuOpen: false,

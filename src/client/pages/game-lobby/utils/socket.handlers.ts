@@ -8,7 +8,8 @@ import type {
   GameMove,
   GameDrawOffer,
   GameComplete,
-  GameResign
+  GameResign,
+  ServerMessage
 } from '@Types';
 import type { ClientGame } from '../state';
 import type { UserAction, AnyActions } from '../actions/index';
@@ -36,7 +37,8 @@ import {
   initNewGame,
   updateChatLog,
   setPlayerColor,
-  updateConsoleMoveHistory
+  updateConsoleMoveHistory,
+  disablePage
 } from '../actions/index';
 import {
   INPUT_EVENT_TYPE,
@@ -495,8 +497,13 @@ export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction
     dispatch(updateUserInfo(message));
   };
 
-  const userNotification = (message: string) => {
-    console.log('Notification', message);
+  const userNotification = (serverMessage: ServerMessage) => {
+    const { type } = serverMessage;
+    switch (type) {
+      case 'MULTIPLE_WINDOWS': {
+        dispatch(disablePage());
+      }
+    }
   };
 
   const userPing = (pong: Function) => pong();

@@ -54,7 +54,6 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
 
   /*  INITIALIZATION   */
   const board = new Chessboard(document.getElementById('board'), boardConfig);
-
   initEventListeners();
   initTooltipAttributes({
     '#player-list': 'Player List',

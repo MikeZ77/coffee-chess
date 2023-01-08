@@ -217,7 +217,7 @@ export default class GameManager extends Manager {
     Logger.debug('gameMove %o', gameMove);
     const endTime = DateTime.utc();
     const maxMoveLatency = parseInt(MAX_MOVE_CORRECTION_LATENCY_MS);
-    const { timestampUtc, ...playerMove } = gameMove;
+    const { timestampUtc, promotion, ...playerMove } = gameMove;
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
     const { userWhiteId, userBlackId, state, position, history } = <
       {
@@ -253,16 +253,26 @@ export default class GameManager extends Manager {
     }
 
     if (history.length) {
-      const { from: prevFrom, to: prevTo } = <GameHistory>history.pop();
-      this.chess.move(<ShortMove>{ from: prevFrom, to: prevTo });
+      const {
+        from: prevFrom,
+        to: prevTo,
+        promotion: prevPromotion
+      } = <GameHistory>history.pop();
+      this.chess.move(<ShortMove>{
+        from: prevFrom,
+        to: prevTo,
+        ...(prevPromotion ? { promotion: prevPromotion } : {})
+      });
     }
 
-    const move = this.chess.move(<ShortMove>playerMove);
+    const move = this.chess.move(<ShortMove>{
+      ...playerMove,
+      ...(promotion ? { promotion } : {})
+    });
     if (!move) {
       return;
     }
 
-    //TODO: Handle promotions.
     if (this.chess.in_checkmate()) {
       // Set game state to COMPLETE (clock will clear).
       // Set result to BLACK or WHITE.
@@ -278,7 +288,7 @@ export default class GameManager extends Manager {
     ) {
       await this.handleGameCompletion('DRAW', 'DRAW', <ShortMove>playerMove);
     } else {
-      const { from, to, color, piece } = move;
+      const { from, to, color, piece, captured } = move;
       const nextPosition = this.chess.fen();
       const sentTime = DateTime.fromISO(timestampUtc);
       const colorTurn = color === 'w' ? 'whiteTime' : 'blackTime';
@@ -290,13 +300,17 @@ export default class GameManager extends Manager {
           : this.redis.json.numIncrBy(gameSession, colorTurn, delta),
         this.redis.json.set(gameSession, 'position', this.chess.fen()),
         this.redis.json.set(gameSession, 'pendingDrawOfferFrom', null),
+        this.socket
+          .to(gameRoom)
+          .emit('message:game:move', { ...playerMove, ...(promotion ? { promotion } : {}) }),
         this.redis.json.arrAppend(gameSession, 'history', {
           from,
           to,
           position: nextPosition,
-          piece
-        }),
-        this.socket.to(gameRoom).emit('message:game:move', playerMove)
+          piece,
+          ...(captured ? { captured } : {}),
+          ...(promotion ? { promotion } : {})
+        })
       ]);
 
       if (this.chess.history().length === 1) {

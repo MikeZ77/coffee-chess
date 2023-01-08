@@ -65,7 +65,14 @@ export type QueueRecord = {
 
 export type GameState = 'PENDING' | 'ABORTED' | 'IN_PROGRESS' | 'COMPLETE';
 export type GameChat = { username?: string; message: string };
-export type GameHistory = { from: string; to: string; position: string; piece: string };
+export type GameHistory = {
+  from: string;
+  to: string;
+  position: string;
+  piece: string;
+  captured?: string;
+  promotion?: string;
+};
 export type Result = ('WHITE' | 'BLACK' | 'DRAW') | null;
 export type Game = {
   gameId: string;
@@ -99,7 +106,7 @@ export type GameMessage = GameConfirmation | GameAborted;
 export type GameConfirmation = { ready: boolean };
 export type GameAborted = { aborted: boolean };
 export type GameClock = { whiteTime: number; blackTime: number; timestampUtc?: string };
-export type GameMove = { from: string; to: string; timestampUtc?: string };
+export type GameMove = { from: string; to: string; promotion?: string; timestampUtc?: string };
 export type GameDrawOffer = { drawOffer: boolean };
 export type GameResign = { resign: boolean };
 export type ResultReason = 'RESIGN' | 'DRAW' | 'CHECKMATE' | 'TIME_WHITE' | 'TIME_BLACK';

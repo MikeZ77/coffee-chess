@@ -83,51 +83,91 @@ export const registerGameEvents = (
 
     if (event.type === INPUT_EVENT_TYPE.validateMoveInput) {
       console.log('event.squareTo', event.squareTo);
-      if (
-        (event.squareTo.charAt(1) === '8' || event.squareTo.charAt(1) === '1') &&
-        event.piece.charAt(1) === 'p'
-      ) {
-        const color = event.squareTo.charAt(1) === '8' ? COLOR.white : COLOR.black;
-        // @ts-ignore
-        event.chessboard.showPromotionDialog(event.squareTo, color, (promotionEvent) => {
-          console.log('promotionEvent', promotionEvent);
-          console.log('Piece selected', promotionEvent.piece);
-          if (promotionEvent.piece) {
-            console.log('promotionEvent.square', promotionEvent.square);
-            console.log('promotionEvent.piece', promotionEvent.piece);
-            event.chessboard.setPiece(promotionEvent.square, promotionEvent.piece, true);
-          } else {
-            event.chessboard.setPosition(chess.fen());
-          }
-        });
+      const eighthRank = event.squareTo.charAt(1) === '8' ? true : false;
+      const firstRank = event.squareTo.charAt(1) === '1' ? true : false;
+      if ((eighthRank || firstRank) && event.piece.charAt(1) === 'p') {
+        return handleEventCheckPromotion(
+          event.squareFrom,
+          event.squareTo,
+          eighthRank ? COLOR.white : COLOR.black,
+          event.chessboard
+        );
       }
-      const result = chess.move({ from: event.squareFrom, to: event.squareTo });
-      //TODO: If its not the users turn then do not return.
-      if (result) {
-        const { from, to, piece } = result;
-        const gameMove: GameMove = { from, to, timestampUtc: DateTime.utc().toString() };
-        socket.emit('message:game:move', gameMove);
-        const {
-          currentGame: {
-            pendingDrawOfferFrom,
-            history: [...history]
-          },
-          audio: { pieceMoveSound }
-        } = <State>dispatch();
-        chess.turn() === 'w'
-          ? clock.startWhiteClock(dispatch)
-          : clock.startBlackClock(dispatch);
-        dispatch(setBoardPosition(chess.fen()));
-        dispatch(updateConsoleMoveHistory({ from, to, position: chess.fen(), piece }));
-        pieceMoveSound?.play();
-        history.length === 0
-          ? highlightCurrentMoveHistory(chess.fen())
-          : highlightCurrentMoveHistory(chess.fen(), history[history.length - 1].position);
-        if (pendingDrawOfferFrom) {
-          dispatch(updateDrawOffer(null));
-        }
-        return result;
+      return handleEventPieceMove(event.squareFrom, event.squareTo);
+    }
+  };
+
+  const handleEventCheckPromotion = (
+    squareFrom: string,
+    squareTo: string,
+    color: 'w' | 'b',
+    // @ts-ignore
+    chessboard
+  ) => {
+    // @ts-ignore
+    chessboard.showPromotionDialog(squareTo, color, (promotionEvent) => {
+      console.log('promotionEvent', promotionEvent);
+      console.log('Piece selected', promotionEvent.piece);
+      if (promotionEvent.piece) {
+        console.log('promotionEvent.square', promotionEvent.square);
+        console.log('promotionEvent.piece', promotionEvent.piece);
+        chessboard.setPiece(squareFrom, null);
+        chessboard.setPiece(promotionEvent.square, promotionEvent.piece, true);
+        const promotionPiece = promotionEvent.piece.charAt(1);
+        handleEventPieceMove(squareFrom, squareTo, promotionPiece);
+      } else {
+        chessboard.setPosition(chess.fen());
       }
+    });
+  };
+
+  const handleEventPieceMove = (
+    squareFrom: string,
+    squareTo: string,
+    promotionPiece?: string
+  ) => {
+    const result = chess.move({
+      from: squareFrom,
+      to: squareTo,
+      ...(promotionPiece ? { promotion: promotionPiece } : {})
+    });
+    console.log('result1', result);
+    if (result) {
+      console.log('result2', result);
+      const { from, to, piece, promotion, captured } = result;
+      socket.emit('message:game:move', <GameMove>{
+        from,
+        to,
+        ...(promotion ? { promotion } : {}),
+        timestampUtc: DateTime.utc().toString()
+      });
+      const {
+        currentGame: {
+          pendingDrawOfferFrom,
+          history: [...history]
+        },
+        audio: { pieceMoveSound }
+      } = <State>dispatch();
+      chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
+      dispatch(setBoardPosition(chess.fen()));
+      dispatch(
+        updateConsoleMoveHistory({
+          from,
+          to,
+          position: chess.fen(),
+          piece,
+          ...(promotion ? { promotion } : {}),
+          ...(captured ? { captured } : {})
+        })
+      );
+      pieceMoveSound?.play();
+      history.length === 0
+        ? highlightCurrentMoveHistory(chess.fen())
+        : highlightCurrentMoveHistory(chess.fen(), history[history.length - 1].position);
+      if (pendingDrawOfferFrom) {
+        dispatch(updateDrawOffer(null));
+      }
+      return result;
     }
   };
 
@@ -148,15 +188,31 @@ export const registerGameEvents = (
 
   const opponentMove = (move: GameMove) => {
     console.log('move', move);
-    const { from, to } = move;
+    const { from, to, promotion } = move;
     const prevPosition = chess.fen();
-    // console.log('prevPositionOpponentMove', prevPosition);
+    const { piece, captured, color } = chess.move({
+      from,
+      to,
+      ...(promotion ? { promotion } : {})
+    });
     board.setPosition(prevPosition);
-    board.movePiece(from, to, true);
-    const { piece } = chess.move({ from, to });
+    board.movePiece(from, to, true).then(() => {
+      if (promotion) {
+        board.setPiece(to, `${color}${promotion}`);
+      }
+    });
     chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
     dispatch(setBoardPosition(chess.fen()));
-    dispatch(updateConsoleMoveHistory({ from, to, position: chess.fen(), piece }));
+    dispatch(
+      updateConsoleMoveHistory({
+        from,
+        to,
+        position: chess.fen(),
+        piece,
+        ...(promotion ? { promotion } : {}),
+        ...(captured ? { captured } : {})
+      })
+    );
     highlightCurrentMoveHistory(chess.fen(), prevPosition);
     dispatch(updateDrawOffer(null));
   };
@@ -325,14 +381,22 @@ export const registerGameEvents = (
     const {
       currentGame: { history, position: prevPosition }
     } = <State>dispatch();
+
+    if (history.length === 0) {
+      return;
+    }
     const currentPosition = history[history.length - 1].position;
-    if (position !== currentPosition) {
+    const startPosition = history[0].position;
+    if (position === currentPosition) {
+      setCurrentPosition();
+    } else if (position === startPosition) {
+      setStartPosition();
+    } else {
       board.disableMoveInput();
       dispatch(setBoardPosition(position));
       board.setPosition(position);
       highlightCurrentMoveHistory(position, prevPosition);
     }
-    // board.enableMoveInput(attachBoardInputHandler, color);
   };
 
   const nextMove = () => {

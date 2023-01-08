@@ -5,9 +5,8 @@ import { State } from '../state';
 import { GameChat, GameHistory } from '@Types';
 import { updateChatMessage, GameConsoleAction, setDisableChat } from '../actions/index';
 import { clientEvent, parsePositionId } from '../utils/simple.utils';
-import Chess from 'chess.js';
 
-const { div, footer, a, button, i, span, p, input } = hh(h);
+const { div, footer, a, button, i, span, p, br, input } = hh(h);
 
 const renderChatMessages = (messages: GameChat[]): HyperScriptHelperFn[] => {
   const chatElements: HyperScriptHelperFn[] = [];
@@ -67,24 +66,31 @@ const getPieceIcon = (piece: string, index: number): HyperScriptHelperFn => {
 const renderMoveHistory = (history: GameHistory[]): HyperScriptHelperFn[] => {
   const moveHistory: HyperScriptHelperFn[] = [];
   history.forEach((move, index) => {
-    const { to: moveTo, position, piece } = move;
+    const { to: moveTo, position, piece, captured, promotion } = move;
     const moveNumber = (index + 1) / 2;
     moveHistory.push(
       span([
-        span(
-          { className: 'has-text-weight-semibold' },
-          `${!Number.isInteger(moveNumber) ? Math.ceil(moveNumber).toString() + '. ' : ''}`
-        ),
-        span(
-          `#${parsePositionId(position)} ${'.move-history'}`,
-          {
-            style: 'cursor: pointer;',
-            onclick: () => {
-              clientEvent.emit('event:game:history:position', position);
-            }
-          },
-          [getPieceIcon(piece, index), span(`${moveTo} `)]
-        )
+        span([
+          span(
+            { className: 'has-text-weight-semibold' },
+            `${!Number.isInteger(moveNumber) ? Math.ceil(moveNumber).toString() + '. ' : ''}`
+          ),
+          span(
+            `#${parsePositionId(position)} ${'.move-history'}`,
+            {
+              style: 'cursor: pointer;',
+              onclick: () => {
+                clientEvent.emit('event:game:history:position', position);
+              }
+            },
+            [
+              getPieceIcon(piece, index),
+              span(`${captured ? 'x' : ''}${moveTo}${promotion ? '=' : ' '}`),
+              promotion && getPieceIcon(promotion, index)
+            ]
+          )
+        ]),
+        Number.isInteger(moveNumber) ? br() : span()
       ])
     );
   });

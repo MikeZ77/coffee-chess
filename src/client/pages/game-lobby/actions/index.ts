@@ -12,9 +12,9 @@ export {
   setDisableChat,
   updateConsoleMoveHistory
 } from './gameConsole';
-export { updateUserInfo, disablePage } from './userInfo';
+export { updateUserInfo, disablePage, setDisconnectInterval } from './userInfo';
 export {
-  initNewGame,
+  initGame,
   setPlayerColor,
   updatePlayerTime,
   updateGameState,

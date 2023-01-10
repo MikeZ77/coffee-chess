@@ -6,6 +6,8 @@ export interface State {
   username: string;
   reduced: boolean;
   disablePage: boolean;
+  disconnected: boolean | null;
+  disconnectInterval: number | null;
   pendingRequest: HttpRequest<GamePayloads> | null;
   sideNavBar: SideNavBar;
   gameConsole: GameConsole;
@@ -54,6 +56,8 @@ const state: State = {
   reduced: false,
   disablePage: false,
   pendingRequest: null,
+  disconnected: null,
+  disconnectInterval: null,
   sideNavBar: {
     newGameMenuOpen: false,
     oneMinuteSearching: false,

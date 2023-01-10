@@ -3,12 +3,14 @@ import type { Dispatch } from '@Common/types';
 import {
   type NavBarAction,
   type GameConsoleAction,
+  type UserAction,
   setChatTimeout,
   spinnerSearchOneMinute,
   spinnerSearchFiveMinute,
-  spinnerSearchFifteenMinute
+  spinnerSearchFifteenMinute,
+  setDisconnectInterval
 } from '../actions/index';
-import { gameCompleteToast } from '@Common/toast';
+import { gameCompleteToast, errorToast } from '@Common/toast';
 import events from 'events';
 
 interface ITooltip {
@@ -103,16 +105,13 @@ export const highlightCurrentMoveHistory = (
   }
 };
 
-// export const registerMultipleInstancesCheck = () => {
-//   const channel = new BroadcastChannel('coffee-chess-origin');
-//   channel.onmessage = (event) => {
-//     if (event.data === 'NEW_INSTANCE') {
-//       channel.postMessage('DISABLE_PAGE');
-//     }
-//     if (event.data === 'DISABLE_PAGE') {
-//       console.log(event.data);
-//       // Dispatch a modal and disable screen
-//     }
-//   };
-//   channel.postMessage('NEW_INSTANCE');
-// };
+export const clientDisconnectNotification = (dispatch: Dispatch<UserAction>) => {
+  const { DISCONNECT_NOTIFICATION_INTERVAL } = process.env;
+  dispatch(
+    setDisconnectInterval(
+      window.setInterval(() => {
+        errorToast('Disconnected from server. Attempting to reconnect ...');
+      }, parseInt(DISCONNECT_NOTIFICATION_INTERVAL))
+    )
+  );
+};

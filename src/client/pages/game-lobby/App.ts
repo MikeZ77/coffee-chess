@@ -2,13 +2,18 @@ import { diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import type { View, Dispatch } from '@Common/types';
 import type { GamePayloads } from '@Types';
+import { type AllActions, type AnyActions, setDisconnectInterval } from './actions/index';
 import { State } from './state';
-import { AllActions, AnyActions } from './actions/index';
 import sendRequest from '@Common/request';
+import { successToast } from '@Common/toast';
 import { io } from 'socket.io-client';
 import { hanldeError } from './utils/request.handlers';
 import { boardConfig } from './utils/chess';
-import { initTooltipAttributes, initEventListeners } from './utils/simple.utils';
+import {
+  initTooltipAttributes,
+  initEventListeners,
+  clientDisconnectNotification
+} from './utils/simple.utils';
 import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
 import { Chessboard } from 'cm-chessboard/src/cm-chessboard/Chessboard';
 import {
@@ -67,6 +72,16 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
     socket.removeAllListeners();
     registerUserEvents(socket, dispatch);
     registerGameEvents(socket, dispatch, board);
+    const { disconnectInterval } = <State>dispatch();
+    if (disconnectInterval) {
+      window.clearInterval(<number>disconnectInterval);
+      dispatch(setDisconnectInterval(null));
+      successToast('Connected');
+    }
+  });
+
+  socket.on('disconnect', () => {
+    clientDisconnectNotification(dispatch);
   });
 };
 

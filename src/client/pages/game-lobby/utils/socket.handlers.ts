@@ -34,7 +34,7 @@ import {
   updateGameResult,
   clearChatMessage,
   setBoardPosition,
-  initNewGame,
+  initGame,
   updateChatLog,
   setPlayerColor,
   updateConsoleMoveHistory,
@@ -52,7 +52,7 @@ export const registerGameEvents = (
   // @ts-ignore
   board
 ) => {
-  const newGameMatch = (message: ClientGame) => {
+  const newGameMatch = (game: ClientGame) => {
     /*
       If we see a matching game:
         1. Confirm that we saw the message and are ready by emitting to message:game:ready 
@@ -60,15 +60,30 @@ export const registerGameEvents = (
     */
     const state = <State>dispatch();
     const { username } = state;
-    const { userWhite, userBlack, position } = message;
+    const { userWhite, userBlack, position } = game;
     if ([userWhite, userBlack].includes(username)) {
       socket.emit('message:game:ready', <GameConfirmation>{ ready: true });
       const color = username === userWhite ? COLOR.white : COLOR.black;
-      dispatch(initNewGame(message));
+      dispatch(initGame(game));
       dispatch(setPlayerColor(color));
       clearQueueSpinners(dispatch);
       board.setPosition(position, false);
       board.setOrientation(color);
+    }
+  };
+
+  const loadCurrentGame = (game: ClientGame) => {
+    const { username } = <State>dispatch();
+    const { userWhite, position } = game;
+    const color = username === userWhite ? COLOR.white : COLOR.black;
+    dispatch(initGame(game));
+    dispatch(setPlayerColor(color));
+    chess.load(position);
+    board.setPosition(position, false);
+    board.setOrientation(color);
+    chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
+    if (chess.turn() === color) {
+      board.enableMoveInput(attachBoardInputHandler, color);
     }
   };
 
@@ -481,6 +496,7 @@ export const registerGameEvents = (
   socket.on('message:game:draw:offer', opponentDrawOffer);
   socket.on('message:game:complete', gameComplete);
   socket.on('message:game:chat', updateGameChat);
+  socket.on('message:game:load', loadCurrentGame);
   clientEvent.on('event:game:draw:offer', offerDraw);
   clientEvent.on('event:game:draw:accept', acceptDraw);
   clientEvent.on('event:game:resign', resign);

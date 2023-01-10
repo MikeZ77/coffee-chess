@@ -2,16 +2,16 @@ import type { ClientGame, Color } from '../state';
 import type { GameClock, GameState, Result } from '@Types';
 
 export type GameAction =
-  | { type: 'INIT_NEW_GAME'; currentGame: ClientGame }
+  | { type: 'INIT_GAME'; currentGame: ClientGame }
   | { type: 'SET_PLAYER_COLOR'; color: Color }
   | { type: 'UPDATE_PLAYER_CLOCK'; clock: GameClock }
   | { type: 'UPDATE_GAME_STATE'; gameState: GameState }
   | { type: 'UPDATE_GAME_RESULT'; gameResult: Result }
   | { type: 'SET_BOARD_POSITION'; position: string };
 
-export const initNewGame = (currentGame: ClientGame): GameAction => {
+export const initGame = (currentGame: ClientGame): GameAction => {
   return {
-    type: 'INIT_NEW_GAME',
+    type: 'INIT_GAME',
     currentGame
   };
 };

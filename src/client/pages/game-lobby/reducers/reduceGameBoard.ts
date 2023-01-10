@@ -4,7 +4,7 @@ import { GameAction } from '../actions/index';
 
 const reduceGameBoard: Reducer<State, GameAction> = (action, state): State => {
   switch (action.type) {
-    case 'INIT_NEW_GAME': {
+    case 'INIT_GAME': {
       const { currentGame } = action;
       return {
         ...state,

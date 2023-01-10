@@ -12,7 +12,8 @@ import type {
   Result,
   ResultReason,
   GameResign,
-  GameChat
+  GameChat,
+  Game
 } from '@Types';
 import type { ShortMove } from 'chess.js';
 import { Chess } from 'chess.js';
@@ -438,6 +439,33 @@ export default class GameManager extends Manager {
     }
   };
 
+  private reconnectGame = async () => {
+    const { userSession, username } = this.socket.data;
+    const gameId = await this.redis.json.get(userSession, { path: ['playingGame'] });
+    if (gameId) {
+      const gameSession = `game:${gameId}`;
+      const gameRoom = `room:game:${gameId}`;
+      const [game] = await Promise.all([
+        this.redis.json.get(gameSession),
+        this.socket.join(gameRoom)
+      ]);
+      const { history, userWhite } = <Game>game;
+      const { position: currentPosition } = history[history.length - 1];
+      const color = username === userWhite ? 'w' : 'b';
+      const maxHistory = // On a players turn the state of this.chess is behind one move.
+        new Chess(currentPosition).turn() === color ? history.length - 2 : history.length - 1;
+      if (history.length > 0) {
+        for (let i = 0; i <= maxHistory; i++) {
+          const { from, to, promotion } = history[i];
+          this.chess.move(<ShortMove>{ from, to, ...(promotion ? { promotion } : {}) });
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { userWhiteId, userBlackId, ...rest } = <Game>game;
+      await this.socket.emit('message:game:load', rest);
+    }
+  };
+
   private chess;
   private chatFilter;
   private startTime: DateTime | null;
@@ -448,6 +476,8 @@ export default class GameManager extends Manager {
     this.chatFilter = new Filter();
     this.startTime = null;
     this.clockInterval = null;
+
+    this.reconnectGame();
 
     socket.on('message:game:ready', (message) =>
       this.trackGame(message, this.constructGameRoom)

@@ -36,6 +36,9 @@ export class ClientClock {
   }
 
   public startWhiteClock = (dispatch: Dispatch<GameAction>) => {
+    if (!this.startTime) {
+      this.startTime = DateTime.now();
+    }
     clearInterval(this.blackInterval);
     this.whiteInterval = setInterval(() => {
       const state = <State>dispatch();

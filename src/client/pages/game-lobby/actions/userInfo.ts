@@ -1,7 +1,9 @@
 import type { UserInfo } from '@Types';
 export type UserAction =
   | { type: 'UPDATE_USER_INFO'; info: UserInfo }
-  | { type: 'DISABLE_PAGE' };
+  | { type: 'DISABLE_PAGE' }
+  | { type: 'CLIENT_DISCONNECTED'; disconnected: boolean }
+  | { type: 'DISCONNECT_INTERVAL'; interval: number | null };
 
 export const updateUserInfo = (info: UserInfo): UserAction => {
   return {
@@ -13,5 +15,19 @@ export const updateUserInfo = (info: UserInfo): UserAction => {
 export const disablePage = (): UserAction => {
   return {
     type: 'DISABLE_PAGE'
+  };
+};
+
+export const setClientDisconnected = (disconnected: boolean): UserAction => {
+  return {
+    type: 'CLIENT_DISCONNECTED',
+    disconnected
+  };
+};
+
+export const setDisconnectInterval = (interval: number | null): UserAction => {
+  return {
+    type: 'DISCONNECT_INTERVAL',
+    interval
   };
 };

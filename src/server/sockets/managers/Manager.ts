@@ -97,7 +97,7 @@ export default class Manager {
   static checkClientConnections = async (io: ioServer, socket: Socket) => {
     const userId = socket.data.userId;
     const allSockets = await io.fetchSockets();
-    const userSockets = allSockets.filter((socket) => (socket.data.userId = userId));
+    const userSockets = allSockets.filter((socket) => socket.data.userId === userId);
     if (userSockets.length > 1) {
       // Sockets are already sorted ascending by time of handshake.
       const socketToRemove = userSockets.pop();

@@ -20,6 +20,22 @@ const reduceUserInfo: Reducer<State, UserAction> = (action, state): State => {
         disablePage: true
       };
     }
+    case 'CLIENT_DISCONNECTED': {
+      const { disconnected } = action;
+      return {
+        ...state,
+        reduced: true,
+        disconnected
+      };
+    }
+    case 'DISCONNECT_INTERVAL': {
+      const { interval: disconnectInterval } = action;
+      return {
+        ...state,
+        reduced: true,
+        disconnectInterval
+      };
+    }
     default: {
       return state;
     }

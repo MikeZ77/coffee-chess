@@ -34,10 +34,14 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
 
     if (state.pendingRequest != null) {
       const newRequest = { ...state.pendingRequest };
+      const callbackRequest = state.callbackRequest?.bind(state);
       state.pendingRequest = null;
-      sendRequest<GamePayloads>(newRequest).catch((error) => {
-        hanldeError(error, dispatch);
-      });
+      state.callbackRequest = null;
+      sendRequest<GamePayloads>(newRequest)
+        .then(() => callbackRequest && callbackRequest())
+        .catch((error) => {
+          hanldeError(error, dispatch);
+        });
     }
 
     const updatedView = view(dispatch, state);

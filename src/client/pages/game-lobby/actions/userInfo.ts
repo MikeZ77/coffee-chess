@@ -18,13 +18,6 @@ export const disablePage = (): UserAction => {
   };
 };
 
-export const setClientDisconnected = (disconnected: boolean): UserAction => {
-  return {
-    type: 'CLIENT_DISCONNECTED',
-    disconnected
-  };
-};
-
 export const setDisconnectInterval = (interval: number | null): UserAction => {
   return {
     type: 'DISCONNECT_INTERVAL',

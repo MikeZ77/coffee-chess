@@ -97,6 +97,19 @@ const reduceSideNavBar: Reducer<State, NavBarAction> = (action, state): State =>
         }
       };
     }
+    case 'LOGOUT': {
+      const { callbackRequest } = action;
+      const pendingRequest: HttpRequest = {
+        endpoint: SERVER_FQDN + '/api/v1/user/logout',
+        method: 'POST'
+      };
+      return {
+        ...state,
+        reduced: true,
+        pendingRequest,
+        callbackRequest
+      };
+    }
     default: {
       return state;
     }

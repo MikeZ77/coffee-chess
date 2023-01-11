@@ -349,7 +349,7 @@ export default class GameManager extends Manager {
     await Promise.all([
       this.redis.json.set(gameSession, 'state', 'COMPLETE'),
       this.redis.json.set(gameSession, 'result', result),
-      this.redis.json.set(whiteUserSession, 'state', 'IDLE'),
+      this.redis.json.set(whiteUserSession, 'state', 'IDLE'), //{ XX: true } Deleted if logged out.
       this.redis.json.set(whiteUserSession, 'playingGame', null),
       this.redis.json.set(blackUserSession, 'state', 'IDLE'),
       this.redis.json.set(blackUserSession, 'playingGame', null),

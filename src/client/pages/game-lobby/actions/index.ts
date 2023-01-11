@@ -29,7 +29,8 @@ export {
   requestSearchOneMinute,
   requestSearchMinute,
   requestSearchFifteenMinute,
-  setAudioNewGame
+  setAudioNewGame,
+  requestLogout
 } from './sideNavBar';
 
 export type AllActions = GameConsoleAction & NavBarAction & UserAction & GameAction;

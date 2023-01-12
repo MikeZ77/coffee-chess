@@ -68,11 +68,7 @@ export default class GameManager extends Manager {
         if (state === 'IN_PROGRESS') {
           if (chess.turn() === 'w') {
             if (whiteTime - delta <= 0) {
-              // clearInterval and call function to:
-              // Set game state to COMPLETE
-              // Send game result to client
-              // Call function to store game
-              // Destroy game room
+              this.handleGameCompletion('BLACK', 'TIME_WHITE');
               Logger.info('White time up');
             } else {
               const clock: GameClock = {
@@ -88,6 +84,7 @@ export default class GameManager extends Manager {
             }
           } else {
             if (blackTime - delta <= 0) {
+              this.handleGameCompletion('WHITE', 'TIME_BLACK');
               Logger.info('Black time up');
             } else {
               const clock: GameClock = {
@@ -341,6 +338,7 @@ export default class GameManager extends Manager {
     );
 
     // TODO: Send rating update to the DB.
+    // TODO: Store game in DB.
     const whiteUserSession = `user:session:${userWhiteId}`;
     const blackUserSession = `user:session:${userBlackId}`;
     const newWhiteRatingRounded = Math.round(newWhiteRating);
@@ -353,9 +351,7 @@ export default class GameManager extends Manager {
       this.redis.json.set(whiteUserSession, 'playingGame', null),
       this.redis.json.set(blackUserSession, 'state', 'IDLE'),
       this.redis.json.set(blackUserSession, 'playingGame', null),
-      playerMove
-        ? this.socket.to(gameRoom).emit('message:game:move', playerMove)
-        : Promise.resolve(),
+      playerMove && this.socket.to(gameRoom).emit('message:game:move', playerMove),
       this.io.in(gameRoom).emit('message:game:complete', <GameComplete>{
         type: resultType,
         newWhiteRating: newWhiteRatingRounded,
@@ -388,11 +384,16 @@ export default class GameManager extends Manager {
   private handleAcceptDrawOffer = async (offer: GameDrawOffer) => {
     /* 
       1. Check that the user accepting the draw is the user who was offered the draw.
-      TODO: Go through the "end game" steps.
     */
-    Logger.debug('Accepted draw offer %o', offer);
-    const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
-    Logger.debug('clock interval', this.clockInterval === null);
+    const { userId, gameSession } = <Record<string, string>>this.socket.data;
+    const { pendingDrawOfferFrom, userWhiteId, userBlackId } = <Record<string, string>>(
+      await this.redis.json.get(gameSession, {
+        path: ['pendingDrawOfferFrom', 'userWhiteId', 'userBlackId']
+      })
+    );
+    if ([userWhiteId, userBlackId].includes(userId) && pendingDrawOfferFrom !== userId) {
+      this.handleGameCompletion('DRAW', 'DRAW');
+    }
   };
 
   private handleResignation = async (message: GameResign) => {

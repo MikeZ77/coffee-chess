@@ -16,7 +16,10 @@ import {
 const { ul, li, a, span, i, div } = hh(h);
 
 const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) => {
-  const { oneMinuteSearching, fiveMinuteSearching, fifteenMinuteSearching } = state.sideNavBar;
+  const {
+    sideNavBar: { oneMinuteSearching, fiveMinuteSearching, fifteenMinuteSearching },
+    audio
+  } = state;
   return ul({}, [
     li(
       {
@@ -24,7 +27,7 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
           if (![fiveMinuteSearching, fifteenMinuteSearching].includes(true)) {
             dispatch(requestSearchOneMinute(!oneMinuteSearching));
             dispatch(spinnerSearchOneMinute(!oneMinuteSearching));
-            dispatch(setAudioNewGame());
+            Object.values(audio).includes(null) && dispatch(setAudioNewGame());
           }
         }
       },
@@ -47,7 +50,7 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
           if (![oneMinuteSearching, fifteenMinuteSearching].includes(true)) {
             dispatch(spinnerSearchFiveMinute(!fiveMinuteSearching));
             dispatch(requestSearchMinute(!fiveMinuteSearching));
-            dispatch(setAudioNewGame());
+            Object.values(audio).includes(null) && dispatch(setAudioNewGame());
           }
         }
       },
@@ -70,7 +73,7 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
           if (![oneMinuteSearching, fiveMinuteSearching].includes(true)) {
             dispatch(spinnerSearchFifteenMinute(!fifteenMinuteSearching));
             dispatch(requestSearchFifteenMinute(!fifteenMinuteSearching));
-            dispatch(setAudioNewGame());
+            Object.values(audio).includes(null) && dispatch(setAudioNewGame());
           }
         }
       },

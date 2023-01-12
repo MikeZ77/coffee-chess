@@ -196,9 +196,10 @@ export const registerGameEvents = (
     */
     const state = <State>dispatch();
     const { color } = state.currentGame;
-    dispatch(updateChatLog(message));
     dispatch(updateGameState('IN_PROGRESS'));
     board.enableMoveInput(attachBoardInputHandler, color);
+    console.log('Game connected message: ', message);
+    dispatch(updateChatLog(message));
     // chess.reset();
     state.audio.newGameSound?.play();
   };
@@ -298,6 +299,7 @@ export const registerGameEvents = (
 
   const acceptDraw = () => {
     socket.emit('message:game:draw:accept', <GameDrawOffer>{ drawOffer: true });
+    dispatch(updateDrawOffer(null));
   };
 
   const opponentDrawOffer = (offer: GameDrawOffer) => {
@@ -328,7 +330,7 @@ export const registerGameEvents = (
     board.disableMoveInput();
     clock.stopClocks();
     const {
-      currentGame: { userWhite, userBlack, ratingWhite, ratingBlack }
+      currentGame: { userWhite, userBlack, ratingWhite, ratingBlack, whiteTime, blackTime }
     } = <State>dispatch();
     const gameData = {
       userWhite,
@@ -358,6 +360,23 @@ export const registerGameEvents = (
         gameCompleteToastHelper({
           ...gameData,
           gameMessage: 'Game drawn.'
+        });
+        break;
+      }
+      case 'TIME_WHITE': {
+        dispatch(updatePlayerTime(<GameClock>{ whiteTime: 0, blackTime }));
+        gameCompleteToastHelper({
+          ...gameData,
+          gameMessage: 'Black wins on time.'
+        });
+
+        break;
+      }
+      case 'TIME_BLACK': {
+        dispatch(updatePlayerTime(<GameClock>{ whiteTime, blackTime: 0 }));
+        gameCompleteToastHelper({
+          ...gameData,
+          gameMessage: 'White wins on time.'
         });
         break;
       }

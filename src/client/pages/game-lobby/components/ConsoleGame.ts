@@ -103,6 +103,7 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
     gameConsole: { disableChat },
     currentGame: { gameChat, pendingDrawOfferFrom, state: gameState, history }
   } = state;
+  const smallScreen = window.innerWidth < 1720;
 
   return div({ className: 'card' }, [
     div({ className: 'card-content p-4', style: 'height: 48vh' }, [

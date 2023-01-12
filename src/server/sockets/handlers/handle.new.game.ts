@@ -39,8 +39,10 @@ export default (
         path: ['state']
       });
       // The opponent may be DISCONNECTED or IDLE if some error happened.
+      Logger.debug('Player state %o', matchedPlayerState);
       if (!['SEARCHING', 'SEARCHING_OBSERVING'].includes(matchedPlayerState)) {
         await redis.lPush(gameQueue, JSON.stringify(seekingPlayer));
+        return;
       }
       //TODO: If state SEARCHING_OBSERVING, remove the player from that room.
 

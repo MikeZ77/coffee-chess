@@ -19,7 +19,8 @@ export {
   updatePlayerTime,
   updateGameState,
   updateGameResult,
-  setBoardPosition
+  setBoardPosition,
+  setLowTimeSoundPlayed
 } from './gameBoard';
 export {
   openNewGameMenu,

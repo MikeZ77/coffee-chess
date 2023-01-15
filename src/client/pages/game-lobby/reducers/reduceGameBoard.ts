@@ -52,6 +52,14 @@ const reduceGameBoard: Reducer<State, GameAction> = (action, state): State => {
         currentGame: { ...state.currentGame, position }
       };
     }
+    case 'SET_LOW_TIME_SOUND_PLAYED': {
+      const { lowTimeSoundPlayed } = action;
+      return {
+        ...state,
+        reduced: true,
+        audio: { ...state.audio, lowTimeSoundPlayed }
+      };
+    }
     default: {
       return state;
     }

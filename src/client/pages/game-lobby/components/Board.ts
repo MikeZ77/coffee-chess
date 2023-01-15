@@ -7,6 +7,7 @@ import { type DurationObjectUnits, Duration } from 'luxon';
 import { Result } from '@Types';
 
 const { div, span, p, i } = hh(h);
+const { GAME_LOW_TIME_MS } = process.env;
 
 type PlayerInfo = {
   username: string;
@@ -44,10 +45,15 @@ const renderResultHelper = (result: Result, player: PlayerInfo): HyperScriptHelp
   }
 };
 
+const formatLowTimeHelper = (clockTime: string): string => {
+  return clockTime.split(':').slice(-2).join(':');
+};
+
 const Board: Component<State, NavBarAction> = (dispatch, state) => {
   const { currentGame, username } = state;
   const { ratingBlack, ratingWhite, userWhite, userBlack, result } = currentGame;
   const { whiteTime, blackTime } = currentGame;
+  const lowTimeMark = parseInt(GAME_LOW_TIME_MS);
   let player,
     opponent,
     whiteClockTimeParsed,
@@ -55,13 +61,13 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
     whiteClockTime: DurationObjectUnits | null,
     blackClockTime: DurationObjectUnits | null;
 
-  whiteTime
+  whiteTime && whiteTime >= 0
     ? (whiteClockTime = Duration.fromMillis(whiteTime)
         .shiftTo('minutes', 'seconds', 'milliseconds')
         .toObject())
     : (whiteClockTime = null);
 
-  blackTime
+  blackTime && blackTime >= 0
     ? (blackClockTime = Duration.fromMillis(blackTime)
         .shiftTo('minutes', 'seconds', 'milliseconds')
         .toObject())
@@ -71,12 +77,12 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
     const minutes = <number>whiteClockTime.minutes;
     const seconds = <number>whiteClockTime.seconds;
     const milliseconds = <number>whiteClockTime.milliseconds;
-    if ((minutes == 0 && seconds >= 20) || minutes >= 1) {
+    if ((minutes == 0 && seconds >= lowTimeMark / 1000) || minutes >= 1) {
       whiteClockTimeParsed = `${minutes}:${String(seconds).padStart(2, '0')}`;
     } else {
       whiteClockTimeParsed = `${minutes}:${String(seconds).padStart(2, '0')}:${String(
         milliseconds
-      ).padStart(2, '0')}`;
+      ).slice(0, 2)}`;
     }
   } else {
     whiteClockTimeParsed = '0:00';
@@ -86,12 +92,12 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
     const minutes = <number>blackClockTime.minutes;
     const seconds = <number>blackClockTime.seconds;
     const milliseconds = <number>blackClockTime.milliseconds;
-    if ((minutes == 0 && seconds >= 20) || minutes >= 1) {
+    if ((minutes == 0 && seconds >= lowTimeMark / 1000) || minutes >= 1) {
       blackClockTimeParsed = `${minutes}:${String(seconds).padStart(2, '0')}`;
     } else {
       blackClockTimeParsed = `${minutes}:${String(seconds).padStart(2, '0')}:${String(
         milliseconds
-      ).padStart(2, '0')}`;
+      ).slice(0, 2)}`;
     }
   } else {
     blackClockTimeParsed = '0:00';
@@ -123,6 +129,24 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
         clock: whiteClockTimeParsed
       }));
 
+  if (whiteTime && whiteTime < lowTimeMark) {
+    if (player.color === 'WHITE') {
+      player.clock = formatLowTimeHelper(player.clock);
+    }
+    if (opponent.color === 'WHITE') {
+      opponent.clock = formatLowTimeHelper(opponent.clock);
+    }
+  }
+
+  if (blackTime && blackTime < lowTimeMark) {
+    if (player.color === 'BLACK') {
+      player.clock = formatLowTimeHelper(player.clock);
+    }
+    if (opponent.color === 'BLACK') {
+      opponent.clock = formatLowTimeHelper(opponent.clock);
+    }
+  }
+
   return div({ className: 'box' }, [
     div({ className: 'tile is-ancestor' }, [
       div({ className: 'tile is-parent' }, [
@@ -136,7 +160,8 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
           div({ className: 'tile is-ancestor' }, [
             div({ className: 'tile is-12 is-vertical is-parent' }, [
               div({ className: 'tile is-child is-flex-grow-5 p-1' }, [
-                span({ className: 'icon' }, [i({ className: 'fas fa-solid fa-chess-pawn' })]),
+                // TODO: Player rank goes here.
+                // span({ className: 'icon' }, [i({ className: 'fas fa-solid fa-chess-pawn' })]),
                 span(
                   { className: 'is-size-5 has-text-grey-darker' },
                   opponent.username ? opponent.username : ''
@@ -199,9 +224,9 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                 },
                 [
                   div({ style: 'bottom: 0; position: absolute;' }, [
-                    span({ className: 'icon' }, [
-                      i({ className: 'fas fa-solid fa-chess-knight' })
-                    ]),
+                    // span({ className: 'icon' }, [
+                    //   i({ className: 'fas fa-solid fa-chess-knight' })
+                    // ]),
                     span(
                       { className: 'is-size-5 has-text-grey-darker' },
                       player.username ? player.username : ''

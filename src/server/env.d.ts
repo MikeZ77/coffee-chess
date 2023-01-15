@@ -40,6 +40,7 @@ declare global {
       CLIENT_GAME_CLOCK_TICK_MS: string;
       MAX_MOVE_CORRECTION_LATENCY_MS: string;
       GAME_CHAT_TIMEOUT_SEC: string;
+      GAME_MATCH_QUEUE_BLOCK_SEC: string;
     }
   }
 }

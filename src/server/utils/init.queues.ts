@@ -4,6 +4,7 @@ const initGameSearchQueues = (client: RedisClientType) => {
   const oneMinute = 'game:queue:1+0';
   const fiveMinute = 'game:queue:5+0';
   const fifteenMinute = 'game:queue:15+0';
+  // const match = 'game:queue:match';
   const dummyValue = 'DUMMY';
 
   return Promise.all([
@@ -22,6 +23,11 @@ const initGameSearchQueues = (client: RedisClientType) => {
         client.rPush(fifteenMinute, dummyValue);
       }
     })
+    // client.exists(match).then((exists) => {
+    //   if (!exists) {
+    //     client.rPush(match, dummyValue);
+    //   }
+    // })
   ]);
 };
 

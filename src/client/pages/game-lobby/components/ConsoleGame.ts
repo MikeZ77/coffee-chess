@@ -8,18 +8,23 @@ import { clientEvent, parsePositionId } from '../utils/simple.utils';
 
 const { div, footer, a, button, i, span, p, br, input } = hh(h);
 
-const renderChatMessages = (messages: GameChat[]): HyperScriptHelperFn[] => {
+const renderChatMessages = (
+  messages: GameChat[],
+  disableChat: boolean
+): HyperScriptHelperFn[] => {
   const chatElements: HyperScriptHelperFn[] = [];
   messages.forEach((content) => {
     const { username, message } = content;
-    !username
-      ? chatElements.push(p({ className: 'mb-1 is-italic' }, message))
-      : chatElements.push(
-          p({ className: 'mb-1' }, [
-            span({ className: 'has-text-weight-semibold' }, `${username}: `),
-            span(message)
-          ])
-        );
+    if (!username) {
+      chatElements.push(p({ className: 'mb-1 is-italic' }, message));
+    } else if (username && !disableChat) {
+      chatElements.push(
+        p({ className: 'mb-1' }, [
+          span({ className: 'has-text-weight-semibold' }, `${username}: `),
+          span(message)
+        ])
+      );
+    }
   });
   return chatElements;
 };
@@ -237,16 +242,14 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
         style: `height: 24vh; ${disableChat && 'background-color: hsl(192, 15%, 94%);'}`
       },
       [
-        disableChat
-          ? div()
-          : div(
-              '#game-chat',
-              {
-                className: 'content mb-1',
-                style: 'height: 100%; overflow-y: auto; font-size: 0.9rem;'
-              },
-              renderChatMessages(gameChat)
-            )
+        div(
+          '#game-chat',
+          {
+            className: 'content mb-1',
+            style: 'height: 100%; overflow-y: auto; font-size: 0.9rem;'
+          },
+          renderChatMessages(gameChat, disableChat)
+        )
       ]
     ),
     div({ className: 'field has-addons' }, [

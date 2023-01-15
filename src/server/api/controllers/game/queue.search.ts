@@ -115,7 +115,8 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     if (gameMatch) {
       // Create game room and notify game start
       const pairing = JSON.stringify([queueNewGame, JSON.parse(gameMatch)]);
-      await redis.publish('channel:game:new', pairing);
+      // await redis.publish('channel:game:new', pairing);
+      await redis.lPush('game:queue:match', pairing);
     }
 
     res.status(200).send();

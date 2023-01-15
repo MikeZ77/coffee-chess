@@ -38,7 +38,8 @@ import {
   updateChatLog,
   setPlayerColor,
   updateConsoleMoveHistory,
-  disablePage
+  disablePage,
+  setLowTimeSoundPlayed
 } from '../actions/index';
 import {
   INPUT_EVENT_TYPE,
@@ -242,7 +243,6 @@ export const registerGameEvents = (
       dispatch(updateGameState('ABORTED'));
       dispatch(updateChatLog(<GameChat>{ username: undefined, message: 'ABORTED' }));
       warningToast('Game aborted.');
-      // Play end game sound.
     }
   };
 
@@ -251,13 +251,17 @@ export const registerGameEvents = (
     const startTime = DateTime.fromISO(timestampUtc!);
     const currentTime = DateTime.utc();
     const latency = currentTime.diff(startTime, ['milliseconds']).milliseconds;
-    const state = <State>dispatch();
+    const { currentGame, audio } = <State>dispatch();
     const whiteServerTime = whiteTime + latency;
     const blackServerTime = blackTime + latency;
-    const whiteClientTime = <number>state.currentGame.whiteTime;
-    const blackClientTime = <number>state.currentGame.blackTime;
+    const whiteClientTime = <number>currentGame.whiteTime;
+    const blackClientTime = <number>currentGame.blackTime;
+    // Strange behavior here. Assigning outside the function or destructuring
+    // both at the same time leads to undefined.
     const { GAME_CLOCK_SERVER_SYNC_MS } = process.env;
+    const { GAME_LOW_TIME_MS } = process.env;
     const syncDelta = parseInt(GAME_CLOCK_SERVER_SYNC_MS);
+    const lowTimeMark = parseInt(GAME_LOW_TIME_MS);
 
     // console.log('White', Math.abs(whiteServerTime - whiteClientTime));
     // console.log('Black', Math.abs(blackServerTime - blackClientTime));
@@ -278,6 +282,24 @@ export const registerGameEvents = (
           blackTime: blackServerTime
         })
       );
+    }
+
+    if (
+      whiteServerTime <= lowTimeMark &&
+      currentGame.color === 'w' &&
+      !audio.lowTimeSoundPlayed
+    ) {
+      audio.lowTimeSound?.play();
+      dispatch(setLowTimeSoundPlayed(true));
+    }
+
+    if (
+      blackServerTime <= lowTimeMark &&
+      currentGame.color === 'b' &&
+      !audio.lowTimeSoundPlayed
+    ) {
+      audio.lowTimeSound?.play();
+      dispatch(setLowTimeSoundPlayed(true));
     }
   };
 
@@ -365,7 +387,6 @@ export const registerGameEvents = (
         break;
       }
       case 'TIME_WHITE': {
-        dispatch(updatePlayerTime(<GameClock>{ whiteTime: 0, blackTime }));
         gameCompleteToastHelper({
           ...gameData,
           gameMessage: 'Black wins on time.'
@@ -374,7 +395,6 @@ export const registerGameEvents = (
         break;
       }
       case 'TIME_BLACK': {
-        dispatch(updatePlayerTime(<GameClock>{ whiteTime, blackTime: 0 }));
         gameCompleteToastHelper({
           ...gameData,
           gameMessage: 'White wins on time.'

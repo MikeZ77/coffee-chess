@@ -73,20 +73,28 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
   /*  REGISTER SOCKET  */
   const socket = io();
   socket.on('connect', () => {
+    console.log('Connected');
     socket.removeAllListeners();
     registerUserEvents(socket, dispatch);
     registerGameEvents(socket, dispatch, board);
+
+    socket.on('disconnect', () => {
+      clientDisconnectNotification(dispatch);
+      socket.connect();
+    });
+  });
+
+  socket.io.on('reconnect', () => {
     const { disconnectInterval } = <State>dispatch();
     if (disconnectInterval) {
+      console.log('Reconnected');
       window.clearInterval(<number>disconnectInterval);
       dispatch(setDisconnectInterval(null));
-      successToast('Connected');
+      successToast('Reconnected');
     }
   });
 
-  socket.on('disconnect', () => {
-    clientDisconnectNotification(dispatch);
-  });
+  console.log('socket', socket);
 };
 
 export default app;

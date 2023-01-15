@@ -103,10 +103,11 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
     gameConsole: { disableChat },
     currentGame: { gameChat, pendingDrawOfferFrom, state: gameState, history }
   } = state;
-  const smallScreen = window.innerWidth < 1720;
+  // use this for adjusting vh height of console for different screens.
+  // const smallScreen = window.innerWidth < 1720;
 
   return div({ className: 'card' }, [
-    div({ className: 'card-content p-4', style: 'height: 48vh' }, [
+    div({ className: 'card-content p-4', style: 'height: 44vh' }, [
       div(
         { className: 'content', style: 'height: 100%; overflow-y: auto;' },
         renderMoveHistory(history)
@@ -165,12 +166,12 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
           ])
         ])
       ]),
-      a({ className: 'card-footer-item' }, [
-        div({ className: 'buttons' }, [
+      a({ className: 'card-footer-item px-0' }, [
+        div({ className: 'buttons has-addons' }, [
           pendingDrawOfferFrom && pendingDrawOfferFrom !== username
             ? button(
                 {
-                  className: 'button is-rounded is-small is-info',
+                  className: 'button is-small is-info pr-3',
                   onclick: (e: Event) => {
                     e.preventDefault();
                     clientEvent.emit('event:game:draw:accept');
@@ -184,7 +185,7 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
               )
             : button(
                 {
-                  className: 'button is-rounded is-small is-warning',
+                  className: 'button is-small is-warning pr-3',
                   disabled:
                     pendingDrawOfferFrom && pendingDrawOfferFrom === username
                       ? 'disabled'
@@ -200,7 +201,7 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
               ),
           button(
             {
-              className: 'button is-rounded is-small is-danger',
+              className: 'button is-small is-danger px-2',
               onclick: (e: Event) => {
                 e.preventDefault();
                 if (gameState === 'IN_PROGRESS') {
@@ -213,31 +214,41 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
         ])
       ])
     ]),
-    div({ className: 'card-content p-0 pl-3', style: 'height: 24vh' }, [
-      // span(
-      //   {
-      //     className: 'icon is-small m-2',
-      //     style: 'cursor: pointer; float: right;',
-      //     onclick: () => {
-      //       dispatch(setDisableChat(!disableChat));
-      //     }
-      //   },
-      //   [
-      //     disableChat
-      //       ? i({ className: 'fas fa-solid fa-comment' })
-      //       : i({ className: 'fas fa-solid fa-comment-slash' })
-      //   ]
-      // ),
-      div(
-        '#game-chat',
+    div({ className: 'card-content p-0' }, [
+      span(
         {
-          className: 'content mb-1',
-          style: 'height: 100%; overflow-y: auto; font-size: 0.9rem;'
+          className: 'icon is-small m-2',
+          style: 'cursor: pointer; float: right;',
+          onclick: () => {
+            console.log(!disableChat);
+            dispatch(setDisableChat(!disableChat));
+          }
         },
-        renderChatMessages(gameChat)
+        [
+          disableChat
+            ? i({ className: 'fas fa-solid fa-comment' })
+            : i({ className: 'fas fa-solid fa-comment-slash' })
+        ]
       )
     ]),
-
+    div(
+      {
+        className: 'card-content p-0 pl-3',
+        style: `height: 24vh; ${disableChat && 'background-color: hsl(192, 15%, 94%);'}`
+      },
+      [
+        disableChat
+          ? div()
+          : div(
+              '#game-chat',
+              {
+                className: 'content mb-1',
+                style: 'height: 100%; overflow-y: auto; font-size: 0.9rem;'
+              },
+              renderChatMessages(gameChat)
+            )
+      ]
+    ),
     div({ className: 'field has-addons' }, [
       p({ className: 'control is-expanded' }, [
         input(

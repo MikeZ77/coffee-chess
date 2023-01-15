@@ -330,7 +330,8 @@ export const registerGameEvents = (
     board.disableMoveInput();
     clock.stopClocks();
     const {
-      currentGame: { userWhite, userBlack, ratingWhite, ratingBlack, whiteTime, blackTime }
+      currentGame: { userWhite, userBlack, ratingWhite, ratingBlack, whiteTime, blackTime },
+      audio: { gameCompleteSound }
     } = <State>dispatch();
     const gameData = {
       userWhite,
@@ -383,7 +384,7 @@ export const registerGameEvents = (
     }
     dispatch(updateGameResult(result));
     dispatch(updateGameState('COMPLETE'));
-    // Play end game sound
+    gameCompleteSound?.play();
   };
 
   const sendChatMessage = () => {
@@ -446,9 +447,13 @@ export const registerGameEvents = (
         return move.position === position;
       });
       const nextMove = history[index + 1];
-      const { from, to, position: nextPosition } = nextMove;
+      const { from, to, position: nextPosition, promotion } = nextMove;
       dispatch(setBoardPosition(nextMove.position));
-      board.movePiece(from, to, true);
+      board.movePiece(from, to, true).then(() => {
+        if (promotion) {
+          board.setPiece(to, `${(index + 1) % 2 === 0 ? 'w' : 'b'}${promotion}`);
+        }
+      });
       highlightCurrentMoveHistory(nextPosition, position);
       if (
         nextMove.position === currentPosition &&
@@ -469,11 +474,17 @@ export const registerGameEvents = (
       const index = history.findIndex((move) => {
         return move.position === position;
       });
-      const { from, to } = history[index];
-      const { position: prevPosition } = history[index - 1];
-      board.movePiece(to, from, true);
-      dispatch(setBoardPosition(prevPosition));
-      highlightCurrentMoveHistory(prevPosition, position);
+      const { from, to, promotion } = history[index];
+      if (index > 0) {
+        const { position: prevPosition } = history[index - 1];
+        board.movePiece(to, from, true).then(() => {
+          if (promotion) {
+            board.setPiece(from, `${index % 2 === 0 ? 'w' : 'b'}p`);
+          }
+        });
+        dispatch(setBoardPosition(prevPosition));
+        highlightCurrentMoveHistory(prevPosition, position);
+      }
     }
   };
 
@@ -497,6 +508,7 @@ export const registerGameEvents = (
     const currentPosition = history[history.length - 1].position;
     if (position !== currentPosition) {
       board.setPosition(currentPosition);
+      dispatch(setBoardPosition(currentPosition));
       highlightCurrentMoveHistory(currentPosition, position);
       if (chess.turn() === color && state === 'IN_PROGRESS') {
         board.enableMoveInput(attachBoardInputHandler, color);

@@ -1,6 +1,6 @@
 import type { Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
-import type { Redis } from 'ioredis';
+import type { ConnectionPool } from 'mssql';
 import { createAdapter } from '@socket.io/redis-adapter';
 import Logger from '@Utils/config.logging.winston';
 import { GameManager, UserManager, Manager } from './managers/index';
@@ -11,13 +11,12 @@ const { PORT } = process.env;
 const initSockets = async (
   io: ioServer,
   redisClient: RedisClientType,
-  ioRedisClient: Redis
+  dbConnPool: ConnectionPool
 ) => {
   const pubClient = redisClient.duplicate();
   const subClient = redisClient.duplicate();
   const subInitGameClient = redisClient.duplicate();
   io.use(Manager.authMiddleware);
-  // TODO: Update latency game middleware.
   // TODO: Setup a disconnect handler.
   Promise.all([pubClient.connect(), subClient.connect(), subInitGameClient.connect()]).then(
     () => {
@@ -29,7 +28,7 @@ const initSockets = async (
         UserManager.sendUserInfo(socket);
         Manager.checkClientConnections(io, socket);
         Manager.getConnectionPing(socket, redisClient);
-        new GameManager(io, socket, redisClient);
+        new GameManager(io, socket, redisClient, dbConnPool);
       });
     }
   );

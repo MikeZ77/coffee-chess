@@ -1,5 +1,6 @@
 import type { Socket, Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
+import type { ConnectionPool } from 'mssql';
 import type { ServerMessage } from '@Types';
 import { decodeToken, checkExpiration, TokenState } from '@Utils/auth.token';
 import { SocketError } from '@Utils/custom.errors';
@@ -13,12 +14,14 @@ export default class Manager {
   protected io;
   protected socket;
   protected redis;
+  protected db;
   protected userId;
   protected username;
-  constructor(io: ioServer, socket: Socket, redis: RedisClientType) {
+  constructor(io: ioServer, socket: Socket, redis: RedisClientType, db?: ConnectionPool) {
     this.io = io;
     this.socket = socket;
     this.redis = redis;
+    this.db = <ConnectionPool>db;
     this.userId = socket.data.userId;
     this.username = socket.data.username;
   }
@@ -73,7 +76,7 @@ export default class Manager {
           // console.log(socket.connected);
           const latency = Interval.fromDateTimes(start, DateTime.now()).length('milliseconds');
           const userSession = socket.data.userSession;
-          // TODO: Bug where userSession is undefined. Probaably not being set when user reconnects.
+          // TODO: Bug where userSession is undefined. Probably not being set when user reconnects.
           await redis.json.arrAppend(userSession, 'latency', {
             timestampUtc: DateTime.utc().toString(),
             ms: latency

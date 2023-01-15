@@ -48,6 +48,7 @@ type Audio = {
   pieceMoveSound: HTMLAudioElement | null;
   lowTimeSound: HTMLAudioElement | null;
   notificationSound: HTMLAudioElement | null;
+  gameCompleteSound: HTMLAudioElement | null;
 };
 
 const state: State = {
@@ -92,7 +93,8 @@ const state: State = {
     newGameSound: null,
     pieceMoveSound: null,
     lowTimeSound: null,
-    notificationSound: null
+    notificationSound: null,
+    gameCompleteSound: null
   }
 };
 

@@ -8,7 +8,7 @@ import cookieParser from 'cookie-parser';
 import Logger from '../utils/config.logging.winston';
 import handleAuthorization from './middleware/handle.authorization';
 
-const { PORT, API_VERSION, ENV } = process.env;
+const { PORT, API_VERSION } = process.env;
 
 const initApi = (app: Express, server: Server) => {
   const PUBLIC = '../../../src/client/public';
@@ -39,6 +39,11 @@ const initApi = (app: Express, server: Server) => {
     '/notification.wav',
     handleAuthorization,
     express.static(path.resolve(__dirname, `${PUBLIC}/sounds/notification.wav`))
+  );
+  app.use(
+    '/game-over.wav',
+    handleAuthorization,
+    express.static(path.resolve(__dirname, `${PUBLIC}/sounds/game-over.wav`))
   );
   app.use(express.static(path.resolve(__dirname, '../../../dist/client')));
   app.use(routers.pageRouter);

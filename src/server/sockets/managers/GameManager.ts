@@ -1,5 +1,6 @@
 import type { Socket, Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
+import sql, { type ConnectionPool } from 'mssql';
 import type {
   GameMessage,
   GameConfirmation,
@@ -324,12 +325,19 @@ export default class GameManager extends Manager {
     resultType: ResultReason,
     playerMove?: ShortMove
   ) => {
-    const { gameRoom, gameSession } = <Record<string, string>>this.socket.data;
-    const { ratingBlack, ratingWhite, userWhiteId, userBlackId } = <Record<string, number>>(
-      await this.redis.json.get(gameSession, {
-        path: ['ratingBlack', 'ratingWhite', 'userWhiteId', 'userBlackId']
-      })
-    );
+    const { gameRoom, gameSession, gameId } = <Record<string, string>>this.socket.data;
+    const {
+      userWhite,
+      userBlack,
+      ratingBlack,
+      ratingWhite,
+      userWhiteId,
+      userBlackId,
+      type,
+      history,
+      startTime
+    } = <Game>await this.redis.json.get(gameSession);
+
     const { newWhiteRating, newBlackRating } = calculateUpdatedEloRating(
       ratingWhite,
       ratingBlack,
@@ -337,8 +345,29 @@ export default class GameManager extends Manager {
       50 // Get number of player games, hardcoded for now non-provisional for now.
     );
 
-    // TODO: Send rating update to the DB.
-    // TODO: Store game in DB.
+    if (history.length) {
+      const lastMove = history[history.length - 1];
+      if (lastMove.position !== this.chess.fen()) {
+        const { from, to, promotion } = lastMove;
+        this.chess.move(<ShortMove>{ from, to, ...(promotion ? { promotion } : {}) });
+      }
+    }
+
+    this.chess.header('White', userWhite, 'Black', userBlack, 'Date', <string>startTime);
+    const pgn = this.chess.pgn();
+
+    await this.db
+      .request()
+      .input('game_id', sql.UniqueIdentifier, gameId)
+      .input('user_white_id', sql.UniqueIdentifier, userWhiteId)
+      .input('user_black_id', sql.UniqueIdentifier, userBlackId)
+      .input('new_rating_white', sql.SmallInt, newWhiteRating)
+      .input('new_rating_black', sql.SmallInt, newBlackRating)
+      .input('result', sql.Bit, result === 'WHITE' ? 1 : 0)
+      .input('game_type', sql.NVarChar(5), type)
+      .input('pgn', sql.NVarChar(1000), pgn)
+      .execute('api.create_game');
+
     const whiteUserSession = `user:session:${userWhiteId}`;
     const blackUserSession = `user:session:${userBlackId}`;
     const newWhiteRatingRounded = Math.round(newWhiteRating);
@@ -471,8 +500,8 @@ export default class GameManager extends Manager {
   private chatFilter;
   private startTime: DateTime | null;
   private clockInterval: number | null;
-  constructor(io: ioServer, socket: Socket, redis: RedisClientType) {
-    super(io, socket, redis);
+  constructor(io: ioServer, socket: Socket, redis: RedisClientType, db: ConnectionPool) {
+    super(io, socket, redis, db);
     this.chess = new Chess();
     this.chatFilter = new Filter();
     this.startTime = null;

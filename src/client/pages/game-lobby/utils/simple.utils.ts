@@ -1,5 +1,6 @@
 import tippy from 'tippy.js';
 import type { Dispatch } from '@Common/types';
+import type { TimeControl } from '@Types';
 import {
   type NavBarAction,
   type GameConsoleAction,
@@ -8,11 +9,13 @@ import {
   spinnerSearchOneMinute,
   spinnerSearchFiveMinute,
   spinnerSearchFifteenMinute,
-  setDisconnectInterval
+  setDisconnectInterval,
+  openNewGameMenu
 } from '../actions/index';
 import { gameCompleteToast, errorToast } from '@Common/toast';
 import events from 'events';
 
+type CachedData = 'searching';
 interface ITooltip {
   [key: string]: string;
 }
@@ -60,8 +63,8 @@ export const gameCompleteToastHelper = (gameData: IGameMessageData): void => {
     ratingWhite,
     ratingBlack
   } = gameData;
-  const whiteDelta = newWhiteRating - <number>ratingWhite;
-  const blackDelta = newBlackRating - <number>ratingBlack;
+  const whiteDelta = newWhiteRating - ratingWhite;
+  const blackDelta = newBlackRating - ratingBlack;
   gameCompleteToast(
     `
     ${gameMessage}\n
@@ -89,8 +92,6 @@ export const highlightCurrentMoveHistory = (
   currentPosition: string,
   prevPosition?: string
 ) => {
-  // console.log('currentPosition', currentPosition);
-  // console.log('prevPosition', prevPosition);
   if (prevPosition !== undefined) {
     const prevPositionParsed = parsePositionId(prevPosition);
     const nextMove = document.getElementById(prevPositionParsed);
@@ -114,4 +115,30 @@ export const clientDisconnectNotification = (dispatch: Dispatch<UserAction>) => 
       }, parseInt(DISCONNECT_NOTIFICATION_INTERVAL))
     )
   );
+};
+
+export const cacheStateData = (key: CachedData, value: TimeControl) => {
+  localStorage.setItem(key, value);
+};
+
+export const removeCacheStateData = (key: CachedData) => {
+  localStorage.removeItem(key);
+};
+
+export const handleCachedData = (dispatch: Dispatch<NavBarAction>) => {
+  const searching = <TimeControl>localStorage.getItem('searching');
+  if (searching) {
+    dispatch(openNewGameMenu(true));
+  }
+  switch (searching) {
+    case '1+0':
+      dispatch(spinnerSearchOneMinute(true));
+      break;
+    case '5+0':
+      dispatch(spinnerSearchFiveMinute(true));
+      break;
+    case '15+0':
+      dispatch(spinnerSearchFifteenMinute(true));
+      break;
+  }
 };

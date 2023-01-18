@@ -24,8 +24,7 @@ const validateRegister = checkSchema({
   username: {
     isLength: {
       options: { max: 12, min: 5 },
-      errorMessage:
-        'Username must have a maximum length of 12 and minimum length of 5.'
+      errorMessage: 'Username must have a maximum length of 12 and minimum length of 5.'
     },
     isAlphanumeric: {
       errorMessage: 'Only numbers and digits are allowed in usernames.'

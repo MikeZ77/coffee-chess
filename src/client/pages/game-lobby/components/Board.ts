@@ -2,7 +2,7 @@ import hh, { type HyperScriptHelperFn } from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from 'common/types';
 import { State } from '../state';
-import { NavBarAction } from '../actions/sideNavBar';
+import { NavBarAction, setAudioNewGame } from '../actions/index';
 import { type DurationObjectUnits, Duration } from 'luxon';
 import { Result } from '@Types';
 
@@ -50,9 +50,9 @@ const formatLowTimeHelper = (clockTime: string): string => {
 };
 
 const Board: Component<State, NavBarAction> = (dispatch, state) => {
-  const { currentGame, username } = state;
-  const { ratingBlack, ratingWhite, userWhite, userBlack, result } = currentGame;
-  const { whiteTime, blackTime } = currentGame;
+  const { currentGame, username, audio } = state;
+  const { ratingBlack, ratingWhite, userWhite, userBlack, result, whiteTime, blackTime } =
+    currentGame;
   const lowTimeMark = parseInt(GAME_LOW_TIME_MS);
   let player,
     opponent,
@@ -61,13 +61,13 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
     whiteClockTime: DurationObjectUnits | null,
     blackClockTime: DurationObjectUnits | null;
 
-  whiteTime && whiteTime >= 0
+  whiteTime && whiteTime > 0
     ? (whiteClockTime = Duration.fromMillis(whiteTime)
         .shiftTo('minutes', 'seconds', 'milliseconds')
         .toObject())
     : (whiteClockTime = null);
 
-  blackTime && blackTime >= 0
+  blackTime && blackTime > 0
     ? (blackClockTime = Duration.fromMillis(blackTime)
         .shiftTo('minutes', 'seconds', 'milliseconds')
         .toObject())
@@ -152,7 +152,10 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
       div({ className: 'tile is-parent' }, [
         div('#board', {
           className: 'tile is-child',
-          style: 'height: 88vh; width: 88vh;'
+          style: 'height: 88vh; width: 88vh;',
+          onclick: () => {
+            Object.values(audio).includes(null) && dispatch(setAudioNewGame());
+          }
         })
       ]),
       div({ className: 'tile is-4 is-vertical is-parent' }, [

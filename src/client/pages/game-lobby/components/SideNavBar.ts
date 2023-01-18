@@ -27,7 +27,7 @@ const sideNavBar: Component<State, NavBarAction> = (dispatch, state) => {
                 newGameMenuOpen ? 'is-active' : ''
               } columns is-flex is-vcentered mb-0`,
               onclick: () => {
-                dispatch(openNewGameMenu(newGameMenuOpen));
+                dispatch(openNewGameMenu(!newGameMenuOpen));
               }
             },
             [

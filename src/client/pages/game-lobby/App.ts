@@ -12,7 +12,8 @@ import { boardConfig } from './utils/chess';
 import {
   initTooltipAttributes,
   initEventListeners,
-  clientDisconnectNotification
+  clientDisconnectNotification,
+  handleCachedData
 } from './utils/simple.utils';
 import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
 import { Chessboard } from 'cm-chessboard/src/cm-chessboard/Chessboard';
@@ -64,6 +65,7 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
   /*  INITIALIZATION   */
   const board = new Chessboard(document.getElementById('board'), boardConfig);
   initEventListeners();
+  handleCachedData(dispatch);
   initTooltipAttributes({
     '#player-list': 'Player List',
     '#current-game': 'Current Game',
@@ -77,11 +79,11 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
     socket.removeAllListeners();
     registerUserEvents(socket, dispatch);
     registerGameEvents(socket, dispatch, board);
+  });
 
-    socket.on('disconnect', () => {
-      clientDisconnectNotification(dispatch);
-      socket.connect();
-    });
+  socket.on('disconnect', () => {
+    clientDisconnectNotification(dispatch);
+    socket.connect();
   });
 
   socket.io.on('reconnect', () => {

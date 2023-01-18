@@ -4,7 +4,6 @@ import type { ConnectionPool } from 'mssql';
 import { createAdapter } from '@socket.io/redis-adapter';
 import Logger from '@Utils/config.logging.winston';
 import { GameManager, UserManager, QueueManager, Manager } from './managers/index';
-import { registerNewGameListener } from './handlers/index';
 
 const { PORT } = process.env;
 

@@ -1,6 +1,7 @@
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { Component } from 'common/types';
+import { cacheStateData, removeCacheStateData } from '../utils/simple.utils';
 import { State } from '../state';
 import {
   NavBarAction,
@@ -27,6 +28,9 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
           if (![fiveMinuteSearching, fifteenMinuteSearching].includes(true)) {
             dispatch(requestSearchOneMinute(!oneMinuteSearching));
             dispatch(spinnerSearchOneMinute(!oneMinuteSearching));
+            !oneMinuteSearching
+              ? cacheStateData('searching', '1+0')
+              : removeCacheStateData('searching');
             Object.values(audio).includes(null) && dispatch(setAudioNewGame());
           }
         }
@@ -50,6 +54,9 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
           if (![oneMinuteSearching, fifteenMinuteSearching].includes(true)) {
             dispatch(spinnerSearchFiveMinute(!fiveMinuteSearching));
             dispatch(requestSearchMinute(!fiveMinuteSearching));
+            !fiveMinuteSearching
+              ? cacheStateData('searching', '5+0')
+              : removeCacheStateData('searching');
             Object.values(audio).includes(null) && dispatch(setAudioNewGame());
           }
         }
@@ -73,6 +80,9 @@ const sideNavBarGameTypes: Component<State, NavBarAction> = (dispatch, state) =>
           if (![oneMinuteSearching, fiveMinuteSearching].includes(true)) {
             dispatch(spinnerSearchFifteenMinute(!fifteenMinuteSearching));
             dispatch(requestSearchFifteenMinute(!fifteenMinuteSearching));
+            !fifteenMinuteSearching
+              ? cacheStateData('searching', '15+0')
+              : removeCacheStateData('searching');
             Object.values(audio).includes(null) && dispatch(setAudioNewGame());
           }
         }

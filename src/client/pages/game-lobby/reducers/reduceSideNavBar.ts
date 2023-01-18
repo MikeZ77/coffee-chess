@@ -12,7 +12,7 @@ const reduceSideNavBar: Reducer<State, NavBarAction> = (action, state): State =>
       return {
         ...state,
         reduced: true,
-        sideNavBar: { ...state.sideNavBar, newGameMenuOpen: !newGameMenuOpen }
+        sideNavBar: { ...state.sideNavBar, newGameMenuOpen: newGameMenuOpen }
       };
     }
     case 'SPINNER_ONE_MINUTE': {

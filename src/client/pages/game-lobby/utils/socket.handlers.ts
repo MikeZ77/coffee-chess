@@ -20,7 +20,8 @@ import {
   clientEvent,
   gameCompleteToastHelper,
   initChatTimeout,
-  highlightCurrentMoveHistory
+  highlightCurrentMoveHistory,
+  removeCacheStateData
 } from './simple.utils';
 import { DateTime } from 'luxon';
 import { ClientClock } from './chess';
@@ -67,6 +68,7 @@ export const registerGameEvents = (
       const color = username === userWhite ? COLOR.white : COLOR.black;
       dispatch(initGame(game));
       dispatch(setPlayerColor(color));
+      removeCacheStateData('searching');
       clearQueueSpinners(dispatch);
       board.setPosition(position, false);
       board.setOrientation(color);
@@ -198,10 +200,10 @@ export const registerGameEvents = (
     const state = <State>dispatch();
     const { color } = state.currentGame;
     dispatch(updateGameState('IN_PROGRESS'));
+    chess.reset();
     board.enableMoveInput(attachBoardInputHandler, color);
     console.log('Game connected message: ', message);
     dispatch(updateChatLog(message));
-    // chess.reset();
     state.audio.newGameSound?.play();
   };
 
@@ -352,7 +354,7 @@ export const registerGameEvents = (
     board.disableMoveInput();
     clock.stopClocks();
     const {
-      currentGame: { userWhite, userBlack, ratingWhite, ratingBlack, whiteTime, blackTime },
+      currentGame: { userWhite, userBlack, ratingWhite, ratingBlack },
       audio: { gameCompleteSound }
     } = <State>dispatch();
     const gameData = {

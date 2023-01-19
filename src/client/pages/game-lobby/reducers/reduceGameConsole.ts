@@ -1,6 +1,7 @@
 import type { Reducer } from 'common/types';
-import { State } from '../state';
+import { type State } from '../state';
 import { GameConsoleAction } from '../actions/index';
+// , default as defaultState
 
 const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): State => {
   switch (action.type) {
@@ -62,6 +63,10 @@ const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): St
         currentGame: { ...state.currentGame, history: [...history] }
       };
     }
+    // case 'RESET_GAME_STATE': {
+    //   console.log('defaultState', defaultState);
+    //   return defaultState;
+    // }
 
     default: {
       return state;

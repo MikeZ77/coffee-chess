@@ -68,7 +68,6 @@ export const registerGameEvents = (
       const color = username === userWhite ? COLOR.white : COLOR.black;
       dispatch(initGame(game));
       dispatch(setPlayerColor(color));
-      removeCacheStateData('searching');
       clearQueueSpinners(dispatch);
       board.setPosition(position, false);
       board.setOrientation(color);
@@ -79,6 +78,7 @@ export const registerGameEvents = (
     const { username } = <State>dispatch();
     const { userWhite, position } = game;
     const color = username === userWhite ? COLOR.white : COLOR.black;
+    removeCacheStateData('searching');
     dispatch(initGame(game));
     dispatch(setPlayerColor(color));
     chess.load(position);

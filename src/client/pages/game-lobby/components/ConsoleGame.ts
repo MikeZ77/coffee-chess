@@ -112,9 +112,21 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
   // const smallScreen = window.innerWidth < 1720;
 
   return div({ className: 'card' }, [
-    div({ className: 'card-content p-4', style: 'height: 44vh' }, [
+    div({ className: 'card-content p-0 pl-4', style: 'height: 44vh' }, [
+      gameState &&
+        ['COMPLETE', 'OBSERVING', 'SEARCHING_OBSERVING'].includes(gameState) &&
+        span(
+          {
+            className: 'icon is-small m-2',
+            style: 'cursor: pointer; float: right;',
+            onclick: () => {
+              console.log('click');
+            }
+          },
+          [i({ className: 'fas fa-solid fa-arrow-up-right-from-square' })]
+        ),
       div(
-        { className: 'content', style: 'height: 100%; overflow-y: auto;' },
+        { className: 'content', style: 'height: 100%; overflow-y: auto; position: fixed;' },
         renderMoveHistory(history)
       )
     ]),

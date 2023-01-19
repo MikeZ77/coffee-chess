@@ -127,6 +127,7 @@ export const removeCacheStateData = (key: CachedData) => {
 
 export const handleCachedData = (dispatch: Dispatch<NavBarAction>) => {
   const searching = <TimeControl>localStorage.getItem('searching');
+  console.log('searching', searching);
   if (searching) {
     dispatch(openNewGameMenu(true));
   }

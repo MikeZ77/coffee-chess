@@ -7,7 +7,8 @@ export type GameConsoleAction =
   | { type: 'UPDATE_DRAW_OFFER'; pendingDrawOfferFrom: string | null }
   | { type: 'SET_CHAT_TIMEOUT'; timeout: boolean }
   | { type: 'SET_DISABLE_CHAT'; disableChat: boolean }
-  | { type: 'UPDATE_GAME_HISTORY'; move: GameHistory };
+  | { type: 'UPDATE_GAME_HISTORY'; move: GameHistory }
+  | { type: 'RESET_GAME_STATE' };
 
 export const updateChatMessage = (gameChatMessage: string): GameConsoleAction => {
   return {
@@ -55,4 +56,8 @@ export const updateConsoleMoveHistory = (move: GameHistory): GameConsoleAction =
     type: 'UPDATE_GAME_HISTORY',
     move
   };
+};
+
+export const resetGameState = (): GameConsoleAction => {
+  return { type: 'RESET_GAME_STATE' };
 };

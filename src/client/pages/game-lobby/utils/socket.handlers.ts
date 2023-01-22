@@ -40,7 +40,8 @@ import {
   setPlayerColor,
   updateConsoleMoveHistory,
   disablePage,
-  setLowTimeSoundPlayed
+  setLowTimeSoundPlayed,
+  resetGameState
 } from '../actions/index';
 import {
   INPUT_EVENT_TYPE,
@@ -69,6 +70,7 @@ export const registerGameEvents = (
       dispatch(initGame(game));
       dispatch(setPlayerColor(color));
       clearQueueSpinners(dispatch);
+      chess.reset();
       board.setPosition(position, false);
       board.setOrientation(color);
     }
@@ -78,7 +80,6 @@ export const registerGameEvents = (
     const { username } = <State>dispatch();
     const { userWhite, position } = game;
     const color = username === userWhite ? COLOR.white : COLOR.black;
-    removeCacheStateData('searching');
     dispatch(initGame(game));
     dispatch(setPlayerColor(color));
     chess.load(position);
@@ -200,7 +201,7 @@ export const registerGameEvents = (
     const state = <State>dispatch();
     const { color } = state.currentGame;
     dispatch(updateGameState('IN_PROGRESS'));
-    chess.reset();
+    removeCacheStateData('searching');
     board.enableMoveInput(attachBoardInputHandler, color);
     console.log('Game connected message: ', message);
     dispatch(updateChatLog(message));
@@ -538,6 +539,13 @@ export const registerGameEvents = (
     }
   };
 
+  const exitGameBoard = () => {
+    dispatch(resetGameState());
+    chess.reset();
+    board.setPosition(chess.fen(), false);
+    board.setOrientation(COLOR.white);
+  };
+
   // @ts-ignore
   const chess = new Chess();
   const clock = new ClientClock();
@@ -559,6 +567,7 @@ export const registerGameEvents = (
   clientEvent.on('event:game:history:prev', prevMove);
   clientEvent.on('event:game:history:start', setStartPosition);
   clientEvent.on('event:game:history:current', setCurrentPosition);
+  clientEvent.on('event:game:exit', exitGameBoard);
 };
 
 export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction>) => {

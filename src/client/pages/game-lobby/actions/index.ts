@@ -10,7 +10,8 @@ export {
   updateDrawOffer,
   setChatTimeout,
   setDisableChat,
-  updateConsoleMoveHistory
+  updateConsoleMoveHistory,
+  resetGameState
 } from './gameConsole';
 export { updateUserInfo, disablePage, setDisconnectInterval } from './userInfo';
 export {

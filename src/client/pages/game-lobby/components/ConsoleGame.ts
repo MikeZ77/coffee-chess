@@ -108,25 +108,26 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
     gameConsole: { disableChat },
     currentGame: { gameChat, pendingDrawOfferFrom, state: gameState, history }
   } = state;
+  console.log('gameState', gameState);
   // use this for adjusting vh height of console for different screens.
   // const smallScreen = window.innerWidth < 1720;
-
   return div({ className: 'card' }, [
     div({ className: 'card-content p-0 pl-4', style: 'height: 44vh' }, [
-      gameState &&
-        ['COMPLETE', 'OBSERVING', 'SEARCHING_OBSERVING'].includes(gameState) &&
-        span(
-          {
-            className: 'icon is-small m-2',
-            style: 'cursor: pointer; float: right;',
-            onclick: () => {
-              console.log('click');
-            }
-          },
-          [i({ className: 'fas fa-solid fa-arrow-up-right-from-square' })]
-        ),
+      gameState && ['COMPLETE', 'OBSERVING', 'SEARCHING_OBSERVING'].includes(gameState)
+        ? span(
+            {
+              className: 'icon is-small m-2',
+              // position: fixed;
+              style: 'cursor: pointer; float: right;',
+              onclick: () => {
+                clientEvent.emit('event:game:exit');
+              }
+            },
+            [i({ className: 'fas fa-solid fa-arrow-up-right-from-square' })]
+          )
+        : div(),
       div(
-        { className: 'content', style: 'height: 100%; overflow-y: auto; position: fixed;' },
+        { className: 'content', style: 'height: 100%; overflow-y: auto;' },
         renderMoveHistory(history)
       )
     ]),

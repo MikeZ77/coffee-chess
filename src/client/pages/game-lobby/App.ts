@@ -13,7 +13,8 @@ import {
   initTooltipAttributes,
   initEventListeners,
   clientDisconnectNotification,
-  handleCachedData
+  handleCachedData,
+  removeCacheStateData
 } from './utils/simple.utils';
 import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
 import { Chessboard } from 'cm-chessboard/src/cm-chessboard/Chessboard';
@@ -64,6 +65,7 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
 
   /*  INITIALIZATION   */
   const board = new Chessboard(document.getElementById('board'), boardConfig);
+  // TODO: Get player state from server and handle search.
   initEventListeners();
   handleCachedData(dispatch);
   initTooltipAttributes({
@@ -74,29 +76,25 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
   });
   /*  REGISTER SOCKET  */
   const socket = io();
+  socket.removeAllListeners();
   socket.on('connect', () => {
-    console.log('Connected');
-    socket.removeAllListeners();
     registerUserEvents(socket, dispatch);
     registerGameEvents(socket, dispatch, board);
   });
 
   socket.on('disconnect', () => {
     clientDisconnectNotification(dispatch);
-    socket.connect();
+    // socket.connect();
   });
 
   socket.io.on('reconnect', () => {
     const { disconnectInterval } = <State>dispatch();
     if (disconnectInterval) {
-      console.log('Reconnected');
       window.clearInterval(<number>disconnectInterval);
       dispatch(setDisconnectInterval(null));
       successToast('Reconnected');
     }
   });
-
-  console.log('socket', socket);
 };
 
 export default app;

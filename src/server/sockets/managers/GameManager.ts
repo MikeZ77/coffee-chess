@@ -180,6 +180,7 @@ export default class GameManager extends Manager {
     5. Emit to message:game:connected
   */
     Logger.info(`${this.getUserSignature()}: Game ready signal : %o:`, message);
+    this.chess.reset();
     const { username, userSession, gameSession, gameRoom } = <Record<string, string>>(
       this.socket.data
     );
@@ -197,7 +198,7 @@ export default class GameManager extends Manager {
       ]);
       // TODO: Add to the list of games players can observe.
     }
-
+    Logger.debug('%o', { message: `${username} Has conncted.` });
     await this.redis.json.set(userSession, 'state', 'PLAYING');
     await this.io
       .in(gameRoom)

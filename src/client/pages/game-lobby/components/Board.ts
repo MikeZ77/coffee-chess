@@ -16,20 +16,20 @@ type PlayerInfo = {
   clock: string;
 };
 
-const renderResultHelper = (result: Result, player: PlayerInfo): HyperScriptHelperFn => {
-  const getSpanIcon = (color: 'red' | 'green' | 'grey'): HyperScriptHelperFn => {
-    return span({ className: 'icon' }, [
-      i({
-        className: `fas fa-solid fa-chess-king ${
-          color === 'red' ? 'fa-flip-vertical' : color === 'grey' ? 'fa-flip-horizontal' : ''
-        }`,
-        style: `color: ${color};`
-      }),
-      span({ className: 'mr-2' }),
-      span(`${color === 'red' ? '[0-1]' : color === 'green' ? '[1-0]' : '[0.5-0.5]'}`)
-    ]);
-  };
+const getSpanIcon = (color: 'red' | 'green' | 'grey'): HyperScriptHelperFn => {
+  return span({ className: 'icon' }, [
+    i({
+      className: `fas fa-solid fa-chess-king ${
+        color === 'red' ? 'fa-flip-vertical' : color === 'grey' ? 'fa-flip-horizontal' : ''
+      }`,
+      style: `color: ${color};`
+    })
+    // span({ className: 'mr-2' }),
+    // span(`${color === 'red' ? '[0-1]' : color === 'green' ? '[1-0]' : '[0.5-0.5]'}`)
+  ]);
+};
 
+const renderResultHelper = (result: Result, player: PlayerInfo): HyperScriptHelperFn => {
   if (result === 'BLACK' && player.color === 'BLACK') {
     return getSpanIcon('green');
   } else if (result === 'WHITE' && player.color === 'BLACK') {
@@ -41,7 +41,7 @@ const renderResultHelper = (result: Result, player: PlayerInfo): HyperScriptHelp
   } else if (result === 'DRAW') {
     return getSpanIcon('grey');
   } else {
-    return span();
+    return div();
   }
 };
 
@@ -53,6 +53,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
   const { currentGame, username, audio } = state;
   const { ratingBlack, ratingWhite, userWhite, userBlack, result, whiteTime, blackTime } =
     currentGame;
+  console.log('result', result);
   const lowTimeMark = parseInt(GAME_LOW_TIME_MS);
   let player,
     opponent,
@@ -171,7 +172,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                 ),
                 span(
                   {
-                    className: 'is-size-5 has-text-weight-semibold has-text-grey mr-5'
+                    className: 'is-size-5 has-text-weight-semibold has-text-grey mr-2'
                   },
                   opponent.rating ? ` (${opponent.rating})` : ''
                 ),
@@ -236,7 +237,7 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
                     ),
                     span(
                       {
-                        className: 'is-size-5 has-text-weight-semibold has-text-grey mr-5'
+                        className: 'is-size-5 has-text-weight-semibold has-text-grey mr-2'
                       },
                       player.rating ? ` (${player.rating})` : ''
                     ),

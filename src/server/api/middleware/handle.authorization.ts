@@ -5,7 +5,6 @@ const { ENV } = process.env;
 
 export default (req: Request, res: Response, next: NextFunction) => {
   const token: string = req.cookies.access_token;
-
   if (token === undefined) {
     return res.status(401).redirect('/login');
   }

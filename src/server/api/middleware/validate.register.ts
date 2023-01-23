@@ -2,10 +2,12 @@ import { checkSchema } from 'express-validator';
 
 const validateRegister = checkSchema({
   email: {
+    in: ['body'],
     isEmail: { errorMessage: 'Please provide a valid email address.' },
     normalizeEmail: {}
   },
   password: {
+    in: ['body'],
     isStrongPassword: {
       options: {
         minLength: 8,
@@ -22,12 +24,15 @@ const validateRegister = checkSchema({
     }
   },
   username: {
+    in: ['body'],
     isLength: {
       options: { max: 12, min: 5 },
-      errorMessage: 'Username must have a maximum length of 12 and minimum length of 5.'
+      errorMessage: 'Username must be between 5 and 12 characters.'
     },
-    isAlphanumeric: {
-      errorMessage: 'Only numbers and digits are allowed in usernames.'
+    matches: {
+      options: /^(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/,
+      errorMessage:
+        'Only alphanumeric and _ or . non-repeating and cannot start at begining or end.'
     }
   }
 });

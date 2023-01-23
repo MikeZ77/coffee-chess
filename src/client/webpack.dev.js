@@ -21,7 +21,9 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.ts'],
     alias: {
-      '@Common': path.resolve(__dirname, 'common')
+      '@Common': path.resolve(__dirname, 'common'),
+      '@Public': path.resolve(__dirname, 'public'),
+      '@Types': path.resolve(__dirname, '../types.ts')
     }
   },
   module: {

@@ -13,6 +13,7 @@
     "es2022": true,
     "node": true
   },
+  "ignorePatterns": "src/client/public/images*",
   "rules": {
     "no-console": "warn",
     "prettier/prettier": [

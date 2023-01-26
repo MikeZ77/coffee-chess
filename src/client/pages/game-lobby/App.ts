@@ -13,8 +13,7 @@ import {
   initTooltipAttributes,
   initEventListeners,
   clientDisconnectNotification,
-  handleCachedData,
-  removeCacheStateData
+  handleCachedData
 } from './utils/simple.utils';
 import { registerGameEvents, registerUserEvents } from './utils/socket.handlers';
 import { Chessboard } from 'cm-chessboard/src/cm-chessboard/Chessboard';

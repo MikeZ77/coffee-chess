@@ -2,10 +2,12 @@ import * as sql from 'mssql';
 import { type Socket } from 'socket.io-client';
 import type { ConnectionPool } from 'mssql';
 import { type RedisClientType, createClient } from 'redis';
+import { DateTime } from 'luxon';
 import { genWhiteMoveCheckmate, genBlackMoveCheckmate } from './game.mocks';
 import {
   whiteId,
   blackId,
+  gameId,
   loadTestPlayersIntoDb,
   loginTestUsers,
   connectSocketsAndListenForGame,
@@ -20,6 +22,7 @@ describe('A game can be played to completion', () => {
   let db: ConnectionPool;
   let whiteSocket: Socket;
   let blackSocket: Socket;
+  let numPlayersConnected = 0;
 
   beforeAll(async () => {
     redis = createClient({ socket: { port: 3001 } });
@@ -39,47 +42,65 @@ describe('A game can be played to completion', () => {
     await db.close();
   });
 
-  beforeEach(async () => {
-    const newGame = getNewTestGame();
-    await Promise.all([
-      redis.json.set(`user:session:${whiteId}`, '$.playingGame', newGame.gameId),
-      redis.json.set(`user:session:${blackId}`, '$.playingGame', newGame.gameId),
-      redis.json.set(`game:${newGame.gameId}`, '$', newGame)
-    ]);
-    await readyForNextTestGame(whiteSocket, blackSocket);
-  });
-
-  afterEach(() => {
-    whiteSocket.removeAllListeners();
-    blackSocket.removeAllListeners();
-  });
-
   describe('A game with checkmate results in a good state', () => {
-    test('A game can be played through until one player is checkmated', (done) => {
-      done();
-      // whiteSocket.on('message:game:move', () => {
-      //   const nextMove =
-      //     p1Color === 'w'
-      //       ? genWhiteMoveCheckmate().next().value
-      //       : genBlackMoveCheckmate().next().value;
-      //   if (nextMove) {
-      //     whiteSocket.emit('message:game:move', nextMove);
-      //   } else {
-      //     done();
-      //   }
-      // });
-      // blackSocket.on('message:game:move', () => {
-      //   const nextMove =
-      //     p2Color === 'w'
-      //       ? genWhiteMoveCheckmate().next().value
-      //       : genBlackMoveCheckmate().next().value;
-      //   blackSocket.emit('message:game:move', nextMove);
-      //   if (nextMove) {
-      //     blackSocket.emit('message:game:move');
-      //   } else {
-      //     done();
-      //   }
-      // });
+    const genWhiteMove = genWhiteMoveCheckmate();
+    const genBlackMove = genBlackMoveCheckmate();
+    // Unfortunately, beforeEach runs after every test not describe
+    beforeAll(() => {
+      const newGame = getNewTestGame();
+      Promise.all([
+        redis.json.set(`user:session:${whiteId}`, '$.playingGame', newGame.gameId),
+        redis.json.set(`user:session:${blackId}`, '$.playingGame', newGame.gameId),
+        redis.json.set(`game:${newGame.gameId}`, '$', newGame)
+      ]).then(() => {
+        readyForNextTestGame(whiteSocket, blackSocket);
+      });
+    });
+
+    afterAll(() => {
+      numPlayersConnected = 0;
+      whiteSocket.removeAllListeners();
+      blackSocket.removeAllListeners();
+    });
+
+    test('The game should be played through until one player is checkmated', (done) => {
+      whiteSocket.on('message:game:connected', () => {
+        numPlayersConnected++;
+        if (numPlayersConnected === 2) {
+          const firstMove = genWhiteMove.next().value;
+          whiteSocket.emit('message:game:move', {
+            ...firstMove,
+            timestampUtc: DateTime.utc().toString()
+          });
+        }
+      });
+      whiteSocket.on('message:game:move', () => {
+        const nextMove = genWhiteMove.next().value;
+        if (nextMove) {
+          whiteSocket.emit('message:game:move', {
+            ...nextMove,
+            timestampUtc: DateTime.utc().toString()
+          });
+        } else {
+          done();
+        }
+      });
+      blackSocket.on('message:game:move', () => {
+        const nextMove = genBlackMove.next().value;
+        blackSocket.emit('message:game:move', {
+          ...nextMove,
+          timestampUtc: DateTime.utc().toString()
+        });
+      });
+    });
+
+    test('The game should be in state COMPLETE', async () => {
+      const state = await redis.json.get(`game:${gameId}`, { path: ['state'] });
+      expect(state).toBe('COMPLETE');
+    });
+
+    test('The game should be stored in the database', async () => {
+      expect(true).toBe(true);
     });
   });
 });

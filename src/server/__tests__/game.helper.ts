@@ -4,6 +4,7 @@ import { io, type Socket } from 'socket.io-client';
 
 const { SERVER_FQDN } = process.env;
 
+export const gameId = 'aa9a19a2-9487-41b9-bd76-f08f75572e8f';
 export const whiteId = 'EE5824EC-796E-4679-B262-146D0913320A';
 export const blackId = 'EE5824EC-796E-4679-B262-146D0913320B';
 const whiteUsername = 'player_white';
@@ -76,19 +77,14 @@ export const connectSocketsAndListenForGame = async (
   return [whiteSocket, blackSocket];
 };
 
-export const readyForNextTestGame = async (
-  whiteSocket: Socket,
-  blackSocket: Socket
-): Promise<void> => {
-  await Promise.all([
-    whiteSocket.emit('message:game:ready', { ready: true }),
-    blackSocket.emit('message:game:ready', { ready: true })
-  ]);
+export const readyForNextTestGame = (whiteSocket: Socket, blackSocket: Socket) => {
+  whiteSocket.emit('message:game:ready', { ready: true });
+  blackSocket.emit('message:game:ready', { ready: true });
 };
 
 export const getNewTestGame = () => {
   return {
-    gameId: 'aa9a19a2-9487-41b9-bd76-f08f75572e8f',
+    gameId: gameId,
     userWhite: whiteUsername,
     userWhiteId: whiteId,
     ratingWhite: whiteRating,

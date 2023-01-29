@@ -15,7 +15,8 @@ import {
 import { gameCompleteToast, errorToast } from '@Common/toast';
 import events from 'events';
 
-type CachedData = 'searching';
+type CachedData = 'searching' | 'env-notification';
+type CachedDataValues = TimeControl | 'notified';
 interface ITooltip {
   [key: string]: string;
 }
@@ -117,10 +118,13 @@ export const clientDisconnectNotification = (dispatch: Dispatch<UserAction>) => 
   );
 };
 
-export const cacheStateData = (key: CachedData, value: TimeControl) => {
+export const cacheStateData = (key: CachedData, value: CachedDataValues) => {
   localStorage.setItem(key, value);
 };
 
+export const getCacheStateData = (key: CachedData) => {
+  return localStorage.getItem(key);
+};
 export const removeCacheStateData = (key: CachedData) => {
   localStorage.removeItem(key);
 };

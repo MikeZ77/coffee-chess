@@ -1,33 +1,45 @@
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 
-const { div, footer, button, p, a, i, span } = hh(h);
+const { div, footer, button, a, i, span } = hh(h);
 
 const LoginFooter = () => {
-  // TODO: Change color to light black and font to white and fix formatting
-  return footer({ className: 'footer' }, [
-    div({ className: 'content has-text-centered' }, [
-      span({ className: 'has-text-weight-semibold' }, [
-        p('Coffee Chess ', []),
-        a(
-          { href: 'https://github.com/MikeZ77/coffee-chess/blob/main/LICENSE' },
-          '[MIT License]'
-        ),
-        button(
-          {
-            className: 'button',
-            onclick: () => {
-              window.open('https://github.com/MikeZ77/coffee-chess');
-            }
-          },
-          [
-            span({ className: 'icon is-small' }, [i({ className: 'fab fa-github' })]),
-            span('GitHub')
-          ]
-        )
-      ])
-    ])
-  ]);
+  return footer(
+    {
+      className:
+        'footer has-text-primary-light has-background-dark has-text-weight-semibold  py-6'
+    },
+    [
+      div(
+        {
+          className: 'content has-text-centered'
+        },
+        [
+          span({ className: 'pr-2' }, 'coffeechess is an opensource chess webserver'),
+          a(
+            {
+              className: 'pr-2',
+              href: 'https://github.com/MikeZ77/coffee-chess/blob/main/LICENSE',
+              style: 'all: unset; cursor: pointer;'
+            },
+            '[MIT License]'
+          ),
+          button(
+            {
+              className: 'button is-small',
+              onclick: () => {
+                window.open('https://github.com/MikeZ77/coffee-chess');
+              }
+            },
+            [
+              span({ className: 'icon is-small' }, [i({ className: 'fab fa-github fa-xl' })]),
+              span('GitHub')
+            ]
+          )
+        ]
+      )
+    ]
+  );
 };
 
 export default LoginFooter;

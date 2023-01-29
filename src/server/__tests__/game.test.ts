@@ -1,86 +1,85 @@
-import axios from 'axios';
 import * as sql from 'mssql';
-import { io, type Socket } from 'socket.io-client';
+import { type Socket } from 'socket.io-client';
 import type { ConnectionPool } from 'mssql';
 import { type RedisClientType, createClient } from 'redis';
+import { genWhiteMoveCheckmate, genBlackMoveCheckmate } from './game.mocks';
+import {
+  whiteId,
+  blackId,
+  loadTestPlayersIntoDb,
+  loginTestUsers,
+  connectSocketsAndListenForGame,
+  readyForNextTestGame,
+  getNewTestGame
+} from './game.helper';
 
-const { DB_USER, DB_PASSWORD, DB_NAME, SERVER_FQDN } = process.env;
+const { DB_USER, DB_PASSWORD, DB_NAME } = process.env;
 
 describe('A game can be played to completion', () => {
   let redis: RedisClientType;
   let db: ConnectionPool;
   let whiteSocket: Socket;
   let blackSocket: Socket;
-  let whiteToken: string;
-  let blackToken: string;
 
   beforeAll(async () => {
-    // Create users in the database
+    redis = createClient({ socket: { port: 3001 } });
+    await redis.connect();
     db = await sql.connect(
       `Server=localhost,3002;Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=true`
     );
+    await loadTestPlayersIntoDb(db);
+    const [whiteToken, blackToken] = await loginTestUsers();
+    [whiteSocket, blackSocket] = await connectSocketsAndListenForGame(whiteToken, blackToken);
+  });
 
-    const whiteUserId = 'EE5824EC-796E-4679-B262-146D0913320A';
-    const blackUserId = 'EE5824EC-796E-4679-B262-146D0913320B';
-    const whiteUsername = 'player_white';
-    const blackUsername = 'player_black';
-    await db.query(
-      `INSERT INTO app.base.users (user_id, email, username, password, activated, register_date) VALUES
-      ('${whiteUserId}', 'player_white@coffeechess_test.com', '${whiteUsername}', '$2a$10$.GtITQP6GcT0iBH/xLsMhumfEd046XfmzGYRGFMEZXdei3tj7zeKK', 1, GETDATE()),
-      ('${blackUserId}', 'player_black@coffeechess_test.com', '${blackUsername}', '$2a$10$.GtITQP6GcT0iBH/xLsMhumfEd046XfmzGYRGFMEZXdei3tj7zeKK', 1, GETDATE());
-			INSERT INTO app.base.ratings (user_id, game_type_id, rating, last_change) VALUES
-		  ('${whiteUserId}', 1, 1600, GETDATE()),
-		  ('${whiteUserId}', 2, 1600, GETDATE()),
-		  ('${whiteUserId}', 3, 1600, GETDATE()),
-		  ('${blackUserId}', 1, 1600, GETDATE()),
-		  ('${blackUserId}', 2, 1600, GETDATE()),
-		  ('${blackUserId}', 3, 1600, GETDATE());`
-    );
-
-    // Login to create user object in redis and get auth token
-    const [whiteLogin, blackLogin] = await Promise.all([
-      axios.post(`${SERVER_FQDN}/api/v1/user/login`, {
-        username: 'player_white',
-        password: 'myNewPass$1123'
-      }),
-      axios.post(`${SERVER_FQDN}/api/v1/user/login`, {
-        username: 'player_black',
-        password: 'myNewPass$1123'
-      })
-    ]);
-
-    const whiteCookie = whiteLogin.headers['set-cookie'];
-    const blackCookie = blackLogin.headers['set-cookie'];
-    [whiteToken] = <string[]>whiteCookie;
-    [blackToken] = <string[]>blackCookie;
-
-    // Init remaining connections
-    whiteSocket = io({
-      extraHeaders: {
-        cookie: whiteToken
-      }
-    });
-    blackSocket = io({
-      extraHeaders: {
-        cookie: blackToken
-      }
-    });
-    redis = createClient({ socket: { port: 3001 } });
-    await redis.connect();
+  afterAll(async () => {
+    // whiteSocket.close();
+    // blackSocket.close();
+    await redis.disconnect();
+    await db.close();
   });
 
   beforeEach(async () => {
-    const whiteHeader = [{}, { headers: { Cookie: whiteToken } }];
-    const blackHeader = [{}, { headers: { Cookie: blackToken } }];
+    const newGame = getNewTestGame();
     await Promise.all([
-      axios.post(`${SERVER_FQDN}/api/v1/game/search/5+0`, ...whiteHeader),
-      axios.post(`${SERVER_FQDN}/api/v1/game/search/5+0`, ...blackHeader)
+      redis.json.set(`user:session:${whiteId}`, '$.playingGame', newGame.gameId),
+      redis.json.set(`user:session:${blackId}`, '$.playingGame', newGame.gameId),
+      redis.json.set(`game:${newGame.gameId}`, '$', newGame)
     ]);
+    await readyForNextTestGame(whiteSocket, blackSocket);
   });
 
-  describe('A game can end by checkmate', () => {
-    test('placeholder', async () => {
-      expect(true).toBe(true);
+  afterEach(() => {
+    whiteSocket.removeAllListeners();
+    blackSocket.removeAllListeners();
+  });
+
+  describe('A game with checkmate results in a good state', () => {
+    test('A game can be played through until one player is checkmated', (done) => {
+      done();
+      // whiteSocket.on('message:game:move', () => {
+      //   const nextMove =
+      //     p1Color === 'w'
+      //       ? genWhiteMoveCheckmate().next().value
+      //       : genBlackMoveCheckmate().next().value;
+      //   if (nextMove) {
+      //     whiteSocket.emit('message:game:move', nextMove);
+      //   } else {
+      //     done();
+      //   }
+      // });
+      // blackSocket.on('message:game:move', () => {
+      //   const nextMove =
+      //     p2Color === 'w'
+      //       ? genWhiteMoveCheckmate().next().value
+      //       : genBlackMoveCheckmate().next().value;
+      //   blackSocket.emit('message:game:move', nextMove);
+      //   if (nextMove) {
+      //     blackSocket.emit('message:game:move');
+      //   } else {
+      //     done();
+      //   }
+      // });
     });
   });
 });

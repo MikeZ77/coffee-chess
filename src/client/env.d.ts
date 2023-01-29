@@ -8,6 +8,7 @@ declare global {
       GAME_CHAT_CLIENT_TIMEOUT_MS: string;
       GAME_LOW_TIME_MS: string;
       DISCONNECT_NOTIFICATION_INTERVAL: string;
+      ENV: string;
     }
   }
 }

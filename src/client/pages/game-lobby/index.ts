@@ -2,8 +2,6 @@ import state from './state';
 import View from './View';
 import App from './App';
 import '@fortawesome/fontawesome-free/js/fontawesome';
-// import '@fortawesome/fontawesome-free/js/regular';
-// import '@fortawesome/fontawesome-free/js/solid';
 import '@Public/images/fontawsome-regular';
 import '@Public/images/fontawsome-solid';
 import '@Public/images/chessboard-sprite.svg';

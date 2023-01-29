@@ -22,9 +22,9 @@ const view: View<State, Action> = (dispatch, state) => {
             )
           ])
         ])
-      ])
+      ]),
+      Footer()
     ])
-    // Footer()
   ]);
 };
 

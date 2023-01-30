@@ -1,7 +1,7 @@
 import type { Socket, Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
 import type { ConnectionPool } from 'mssql';
-import type { ServerMessage } from '@Types';
+import { type ServerMessage, type RedisJSON } from '@Types';
 import { decodeToken, checkExpiration, TokenState } from '@Utils/auth.token';
 import { SocketError } from '@Utils/custom.errors';
 import { DateTime, Interval } from 'luxon';
@@ -34,6 +34,15 @@ export default class Manager {
     const { userId } = socket.data.userId;
     const { username } = socket.data.username;
     return `${userId}::${username}`;
+  }
+
+  protected async getRedisStateOnError(): Promise<[RedisJSON, RedisJSON]> {
+    const userSession = `user:session:${this.userId}`;
+    const gameSession = `game:${this.socket.data.gameId}`;
+    return await Promise.all([
+      <RedisJSON>this.redis.json.get(userSession),
+      <RedisJSON>this.redis.json.get(gameSession)
+    ]);
   }
 
   static authMiddleware(socket: Socket, next: Next): void {
@@ -113,20 +122,20 @@ export default class Manager {
     }
   };
 
-  protected async getRedis(key: string, values: string[]): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.redis.json
-        .get(key, {
-          path: values
-        })
-        .then((gameId) => {
-          if (gameId) {
-            resolve(<string>gameId);
-          } else {
-            reject(new SocketError('Null redis response.'));
-            Logger.warn(`Game ready signal for no game ${this.getUserSignature()}`);
-          }
-        });
-    });
-  }
+  // protected async getRedis(key: string, values: string[]): Promise<string> {
+  //   return new Promise((resolve, reject) => {
+  //     this.redis.json
+  //       .get(key, {
+  //         path: values
+  //       })
+  //       .then((gameId) => {
+  //         if (gameId) {
+  //           resolve(<string>gameId);
+  //         } else {
+  //           reject(new SocketError('Null redis response.'));
+  //           Logger.warn(`Game ready signal for no game ${this.getUserSignature()}`);
+  //         }
+  //       });
+  //   });
+  // }
 }

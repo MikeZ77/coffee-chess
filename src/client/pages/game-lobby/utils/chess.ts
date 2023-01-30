@@ -14,6 +14,7 @@ const chess = new Chess();
 export const boardConfig = {
   position: chess.fen(),
   responsive: true,
+  animationDuration: 200,
   sprite: {
     url: '2807878831d82b261a27.svg'
   },

@@ -66,7 +66,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
             if (gameType !== 'DUMMY') {
               const gameFetched = JSON.parse(gameType);
               const gameRating: number = gameFetched.rating;
-              return rating <= gameRating + ratingDiff || rating >= gameRating - ratingDiff;
+              return rating <= gameRating + ratingDiff && rating >= gameRating - ratingDiff;
             }
           });
           if (gameMatch) {

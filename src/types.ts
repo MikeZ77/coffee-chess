@@ -17,7 +17,6 @@ export type LoginPayload = {
 };
 
 export type SearchPayload = void;
-
 export type GamePayloads = SearchPayload;
 
 /***********************************HTTP RESPONSES **************************************/
@@ -74,7 +73,7 @@ export type GameHistory = {
   promotion?: string;
 };
 export type Result = ('WHITE' | 'BLACK' | 'DRAW') | null;
-export type Game = {
+export interface Game {
   gameId: string;
   userWhite: string;
   userWhiteId?: string;
@@ -93,7 +92,31 @@ export type Game = {
   gameChat: GameChat[];
   result: Result;
   startTime: string | null;
-};
+}
+
+export interface GameInProgress extends Game {
+  userWhiteId: string;
+  userBlackId: string;
+  state: 'IN_PROGRESS';
+  result: null;
+  startTime: string;
+}
+
+export interface GameInPending extends Game {
+  userWhiteId: string;
+  userBlackId: string;
+  state: 'PENDING';
+  result: null;
+  startTime: null;
+}
+
+export interface GameInAborted extends Game {
+  userWhiteId: string;
+  userBlackId: string;
+  state: 'ABORTED';
+  result: null;
+  startTime: string;
+}
 
 /********************************* SOCKET MESSAGES **************************************/
 
@@ -121,3 +144,26 @@ export type GameComplete = {
   result: Result;
 };
 export type UserConnected = string;
+
+/*********************************** TYPE GUARDS ****************************************/
+export type RedisJSON = Object | null;
+
+export const isUserSession = (user: RedisJSON): user is UserSession => {
+  return user && 'userId' in user ? true : false;
+};
+
+export const isGame = (game: RedisJSON): game is Game => {
+  return game && 'gameId' in game ? true : false;
+};
+
+export const isGameInProgress = (game: RedisJSON): game is GameInProgress => {
+  return (game as GameInProgress).state === 'IN_PROGRESS';
+};
+
+export const isGamePending = (game: RedisJSON): game is GameInPending => {
+  return (game as GameInPending).state === 'PENDING';
+};
+
+export const isGameAborted = (game: RedisJSON): game is GameInAborted => {
+  return (game as GameInAborted).state === 'ABORTED';
+};

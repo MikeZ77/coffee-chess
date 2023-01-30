@@ -7,7 +7,11 @@ export class ServerError extends CustomError {
 }
 
 export class SocketError extends CustomError {
-  public constructor(public message: string) {
+  public details: Object | undefined;
+  public constructor(public message: string, details?: Object) {
     super(message);
+    if (details) {
+      this.details = details;
+    }
   }
 }

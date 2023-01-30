@@ -8,15 +8,15 @@ import {
   whiteId,
   blackId,
   gameId,
-  loadTestPlayersIntoDb,
-  loginTestUsers,
+  loadTestPlayersIntoDbForGame,
+  loginTestGameUsers,
   connectSocketsAndListenForGame,
   readyForNextTestGame,
   getNewTestGame
-} from './game.helper';
+} from './helper';
 
 const { DB_USER, DB_PASSWORD, DB_NAME } = process.env;
-
+// TODO: Write more tests: 50 move rule, 3-fold repitition, time, abort, etc...
 describe('A game can be played to completion', () => {
   let redis: RedisClientType;
   let db: ConnectionPool;
@@ -30,14 +30,14 @@ describe('A game can be played to completion', () => {
     db = await sql.connect(
       `Server=localhost,3002;Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=true`
     );
-    await loadTestPlayersIntoDb(db);
-    const [whiteToken, blackToken] = await loginTestUsers();
+    await loadTestPlayersIntoDbForGame(db);
+    const [whiteToken, blackToken] = await loginTestGameUsers();
     [whiteSocket, blackSocket] = await connectSocketsAndListenForGame(whiteToken, blackToken);
   });
 
   afterAll(async () => {
-    // whiteSocket.close();
-    // blackSocket.close();
+    whiteSocket.close();
+    blackSocket.close();
     await redis.disconnect();
     await db.close();
   });
@@ -97,10 +97,6 @@ describe('A game can be played to completion', () => {
     test('The game should be in state COMPLETE', async () => {
       const state = await redis.json.get(`game:${gameId}`, { path: ['state'] });
       expect(state).toBe('COMPLETE');
-    });
-
-    test('The game should be stored in the database', async () => {
-      expect(true).toBe(true);
     });
   });
 });

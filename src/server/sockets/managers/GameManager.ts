@@ -1,25 +1,30 @@
 import type { Socket, Server as ioServer } from 'socket.io';
 import type { RedisClientType } from 'redis';
 import sql, { type ConnectionPool } from 'mssql';
-import type {
-  GameMessage,
-  GameConfirmation,
-  GameMove,
-  GameAborted,
-  GameClock,
-  GameDrawOffer,
-  GameComplete,
-  GameHistory,
-  Result,
-  ResultReason,
-  GameResign,
-  GameChat,
-  Game
+import {
+  type GameMessage,
+  type GameConfirmation,
+  type GameMove,
+  type GameAborted,
+  type GameClock,
+  type GameDrawOffer,
+  type GameComplete,
+  type GameHistory,
+  type Result,
+  type ResultReason,
+  type GameResign,
+  type GameChat,
+  type RedisJSON,
+  isUserSession,
+  isGame,
+  isGameInProgress,
+  isGamePending
 } from '@Types';
 import type { ShortMove } from 'chess.js';
 import { Chess } from 'chess.js';
 import { DateTime } from 'luxon';
 import Filter from 'bad-words';
+import { SocketError } from '@Utils/custom.errors';
 import calculateUpdatedEloRating from '../../utils/elo.calculator';
 import Logger from '@Utils/config.logging.winston';
 import Manager from './Manager';
@@ -33,13 +38,31 @@ const {
 
 export default class GameManager extends Manager {
   private trackGame = async (message: GameMessage, gameHandler: Function, ack?: Function) => {
-    const userSession = this.socket.data.userSession;
-    const gameId = await this.redis.json.get(userSession, { path: ['playingGame'] });
-    if (gameId) {
-      this.socket.data.gameId = gameId;
-      this.socket.data.gameSession = `game:${gameId}`;
-      this.socket.data.gameRoom = `room:game:${gameId}`;
-      ack === undefined ? gameHandler(message) : gameHandler(message, ack);
+    try {
+      const userSession = this.socket.data.userSession;
+      const gameId = await this.redis.json.get(userSession, { path: ['playingGame'] });
+      if (gameId) {
+        this.socket.data.gameId = gameId;
+        this.socket.data.gameSession = `game:${gameId}`;
+        this.socket.data.gameRoom = `room:game:${gameId}`;
+        ack === undefined ? await gameHandler(message) : await gameHandler(message, ack);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        Logger.error(`${this.getUserSignature()}: %o`, error.stack);
+      }
+      if (error instanceof SocketError) {
+        const [user, game] = await this.getRedisStateOnError();
+        if (error.details) {
+          Logger.error(`${this.getUserSignature()}: %o`, error.details);
+        }
+        if (isUserSession(user)) {
+          Logger.info(`${this.getUserSignature()}::userstate: %o`, user);
+        }
+        if (isGame(game)) {
+          Logger.info(`${this.getUserSignature()}::gamestate: %o`, game);
+        }
+      }
     }
   };
 
@@ -48,11 +71,14 @@ export default class GameManager extends Manager {
     this.startTime = DateTime.now();
     this.clockInterval = setInterval(
       async () => {
-        const { state, position, whiteTime, blackTime } = <
-          { state: string; position: string; whiteTime: number; blackTime: number }
-        >await this.redis.json.get(gameSession, {
+        const game = await this.redis.json.get(gameSession, {
           path: ['state', 'position', 'whiteTime', 'blackTime']
         });
+
+        if (!isGame(game)) {
+          throw new SocketError('No game exists for game clock in startGameClock');
+        }
+        const { state, position, whiteTime, blackTime } = game;
 
         if (state === 'ABORTED') {
           clearInterval(<number>this.clockInterval);
@@ -65,7 +91,6 @@ export default class GameManager extends Manager {
         const chess = new Chess(position);
         const endTime = DateTime.now();
         const delta = endTime.diff(<DateTime>this.startTime, ['milliseconds']).milliseconds;
-        // Logger.debug('delta %o', delta);
         if (state === 'IN_PROGRESS') {
           if (chess.turn() === 'w') {
             if (whiteTime - delta <= 0) {
@@ -77,7 +102,6 @@ export default class GameManager extends Manager {
                 blackTime,
                 timestampUtc: DateTime.utc().toString()
               };
-              // Logger.info(' White: %o', clock);
               await Promise.all([
                 this.redis.json.numIncrBy(gameSession, 'whiteTime', -delta),
                 this.io.in(gameRoom).emit('message:game:clock', clock)
@@ -93,7 +117,6 @@ export default class GameManager extends Manager {
                 blackTime: blackTime - delta,
                 timestampUtc: DateTime.utc().toString()
               };
-              // Logger.info('Black: %o', clock);
               await Promise.all([
                 this.redis.json.numIncrBy(gameSession, 'blackTime', -delta),
                 this.io.in(gameRoom).emit('message:game:clock', clock)
@@ -116,21 +139,19 @@ export default class GameManager extends Manager {
   ) => {
     setTimeout(
       async () => {
-        const {
-          state: gameState,
-          userWhiteId,
-          userBlackId,
-          gameId,
-          history
-        } = <Record<string, string>>await this.redis.json.get(gameSession, {
+        const game = await this.redis.json.get(gameSession, {
           path: ['state', 'userWhiteId', 'userBlackId', 'gameId', 'history']
         });
 
+        if (!(isGamePending(game) || isGameInProgress(game))) {
+          throw new SocketError('Incorrect game state in handler setGameAbortWatcher.');
+        }
+
         let gameAborted = false;
+        const { state: gameState, userWhiteId, userBlackId, gameId, history } = game;
+        // One player has not sent game confirmation.
         if (gameState === 'PENDING') {
-          // One player has not sent game confirmation.
           gameAborted = true;
-          Logger.debug('Game pending.');
         } // One or both players have not made a move.
         else if (gameState === 'IN_PROGRESS') {
           if (color === 'WHITE') {
@@ -144,7 +165,7 @@ export default class GameManager extends Manager {
             }
           }
         } else {
-          Logger.debug('Abort time expired with no action.');
+          Logger.info(`Game ${gameSession} abort time expired with no action.`);
         }
 
         if (gameAborted) {
@@ -165,8 +186,6 @@ export default class GameManager extends Manager {
       gameSession,
       gameRoom
     );
-    Logger.debug(gameSession);
-    Logger.debug(gameRoom);
   };
 
   private constructGameRoom = async (message: GameConfirmation) => {
@@ -198,7 +217,6 @@ export default class GameManager extends Manager {
       ]);
       // TODO: Add to the list of games players can observe.
     }
-    Logger.debug('%o', { message: `${username} Has conncted.` });
     await this.redis.json.set(userSession, 'state', 'PLAYING');
     await this.io
       .in(gameRoom)
@@ -214,33 +232,28 @@ export default class GameManager extends Manager {
     3. Update the game clock.
     4. Check if the game is over (checkmate, stalemate, draw, threefold repetition, or insufficient material)
   */
-    Logger.debug('gameMove %o', gameMove);
     const endTime = DateTime.utc();
     const maxMoveLatency = parseInt(MAX_MOVE_CORRECTION_LATENCY_MS);
     const { timestampUtc, promotion, ...playerMove } = gameMove;
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
-    const { userWhiteId, userBlackId, state, position, history } = <
-      {
-        userWhiteId: string;
-        userBlackId: string;
-        state: string;
-        position: string;
-        history: GameHistory[];
-      }
-    >await this.redis.json.get(gameSession, {
+    const game = await this.redis.json.get(gameSession, {
       path: ['userWhiteId', 'userBlackId', 'state', 'position', 'history']
     });
 
-    if (state !== 'IN_PROGRESS') {
-      return;
+    if (!isGameInProgress(game)) {
+      throw new SocketError('Incorrect game state in handler updateGameMove.');
     }
+    const { userWhiteId, userBlackId, position, history } = game;
 
     if (
       !(typeof timestampUtc === 'string') ||
       !DateTime.fromISO(timestampUtc).isValid ||
       !(endTime.diff(DateTime.fromISO(timestampUtc), ['milliseconds']).milliseconds >= 0)
     ) {
-      return;
+      throw new SocketError('Bad client timestamp in handler updateGameMove.', {
+        endTime,
+        timestampUtc
+      });
     }
 
     const _chess = new Chess(position);
@@ -249,7 +262,7 @@ export default class GameManager extends Manager {
       (userId === userWhiteId && _chess.turn() === 'b') ||
       (userId === userBlackId && _chess.turn() === 'w')
     ) {
-      return;
+      throw new SocketError('User tried to make a move not on their turn', gameMove);
     }
 
     if (history.length) {
@@ -274,10 +287,6 @@ export default class GameManager extends Manager {
     }
 
     if (this.chess.in_checkmate()) {
-      // Set game state to COMPLETE (clock will clear).
-      // Set result to BLACK or WHITE.
-      // Call function to compute elo change and store game.
-      // Send checkmate gameStatusNotification to clients.
       const { color } = move;
       const result = color === 'w' ? 'WHITE' : 'BLACK';
       await this.handleGameCompletion(result, 'CHECKMATE', <ShortMove>playerMove);
@@ -327,6 +336,12 @@ export default class GameManager extends Manager {
     playerMove?: ShortMove
   ) => {
     const { gameRoom, gameSession, gameId } = <Record<string, string>>this.socket.data;
+    const game = await this.redis.json.get(gameSession);
+
+    if (!isGameInProgress(game)) {
+      throw new SocketError('Incorrect game state in handler handleGameCompletion.');
+    }
+
     const {
       userWhite,
       userBlack,
@@ -337,13 +352,13 @@ export default class GameManager extends Manager {
       type,
       history,
       startTime
-    } = <Game>await this.redis.json.get(gameSession);
+    } = game;
 
     const { newWhiteRating, newBlackRating } = calculateUpdatedEloRating(
       ratingWhite,
       ratingBlack,
       result,
-      50 // Get number of player games, hardcoded for now non-provisional for now.
+      50 // TODO: Get number of player games, hardcoded for now non-provisional for now.
     );
 
     if (history.length) {
@@ -377,7 +392,7 @@ export default class GameManager extends Manager {
     await Promise.all([
       this.redis.json.set(gameSession, 'state', 'COMPLETE'),
       this.redis.json.set(gameSession, 'result', result),
-      this.redis.json.set(whiteUserSession, 'state', 'IDLE'), //{ XX: true } Deleted if logged out.
+      this.redis.json.set(whiteUserSession, 'state', 'IDLE'),
       this.redis.json.set(whiteUserSession, 'playingGame', null),
       this.redis.json.set(blackUserSession, 'state', 'IDLE'),
       this.redis.json.set(blackUserSession, 'playingGame', null),
@@ -393,14 +408,17 @@ export default class GameManager extends Manager {
 
   private handleDrawOffer = async (offer: GameDrawOffer) => {
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
-    const { pendingDrawOfferFrom, userWhiteId, userBlackId } = <Record<string, string>>(
-      await this.redis.json.get(gameSession, {
-        path: ['pendingDrawOfferFrom', 'userWhiteId', 'userBlackId']
-      })
-    );
+    const game = await this.redis.json.get(gameSession, {
+      path: ['pendingDrawOfferFrom', 'userWhiteId', 'userBlackId', 'state']
+    });
 
+    if (!isGameInProgress(game)) {
+      throw new SocketError('Incorrect game state in handler handleDrawOffer.');
+    }
+
+    const { pendingDrawOfferFrom, userWhiteId, userBlackId } = game;
     if (![userWhiteId, userBlackId].includes(userId)) {
-      return;
+      throw new SocketError(`User ${userId} does not have access to game.`);
     }
 
     if (!pendingDrawOfferFrom) {
@@ -416,11 +434,15 @@ export default class GameManager extends Manager {
       1. Check that the user accepting the draw is the user who was offered the draw.
     */
     const { userId, gameSession } = <Record<string, string>>this.socket.data;
-    const { pendingDrawOfferFrom, userWhiteId, userBlackId } = <Record<string, string>>(
-      await this.redis.json.get(gameSession, {
-        path: ['pendingDrawOfferFrom', 'userWhiteId', 'userBlackId']
-      })
-    );
+    const game = await this.redis.json.get(gameSession, {
+      path: ['pendingDrawOfferFrom', 'userWhiteId', 'userBlackId', 'state']
+    });
+
+    if (!isGameInProgress(game)) {
+      throw new SocketError('Incorrect game state in handler handleAcceptDrawOffer.');
+    }
+
+    const { pendingDrawOfferFrom, userWhiteId, userBlackId } = game;
     if ([userWhiteId, userBlackId].includes(userId) && pendingDrawOfferFrom !== userId) {
       this.handleGameCompletion('DRAW', 'DRAW');
     }
@@ -428,15 +450,17 @@ export default class GameManager extends Manager {
 
   private handleResignation = async (message: GameResign) => {
     const { userId, gameSession } = <Record<string, string>>this.socket.data;
-    const { userWhiteId, userBlackId } = <Record<string, string>>await this.redis.json.get(
-      gameSession,
-      {
-        path: ['userWhiteId', 'userBlackId']
-      }
-    );
+    const game = await this.redis.json.get(gameSession, {
+      path: ['userWhiteId', 'userBlackId', 'state']
+    });
 
+    if (!isGameInProgress(game)) {
+      throw new SocketError('Incorrect game state in handler handleResignation.');
+    }
+
+    const { userWhiteId, userBlackId } = game;
     if (![userWhiteId, userBlackId].includes(userId)) {
-      return;
+      throw new SocketError(`User ${userId} does not have access to game.`);
     }
 
     const result = userId === userWhiteId ? 'BLACK' : 'WHITE';
@@ -447,13 +471,15 @@ export default class GameManager extends Manager {
     const { userId, username, gameSession, gameRoom } = <Record<string, string>>(
       this.socket.data
     );
-    const { userWhiteId, userBlackId } = <Record<string, string>>await this.redis.json.get(
-      gameSession,
-      {
-        path: ['userWhiteId', 'userBlackId']
-      }
-    );
+    const game = await this.redis.json.get(gameSession, {
+      path: ['userWhiteId', 'userBlackId']
+    });
 
+    if (!isGame(game)) {
+      throw new SocketError('No game exists for game chat in broadcastGameChat.');
+    }
+
+    const { userWhiteId, userBlackId } = game;
     if (![userWhiteId, userBlackId].includes(userId)) {
       return;
     }
@@ -477,10 +503,15 @@ export default class GameManager extends Manager {
       const gameSession = `game:${gameId}`;
       const gameRoom = `room:game:${gameId}`;
       const [game] = await Promise.all([
-        this.redis.json.get(gameSession),
+        <RedisJSON>this.redis.json.get(gameSession),
         this.socket.join(gameRoom)
       ]);
-      const { history, userWhite } = <Game>game;
+
+      if (!isGame(game)) {
+        throw new SocketError('No game exists for game reconnect in reconnectGame.');
+      }
+
+      const { history, userWhite } = game;
       const { position: currentPosition } = history[history.length - 1];
       const color = username === userWhite ? 'w' : 'b';
       const maxHistory = // On a players turn the state of this.chess is behind one move.
@@ -492,7 +523,7 @@ export default class GameManager extends Manager {
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { userWhiteId, userBlackId, ...rest } = <Game>game;
+      const { userWhiteId, userBlackId, ...rest } = game;
       await this.socket.emit('message:game:load', rest);
     }
   };

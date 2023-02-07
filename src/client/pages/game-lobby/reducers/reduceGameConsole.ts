@@ -63,7 +63,6 @@ const reduceGameConsole: Reducer<State, GameConsoleAction> = (action, state): St
       };
     }
     case 'RESET_GAME_STATE': {
-      console.log('defaultState.currentGame', defaultState.currentGame);
       return {
         ...state,
         reduced: true,

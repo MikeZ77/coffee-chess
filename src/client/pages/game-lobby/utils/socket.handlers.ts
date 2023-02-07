@@ -6,9 +6,7 @@ import type {
   GameAborted,
   GameClock,
   GameMove,
-  GameDrawOffer,
   GameComplete,
-  GameResign,
   ServerMessage
 } from '@Types';
 import type { ClientGame } from '../state';
@@ -103,7 +101,6 @@ export const registerGameEvents = (
     }
 
     if (event.type === INPUT_EVENT_TYPE.validateMoveInput) {
-      console.log('event.squareTo', event.squareTo);
       const eighthRank = event.squareTo.charAt(1) === '8' ? true : false;
       const firstRank = event.squareTo.charAt(1) === '1' ? true : false;
       if ((eighthRank || firstRank) && event.piece.charAt(1) === 'p') {
@@ -127,11 +124,7 @@ export const registerGameEvents = (
   ) => {
     // @ts-ignore
     chessboard.showPromotionDialog(squareTo, color, (promotionEvent) => {
-      console.log('promotionEvent', promotionEvent);
-      console.log('Piece selected', promotionEvent.piece);
       if (promotionEvent.piece) {
-        console.log('promotionEvent.square', promotionEvent.square);
-        console.log('promotionEvent.piece', promotionEvent.piece);
         chessboard.setPiece(squareFrom, null);
         chessboard.setPiece(promotionEvent.square, promotionEvent.piece, true);
         const promotionPiece = promotionEvent.piece.charAt(1);
@@ -152,9 +145,7 @@ export const registerGameEvents = (
       to: squareTo,
       ...(promotionPiece ? { promotion: promotionPiece } : {})
     });
-    console.log('result1', result);
     if (result) {
-      console.log('result2', result);
       const { from, to, piece, promotion, captured } = result;
       socket.emit('message:game:move', <GameMove>{
         from,
@@ -203,13 +194,11 @@ export const registerGameEvents = (
     dispatch(updateGameState('IN_PROGRESS'));
     removeCacheStateData('searching');
     board.enableMoveInput(attachBoardInputHandler, color);
-    console.log('Game connected message: ', message);
     dispatch(updateChatLog(message));
     state.audio.newGameSound?.play();
   };
 
   const opponentMove = (move: GameMove) => {
-    console.log('move', move);
     const { from, to, promotion } = move;
     const prevPosition = chess.fen();
     const { piece, captured, color } = chess.move({
@@ -307,7 +296,7 @@ export const registerGameEvents = (
   };
 
   const offerDraw = () => {
-    socket.emit('message:game:draw:offer', <GameDrawOffer>{ drawOffer: true });
+    socket.emit('message:game:draw:offer');
     const {
       username,
       currentGame: { userWhite, userBlack }
@@ -323,31 +312,29 @@ export const registerGameEvents = (
   };
 
   const acceptDraw = () => {
-    socket.emit('message:game:draw:accept', <GameDrawOffer>{ drawOffer: true });
+    socket.emit('message:game:draw:accept');
     dispatch(updateDrawOffer(null));
   };
 
-  const opponentDrawOffer = (offer: GameDrawOffer) => {
-    if (offer.drawOffer) {
-      const {
-        username,
-        currentGame: { userWhite, userBlack },
-        audio: { notificationSound }
-      } = <State>dispatch();
-      const opponent = username === userWhite ? userBlack : userWhite;
-      dispatch(updateDrawOffer(opponent));
-      dispatch(
-        updateChatLog(<GameChat>{
-          username: undefined,
-          message: `${opponent} has offered a draw.`
-        })
-      );
-      notificationSound?.play();
-    }
+  const opponentDrawOffer = () => {
+    const {
+      username,
+      currentGame: { userWhite, userBlack },
+      audio: { notificationSound }
+    } = <State>dispatch();
+    const opponent = username === userWhite ? userBlack : userWhite;
+    dispatch(updateDrawOffer(opponent));
+    dispatch(
+      updateChatLog(<GameChat>{
+        username: undefined,
+        message: `${opponent} has offered a draw.`
+      })
+    );
+    notificationSound?.play();
   };
 
   const resign = () => {
-    socket.emit('message:game:resign', <GameResign>{ resign: true });
+    socket.emit('message:game:resign');
   };
 
   const gameComplete = (message: GameComplete) => {

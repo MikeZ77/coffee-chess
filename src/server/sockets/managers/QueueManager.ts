@@ -19,14 +19,19 @@ export default class QueueManager {
     while (true!) {
       const item = await this.queueRedis.blPop('game:queue:match', parseInt(blockSeconds));
       if (item) {
+        const matchedGame: QueueRecord[] = JSON.parse(item.element);
         try {
-          const matchedGame: QueueRecord[] = JSON.parse(item.element);
           this.handleNewGame(matchedGame);
         } catch (error) {
           if (error instanceof Error) {
-            /* TODO: If there is an unexpected error, we need to attempt to rollback the game creation
-             so the user is not left in a bad state. Call this from Manager.*/
             Logger.error(`${error.message}: %o`, error.stack);
+            const [{ userId: seekingUserId }, { userId: matchedUserId }] = matchedGame;
+            const [seekingPlayerState, matchedPlayerState] = await Promise.all([
+              this.redis.json.get(`user:session:${seekingUserId}`),
+              this.redis.json.get(`user:session:${matchedUserId}`)
+            ]);
+            Logger.info(`userstate: %o`, seekingPlayerState);
+            Logger.info(`userstate: %o`, matchedPlayerState);
           }
         }
       }
@@ -104,7 +109,7 @@ export default class QueueManager {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { userWhiteId, userBlackId, ...rest } = newGame;
     await this.io.emit('message:game:match', rest);
-    Logger.info('Paired: %o', matchedGame);
+    Logger.info('Paired game: %o', matchedGame);
   };
 
   private io;

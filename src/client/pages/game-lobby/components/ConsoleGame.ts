@@ -108,7 +108,6 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
     gameConsole: { disableChat },
     currentGame: { gameChat, pendingDrawOfferFrom, state: gameState, history }
   } = state;
-  console.log('gameState', gameState);
   // use this for adjusting vh height of console for different screens.
   // const smallScreen = window.innerWidth < 1720;
   return div({ className: 'card' }, [
@@ -238,7 +237,6 @@ const ConsoleGame: Component<State, GameConsoleAction> = (dispatch, state) => {
           className: 'icon is-small m-2',
           style: 'cursor: pointer; float: right;',
           onclick: () => {
-            console.log(!disableChat);
             dispatch(setDisableChat(!disableChat));
           }
         },

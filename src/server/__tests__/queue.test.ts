@@ -1,5 +1,5 @@
 import * as sql from 'mssql';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import type { ConnectionPool } from 'mssql';
 import { type RedisClientType, createClient } from 'redis';
 import {
@@ -7,7 +7,8 @@ import {
   playerTwoId,
   playerThreeId,
   loadTestPlayersIntoDbForQueue,
-  loginTestQueueUsers
+  loginTestQueueUsers,
+  cleanupQueueUsers
 } from './helper';
 
 const { DB_USER, DB_PASSWORD, DB_NAME, SERVER_FQDN } = process.env;
@@ -38,8 +39,14 @@ describe('Players can be paired in the queue', () => {
   });
 
   afterAll(async () => {
-    await redis.disconnect();
+    await db.query(cleanupQueueUsers);
     await db.close();
+    await redis.del([
+      `user:session:${playerOneId}`,
+      `user:session:${playerTwoId}`,
+      `user:session:${playerThreeId}`
+    ]);
+    await redis.disconnect();
   });
 
   describe('Two players should be paired based on their elo rating and env QUEUE_RATING_MATCH', () => {
@@ -55,8 +62,8 @@ describe('Players can be paired in the queue', () => {
       await new Promise<void>((resolve) =>
         setTimeout(async () => {
           const [playerOneGame, playerThreeGame] = await Promise.all([
-            redis.json.get(playerOneId, { path: ['playingGame'] }),
-            redis.json.get(playerThreeId, { path: ['playingGame'] })
+            redis.json.get(`user:session:${playerOneId}`, { path: ['playingGame'] }),
+            redis.json.get(`user:session:${playerThreeId}`, { path: ['playingGame'] })
           ]);
           expect(playerOneGame).toBeNull();
           expect(playerThreeGame).toBeNull();
@@ -70,14 +77,32 @@ describe('Players can be paired in the queue', () => {
       await new Promise<void>((resolve) =>
         setTimeout(async () => {
           const [playerOneGame, playerTwoGame] = await Promise.all([
-            redis.json.get(playerOneId, { path: ['playingGame'] }),
-            redis.json.get(playerTwoId, { path: ['playingGame'] })
+            redis.json.get(`user:session:${playerOneId}`, { path: ['playingGame'] }),
+            redis.json.get(`user:session:${playerTwoId}`, { path: ['playingGame'] })
           ]);
           expect(playerOneGame).not.toBeNull();
           expect(playerTwoGame).not.toBeNull();
           resolve();
         }, 3500)
       );
+    });
+
+    test('A player who is in SEARCHING state should not be able to queue again', async () => {
+      try {
+        await axios.post(`${SERVER_FQDN}/api/v1/game/search/15+0`, {}, playerThreeHeader);
+      } catch (error: unknown) {
+        if (error instanceof AxiosError) {
+          expect(error.response?.status).toBe(500);
+        }
+      }
+    });
+
+    test('A player who is in SEARCHING state should be able to cancel their search for the same time control', async () => {
+      const response = await axios.delete(
+        `${SERVER_FQDN}/api/v1/game/search/5+0`,
+        playerThreeHeader
+      );
+      expect(response.status).toBe(200);
     });
   });
 });

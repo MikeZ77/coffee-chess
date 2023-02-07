@@ -31,6 +31,7 @@ declare global {
       SERVER_FQDN: string;
       JWT_SECRET: string;
       JWT_EXPIRY_HOURS: string;
+      JWT_REFRESH_INTERVAL_M: string;
       QUEUE_LOCK_TTL_MS: string;
       QUEUE_RATING_MATCH: string;
       DEFAULT_RATING: string;

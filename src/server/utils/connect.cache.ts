@@ -27,7 +27,7 @@ export const initConnListeners = (
 };
 
 export const initRedis = async () => {
-  // TODO: Config should be specified for stage and prod environments
+  // TODO: Config should be specified for stage and prod environments (requires password)
   const redisClientPromise = createClient(redisConfig);
   initConnListeners(redisClientPromise, 'Redis');
   await redisClientPromise.connect();

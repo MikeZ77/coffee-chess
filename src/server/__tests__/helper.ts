@@ -22,6 +22,23 @@ const playerOneRating = 1600;
 const playerTwoRating = 1500;
 const playerThreeRating = 2000;
 
+export const cleanupQueueUsers = `
+DELETE app.base.users
+WHERE user_id IN ('${playerOneId}', '${playerTwoId}', '${playerThreeId}');
+DELETE app.base.ratings
+WHERE user_id IN ('${playerOneId}', '${playerTwoId}', '${playerThreeId}');
+`;
+
+export const cleanupGameUsers = `
+DELETE app.base.ratings
+WHERE user_id IN ('${whiteId}', '${blackId}');
+DELETE app.base.games
+WHERE user_id_white = '${whiteId}' 
+OR user_id_black = '${blackId}';
+DELETE app.base.users
+WHERE user_id IN ('${whiteId}', '${blackId}');
+`;
+
 export const loadTestPlayersIntoDbForGame = async (db: ConnectionPool) => {
   await db.query(
     `INSERT INTO app.base.users (user_id, email, username, password, activated, register_date) VALUES

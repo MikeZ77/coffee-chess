@@ -9,5 +9,5 @@ export { default as logout } from './user/logout';
 export { default as queueSearch } from './game/queue.search';
 export { default as queueSearchCancel } from './game/queue.search.cancel';
 
-// TODO: For testing only.
+// Kept for automated testing of user auth to protected endpoints.
 export { default as test } from './user/test';

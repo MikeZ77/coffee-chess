@@ -2,7 +2,7 @@ import { encode, decode } from 'jwt-simple';
 import { DateTime } from 'luxon';
 import Logger from './config.logging.winston';
 
-const { JWT_SECRET, JWT_EXPIRY_HOURS } = process.env;
+const { JWT_SECRET, JWT_EXPIRY_HOURS, JWT_REFRESH_INTERVAL_M } = process.env;
 
 interface IPartialTokenSession {
   user_id: string;
@@ -42,14 +42,15 @@ export const decodeToken = (token: string) => {
 
 export const checkExpiration = (session: ITokenSession) => {
   const { expires } = session;
+  const refreshInterval = parseInt(JWT_REFRESH_INTERVAL_M);
   const timeRemaining = DateTime.fromISO(expires).diff(DateTime.now(), 'minute').toObject();
-  //TODO: Make the token refresh interval an env variable (right now hardcoded at 15 minutes)
+
   if (timeRemaining.minutes == undefined) {
     return TokenState.EXPIRED;
   }
   if (timeRemaining.minutes < 0) {
     return TokenState.EXPIRED;
-  } else if (timeRemaining.minutes > 15) {
+  } else if (timeRemaining.minutes > refreshInterval) {
     return TokenState.ACTIVE;
   } else {
     return TokenState.RENEW;

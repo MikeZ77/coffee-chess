@@ -34,7 +34,7 @@ const view: View<State, AnyActions> = (dispatch, state) => {
               { className: 'message-body' },
               `This site points to the test and staging server. 
       Your user information could be deleted at any time. The actual 
-      coffeechess website can be found at coffeechess.net.`
+      coffeechess website is a WIP 🛠️`
             )
           ])
         : div(),

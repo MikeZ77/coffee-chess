@@ -12,7 +12,8 @@ import {
   loginTestGameUsers,
   connectSocketsAndListenForGame,
   readyForNextTestGame,
-  getNewTestGame
+  getNewTestGame,
+  cleanupGameUsers
 } from './helper';
 
 const { DB_USER, DB_PASSWORD, DB_NAME } = process.env;
@@ -36,6 +37,8 @@ describe('A game can be played to completion', () => {
   });
 
   afterAll(async () => {
+    await redis.del([`user:session:${whiteId}`, `user:session:${blackId}`]);
+    await db.query(cleanupGameUsers);
     whiteSocket.close();
     blackSocket.close();
     await redis.disconnect();

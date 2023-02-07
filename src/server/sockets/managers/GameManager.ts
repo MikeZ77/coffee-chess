@@ -7,12 +7,10 @@ import {
   type GameMove,
   type GameAborted,
   type GameClock,
-  type GameDrawOffer,
   type GameComplete,
   type GameHistory,
   type Result,
   type ResultReason,
-  type GameResign,
   type GameChat,
   type RedisJSON,
   isUserSession,
@@ -37,16 +35,26 @@ const {
 } = process.env;
 
 export default class GameManager extends Manager {
+  /* 
+    GameManager is responsible for managing all sockets that are connected to a game. This includes
+    but is not limited to handling player moves, player time, game logic and game state.
+  */
   private trackGame = async (message: GameMessage, gameHandler: Function, ack?: Function) => {
+    /*  
+    Entry point and error handling for socket handlers.
+      1. Get socket data. If undefined get this information from game state.
+      2. Call the game handler and handle handle its errors if it throws and exception.
+    */
     try {
       const userSession = this.socket.data.userSession;
-      const gameId = await this.redis.json.get(userSession, { path: ['playingGame'] });
-      if (gameId) {
+      const { gameId, gameSession, gameRoom } = this.socket.data;
+      if ([gameId, gameSession, gameRoom].includes(undefined)) {
+        const gameId = await this.redis.json.get(userSession, { path: ['playingGame'] });
         this.socket.data.gameId = gameId;
         this.socket.data.gameSession = `game:${gameId}`;
         this.socket.data.gameRoom = `room:game:${gameId}`;
-        ack === undefined ? await gameHandler(message) : await gameHandler(message, ack);
       }
+      ack === undefined ? await gameHandler(message) : await gameHandler(message, ack);
     } catch (error: unknown) {
       if (error instanceof Error) {
         Logger.error(`${this.getUserSignature()}: %o`, error.stack);
@@ -67,19 +75,33 @@ export default class GameManager extends Manager {
   };
 
   private startGameClock = (gameSession: string, gameRoom: string) => {
+    /*
+      1. Set a new start time for the current tick.
+      2. If the game state is in ABORTED or COMPLETE then clear the interval (stop the clock).
+      3. If the game state is IN_PROGRESS compute the delta (change) that has occured since the last clock tick
+         using the start and end time.
+        CASE 1: It is whites turn:
+          1. Decrement whites time by delta.
+          2. If white is out of time call handleGameCompletion with result BLACK.
+        CASE 2: It is blacks turn:
+          1. Decrement blacks time by delta.
+          2. If white is out of time call handleGameCompletion with result WHITE.
+      4. Send the updated time to any client in the game room.
+      5. Set the new end time as the current start time.
+    */
     const interval = parseInt(GAME_CLOCK_TICK_MS);
     this.startTime = DateTime.now();
     this.clockInterval = setInterval(
       async () => {
         const game = await this.redis.json.get(gameSession, {
-          path: ['state', 'position', 'whiteTime', 'blackTime']
+          path: ['state', 'position', 'whiteTime', 'blackTime', 'gameId']
         });
 
         if (!isGame(game)) {
           throw new SocketError('No game exists for game clock in startGameClock');
         }
-        const { state, position, whiteTime, blackTime } = game;
 
+        const { state, position, whiteTime, blackTime } = game;
         if (state === 'ABORTED') {
           clearInterval(<number>this.clockInterval);
         }
@@ -137,6 +159,14 @@ export default class GameManager extends Manager {
     gameRoom: string,
     color: 'WHITE' | 'BLACK'
   ) => {
+    /*
+      1. If the game is in state PENDING after time GAME_ABORT_MS, set the game to abort state.
+        CASE 1: The game is in state PENDING.
+        CASE 2: The game is in state IN_PROGRESS and the watcher has been set for WHITE.
+          1. This means that a player has connected and now white as GAME_ABORT_MS time to make a move.
+        CASE 3: The game is in state IN_PROGRESS and the watcher has been set for BLACK.
+          1. This means that white has made the first move and now black has GAME_ABORT_MS time to make a move.
+    */
     setTimeout(
       async () => {
         const game = await this.redis.json.get(gameSession, {
@@ -215,7 +245,6 @@ export default class GameManager extends Manager {
         this.redis.json.set(gameSession, 'state', 'IN_PROGRESS'),
         this.redis.json.set(gameSession, 'startTime', DateTime.utc().toString())
       ]);
-      // TODO: Add to the list of games players can observe.
     }
     await this.redis.json.set(userSession, 'state', 'PLAYING');
     await this.io
@@ -227,10 +256,14 @@ export default class GameManager extends Manager {
     /*
     Relays the move and updates the game state.
     1. Validate that the user is making a move for their turn.
-    2. Validate the move (.move(move, [ options ])).
-      CASE 1: If it is the first move then start the game clock.
-    3. Update the game clock.
-    4. Check if the game is over (checkmate, stalemate, draw, threefold repetition, or insufficient material)
+    2. Validate that the current time minus the client timestamp is greater than 0.
+    3. Update the players manager game state with the opponents last move based in state. 
+       This is because each client socket has instantiated their own GameManager. 
+    4. Validate the players move is legal.
+    5. Compute the players move latency and subtract (up to) maxMoveLatency
+    6. Check if the game is over (checkmate, stalemate, draw, threefold repetition, or insufficient material)
+       If true then call handleGameCompletion.
+    7. If it is the first move start the game clock and the abort game watcher for black.
   */
     const endTime = DateTime.utc();
     const maxMoveLatency = parseInt(MAX_MOVE_CORRECTION_LATENCY_MS);
@@ -283,7 +316,7 @@ export default class GameManager extends Manager {
       ...(promotion ? { promotion } : {})
     });
     if (!move) {
-      return;
+      throw new SocketError('User made an illegal move', gameMove);
     }
 
     if (this.chess.in_checkmate()) {
@@ -302,7 +335,6 @@ export default class GameManager extends Manager {
       const sentTime = DateTime.fromISO(timestampUtc);
       const colorTurn = color === 'w' ? 'whiteTime' : 'blackTime';
       const delta = endTime.diff(sentTime, ['milliseconds']).milliseconds;
-      Logger.debug('playerMove %o', playerMove);
       await Promise.all([
         delta > maxMoveLatency
           ? this.redis.json.numIncrBy(gameSession, colorTurn, maxMoveLatency)
@@ -335,6 +367,15 @@ export default class GameManager extends Manager {
     resultType: ResultReason,
     playerMove?: ShortMove
   ) => {
+    /*
+      1. Calculate the elo rating update for each player.
+      2. If the manager state for the game does not match the state, update the last move so that
+         the full pgn can be output. This can occur for example if an opponent offers a draw on the
+         players move and that player accepts. Then the manager game state would not be up to date with
+         the true state.
+      3. Update the database.
+      4. Update the game state. 
+    */
     const { gameRoom, gameSession, gameId } = <Record<string, string>>this.socket.data;
     const game = await this.redis.json.get(gameSession);
 
@@ -406,7 +447,12 @@ export default class GameManager extends Manager {
     ]);
   };
 
-  private handleDrawOffer = async (offer: GameDrawOffer) => {
+  private handleDrawOffer = async () => {
+    /*
+      1. The player offers the opponent a draw. 
+      2. Set a pending draw offer in game state using the players usrId.
+      3. Send the draw offer to the client.
+    */
     const { userId, gameRoom, gameSession } = <Record<string, string>>this.socket.data;
     const game = await this.redis.json.get(gameSession, {
       path: ['pendingDrawOfferFrom', 'userWhiteId', 'userBlackId', 'state']
@@ -423,15 +469,16 @@ export default class GameManager extends Manager {
 
     if (!pendingDrawOfferFrom) {
       await Promise.all([
-        this.socket.to(gameRoom).emit('message:game:draw:offer', <GameDrawOffer>offer),
+        this.socket.to(gameRoom).emit('message:game:draw:offer'),
         this.redis.json.set(gameSession, 'pendingDrawOfferFrom', userId)
       ]);
     }
   };
 
-  private handleAcceptDrawOffer = async (offer: GameDrawOffer) => {
+  private handleAcceptDrawOffer = async () => {
     /* 
-      1. Check that the user accepting the draw is the user who was offered the draw.
+      1. Handled after handleDrawOffer if the player accepts.
+      2. Call handleGameCompletion.
     */
     const { userId, gameSession } = <Record<string, string>>this.socket.data;
     const game = await this.redis.json.get(gameSession, {
@@ -448,7 +495,7 @@ export default class GameManager extends Manager {
     }
   };
 
-  private handleResignation = async (message: GameResign) => {
+  private handleResignation = async () => {
     const { userId, gameSession } = <Record<string, string>>this.socket.data;
     const game = await this.redis.json.get(gameSession, {
       path: ['userWhiteId', 'userBlackId', 'state']
@@ -472,7 +519,7 @@ export default class GameManager extends Manager {
       this.socket.data
     );
     const game = await this.redis.json.get(gameSession, {
-      path: ['userWhiteId', 'userBlackId']
+      path: ['userWhiteId', 'userBlackId', 'gameId']
     });
 
     if (!isGame(game)) {
@@ -488,7 +535,7 @@ export default class GameManager extends Manager {
       await this.redis.set(`chat:game:timeout:${userId}`, gameSession, {
         EX: parseInt(GAME_CHAT_TIMEOUT_SEC)
       });
-      // TODO: Include timestamp on GameChat to limit rate of messages.
+      // TODO: Include timestamp on GameChat to limit rate of messages on the server side.
       this.io.in(gameRoom).emit('message:game:chat', <GameChat>{
         username,
         message: this.chatFilter.clean(message)
@@ -497,6 +544,12 @@ export default class GameManager extends Manager {
   };
 
   private reconnectGame = async () => {
+    /*
+      Syncs a reconnected socket to the current state of the game.
+        1. Check if the player has a game.
+        2. Get the game history from state and update the manager state.
+        3. Send the current game state to the client.
+    */
     const { userSession, username } = this.socket.data;
     const gameId = await this.redis.json.get(userSession, { path: ['playingGame'] });
     if (gameId) {

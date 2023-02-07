@@ -53,7 +53,6 @@ const Board: Component<State, NavBarAction> = (dispatch, state) => {
   const { currentGame, username, audio } = state;
   const { ratingBlack, ratingWhite, userWhite, userBlack, result, whiteTime, blackTime } =
     currentGame;
-  console.log('result', result);
   const lowTimeMark = parseInt(GAME_LOW_TIME_MS);
   let player,
     opponent,

@@ -82,10 +82,9 @@ export default class Manager {
       const start = DateTime.now();
       socket.emit('message:user:ping', async () => {
         try {
-          // console.log(socket.connected);
           const latency = Interval.fromDateTimes(start, DateTime.now()).length('milliseconds');
           const userSession = socket.data.userSession;
-          // TODO: Bug where userSession is undefined. Probably not being set when user reconnects.
+          // TODO: Potential bug where userSession is undefined. Probably not being set when user reconnects.
           await redis.json.arrAppend(userSession, 'latency', {
             timestampUtc: DateTime.utc().toString(),
             ms: latency
@@ -121,7 +120,14 @@ export default class Manager {
       }
     }
   };
-
+  // TODO: Implement a method that takes multiple redis key values and sets them.
+  /* TODO: The manager should provide redis rollback transactions that can be called by sub-managers.
+           For example, and exception is thrown in GameManager. This would be handled by calling
+           a RollbackTransaction method defined in Manager in order to reset state. Incase the issue 
+           is with redis, this transaction can be attempted multiple times using a library like:
+           https://www.npmjs.com/package/async-retry
+  */
+  // Saved here for future reference.
   // protected async getRedis(key: string, values: string[]): Promise<string> {
   //   return new Promise((resolve, reject) => {
   //     this.redis.json

@@ -18,11 +18,10 @@ export default (req: Request, res: Response, next: NextFunction) => {
         req.id = user_id;
         return next();
       case TokenState.EXPIRED:
-        // TODO: Remove user session
         return res.status(401).redirect('/login');
       case TokenState.RENEW: {
         req.id = user_id;
-        const refreshedToken = encodeToken({ user_id, username });
+        const refreshedToken: string = encodeToken({ user_id, username });
         res.cookie('access_token', refreshedToken, {
           httpOnly: true,
           secure: ENV === 'dev' ? false : true

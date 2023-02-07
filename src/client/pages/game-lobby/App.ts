@@ -64,7 +64,6 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
 
   /*  INITIALIZATION   */
   const board = new Chessboard(document.getElementById('board'), boardConfig);
-  // TODO: Get player state from server and handle search.
   initEventListeners();
   handleCachedData(dispatch);
   initTooltipAttributes({

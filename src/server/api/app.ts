@@ -1,5 +1,6 @@
 import helmet from 'helmet';
 import express, { type Express } from 'express';
+import promBundle from 'express-prom-bundle';
 import type { Server } from 'http';
 import path from 'path';
 import routers from './routes/index';
@@ -12,10 +13,19 @@ const { PORT, API_VERSION } = process.env;
 
 const initApi = (app: Express, server: Server) => {
   const PUBLIC = '../../../src/client/public';
+  const metricsMiddleware = promBundle({
+    includeMethod: true,
+    includePath: true,
+    includeUp: true,
+    promClient: {
+      collectDefaultMetrics: {}
+    }
+  });
   app.use(express.json());
   app.use(cookieParser());
   app.use(morganMiddleware);
   app.use(helmet());
+  app.use(metricsMiddleware);
   app.use(
     '/favicon.ico',
     express.static(path.resolve(__dirname, `${PUBLIC}/images/favicon.ico`))

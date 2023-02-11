@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { decodeToken, encodeToken, checkExpiration, TokenState } from '@Utils/auth.token';
+import type { RedisClientType } from 'redis';
 
-const { ENV } = process.env;
+const { ENV, JWT_EXPIRY_HOURS } = process.env;
 
-export default (req: Request, res: Response, next: NextFunction) => {
+export default async (req: Request, res: Response, next: NextFunction) => {
+  const redis: RedisClientType = req.app.locals.redis;
   const token: string = req.cookies.access_token;
+
   if (token === undefined) {
     return res.status(401).redirect('/login');
   }
@@ -21,9 +24,11 @@ export default (req: Request, res: Response, next: NextFunction) => {
         return res.status(401).redirect('/login');
       case TokenState.RENEW: {
         req.id = user_id;
+        const newSessionExpiry = parseInt(JWT_EXPIRY_HOURS) * 60 * 60 + 30;
         const refreshedToken: string = encodeToken({ user_id, username });
+        await redis.expire(`user:session:${user_id}`, newSessionExpiry);
         res.cookie('access_token', refreshedToken, {
-          httpOnly: true,
+          httpOnly: ENV === 'dev' ? false : true,
           secure: ENV === 'dev' ? false : true
         });
         return next();

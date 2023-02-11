@@ -23,6 +23,8 @@ const initSockets = async (
     new QueueManager(io, redisClient, queueClient).listenMatchQueue();
     Logger.info(`Coffee Chess Socket server running on port ${PORT} ☕ ♟️ 🚀`);
     io.on('connection', (socket) => {
+      // TODO: Investigate using socket.use() middleware to check for expired token and emit
+      //       a logout signal to the client. Also see if this middleware can be used in GameManager.
       Logger.info(`User ${socket.data.username} ${socket.data.userId} is connected.`);
       UserManager.sendUserInfo(socket);
       Manager.checkClientConnections(io, socket);

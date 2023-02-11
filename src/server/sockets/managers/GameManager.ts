@@ -265,6 +265,7 @@ export default class GameManager extends Manager {
        If true then call handleGameCompletion.
     7. If it is the first move start the game clock and the abort game watcher for black.
   */
+    Logger.debug('%o', gameMove);
     const endTime = DateTime.utc();
     const maxMoveLatency = parseInt(MAX_MOVE_CORRECTION_LATENCY_MS);
     const { timestampUtc, promotion, ...playerMove } = gameMove;
@@ -315,6 +316,7 @@ export default class GameManager extends Manager {
       ...playerMove,
       ...(promotion ? { promotion } : {})
     });
+    Logger.debug('move %o', move);
     if (!move) {
       throw new SocketError('User made an illegal move', gameMove);
     }
@@ -330,7 +332,7 @@ export default class GameManager extends Manager {
     ) {
       await this.handleGameCompletion('DRAW', 'DRAW', <ShortMove>playerMove);
     } else {
-      const { from, to, color, piece, captured } = move;
+      const { from, to, color, piece, captured, san, flags } = move;
       const nextPosition = this.chess.fen();
       const sentTime = DateTime.fromISO(timestampUtc);
       const colorTurn = color === 'w' ? 'whiteTime' : 'blackTime';
@@ -341,16 +343,20 @@ export default class GameManager extends Manager {
           : this.redis.json.numIncrBy(gameSession, colorTurn, delta),
         this.redis.json.set(gameSession, 'position', this.chess.fen()),
         this.redis.json.set(gameSession, 'pendingDrawOfferFrom', null),
-        this.socket
-          .to(gameRoom)
-          .emit('message:game:move', { ...playerMove, ...(promotion ? { promotion } : {}) }),
+        this.socket.to(gameRoom).emit('message:game:move', {
+          ...playerMove,
+          ...(promotion ? { promotion } : {}),
+          ...(['O-O', 'O-O-O'].includes(san) ? { castle: san } : {}),
+          ...(flags === 'e' ? { enPassant: true } : {})
+        }),
         this.redis.json.arrAppend(gameSession, 'history', {
           from,
           to,
           position: nextPosition,
           piece,
           ...(captured ? { captured } : {}),
-          ...(promotion ? { promotion } : {})
+          ...(promotion ? { promotion } : {}),
+          ...(['O-O', 'O-O-O'].includes(san) ? { castle: san } : {})
         })
       ]);
 

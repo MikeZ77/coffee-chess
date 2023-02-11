@@ -7,7 +7,7 @@ import type { RedisClientType } from 'redis';
 import type { UserSession, LoginPayload } from '@Types';
 import type { Response, NextFunction, Request } from 'express';
 
-const { ENV } = process.env;
+const { ENV, JWT_EXPIRY_HOURS } = process.env;
 
 export default async (
   req: Request<{}, {}, LoginPayload>,
@@ -34,6 +34,8 @@ export default async (
     if (correctPassword) {
       if (activated) {
         const token = encodeToken({ user_id, username });
+        const userSessionKey = `user:session:${user_id}`;
+        const userSessionExpiry = parseInt(JWT_EXPIRY_HOURS) * 60 * 60 + 30; // Leave an extra 30 seconds as a buffer.
         const userSession: UserSession = {
           userId: user_id,
           username: username,
@@ -43,9 +45,11 @@ export default async (
           lastActivity: DateTime.utc().toString(),
           latency: []
         };
-        await redis.json.set(`user:session:${user_id}`, '$', userSession, {
-          NX: true
-        });
+        await redis
+          .multi()
+          .json.set(userSessionKey, '$', userSession, { NX: true })
+          .expire(userSessionKey, userSessionExpiry)
+          .exec();
 
         res
           .cookie('access_token', token, {

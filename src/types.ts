@@ -64,6 +64,7 @@ export type QueueRecord = {
 
 export type GameState = 'PENDING' | 'ABORTED' | 'IN_PROGRESS' | 'COMPLETE';
 export type GameChat = { username?: string; message: string };
+export type Castle = 'O-O' | 'O-O-O';
 export type GameHistory = {
   from: string;
   to: string;
@@ -71,6 +72,7 @@ export type GameHistory = {
   piece: string;
   captured?: string;
   promotion?: string;
+  castle?: Castle;
 };
 export type Result = ('WHITE' | 'BLACK' | 'DRAW') | null;
 export interface Game {
@@ -128,12 +130,11 @@ export type UserInfo = {
 export type ServerMessage =
   | { type: 'MULTIPLE_WINDOWS' }
   | { type: 'SERVER_MESSAGE'; data: string };
-
+export type UserConnected = string;
 export type GameMessage = GameConfirmation | GameAborted;
 export type GameConfirmation = { ready: boolean };
 export type GameAborted = { aborted: boolean };
 export type GameClock = { whiteTime: number; blackTime: number; timestampUtc?: string };
-export type GameMove = { from: string; to: string; promotion?: string; timestampUtc?: string };
 export type ResultReason = 'RESIGN' | 'DRAW' | 'CHECKMATE' | 'TIME_WHITE' | 'TIME_BLACK';
 export type GameComplete = {
   type: ResultReason;
@@ -141,7 +142,14 @@ export type GameComplete = {
   newBlackRating: number;
   result: Result;
 };
-export type UserConnected = string;
+export type GameMove = {
+  from: string;
+  to: string;
+  promotion?: string;
+  timestampUtc?: string;
+  castle?: Castle;
+  enPassant?: boolean;
+};
 
 /*********************************** TYPE GUARDS ****************************************/
 export type RedisJSON = Object | null;

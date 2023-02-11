@@ -9,7 +9,7 @@ import type {
   GameComplete,
   ServerMessage
 } from '@Types';
-import type { ClientGame } from '../state';
+import type { ClientGame, Color } from '../state';
 import type { UserAction, AnyActions } from '../actions/index';
 import type { Dispatch } from '@Common/types';
 import type { State } from '../state';
@@ -44,7 +44,8 @@ import {
 import {
   INPUT_EVENT_TYPE,
   MARKER_TYPE,
-  COLOR
+  COLOR,
+  PIECE
 } from 'cm-chessboard/src/cm-chessboard/Chessboard';
 
 export const registerGameEvents = (
@@ -84,9 +85,7 @@ export const registerGameEvents = (
     board.setPosition(position, false);
     board.setOrientation(color);
     chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
-    if (chess.turn() === color) {
-      board.enableMoveInput(attachBoardInputHandler, color);
-    }
+    board.enableMoveInput(attachBoardInputHandler, color);
   };
 
   // @ts-ignore
@@ -111,7 +110,8 @@ export const registerGameEvents = (
           event.chessboard
         );
       }
-      return handleEventPieceMove(event.squareFrom, event.squareTo);
+      // @ts-ignore
+      return handleEventPieceMove(event.squareFrom, event.squareTo, event.chessboard);
     }
   };
 
@@ -128,7 +128,7 @@ export const registerGameEvents = (
         chessboard.setPiece(squareFrom, null);
         chessboard.setPiece(promotionEvent.square, promotionEvent.piece, true);
         const promotionPiece = promotionEvent.piece.charAt(1);
-        handleEventPieceMove(squareFrom, squareTo, promotionPiece);
+        handleEventPieceMove(squareFrom, squareTo, chessboard, promotionPiece);
       } else {
         chessboard.setPosition(chess.fen());
       }
@@ -138,6 +138,8 @@ export const registerGameEvents = (
   const handleEventPieceMove = (
     squareFrom: string,
     squareTo: string,
+    // @ts-ignore
+    chessboard,
     promotionPiece?: string
   ) => {
     const result = chess.move({
@@ -146,13 +148,14 @@ export const registerGameEvents = (
       ...(promotionPiece ? { promotion: promotionPiece } : {})
     });
     if (result) {
-      const { from, to, piece, promotion, captured } = result;
+      const { from, to, piece, promotion, captured, san, color, flags } = result;
       socket.emit('message:game:move', <GameMove>{
         from,
         to,
         ...(promotion ? { promotion } : {}),
         timestampUtc: DateTime.utc().toString()
       });
+
       const {
         currentGame: {
           pendingDrawOfferFrom,
@@ -160,7 +163,14 @@ export const registerGameEvents = (
         },
         audio: { pieceMoveSound }
       } = <State>dispatch();
-      chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
+
+      if (flags === 'e') {
+        helperEnPassant(squareTo, color, chessboard);
+      }
+      helperCastlePieces(san, color, chessboard);
+      chess.turn() === COLOR.white
+        ? clock.startWhiteClock(dispatch)
+        : clock.startBlackClock(dispatch);
       dispatch(setBoardPosition(chess.fen()));
       dispatch(
         updateConsoleMoveHistory({
@@ -169,7 +179,8 @@ export const registerGameEvents = (
           position: chess.fen(),
           piece,
           ...(promotion ? { promotion } : {}),
-          ...(captured ? { captured } : {})
+          ...(captured ? { captured } : {}),
+          ...(['O-O', 'O-O-O'].includes(san) ? { castle: san } : {})
         })
       );
       pieceMoveSound?.play();
@@ -180,6 +191,57 @@ export const registerGameEvents = (
         dispatch(updateDrawOffer(null));
       }
       return result;
+    }
+  };
+
+  // @ts-ignore
+  const helperCastlePieces = (castle: 'O-O' | 'O-O-O', color: 'w' | 'b', chessboard) => {
+    if (castle === 'O-O') {
+      switch (color) {
+        case COLOR.white:
+          chessboard
+            .setPiece('h1', null)
+            .then(() => chessboard.setPiece('f1', PIECE.wr, true));
+          break;
+        case COLOR.black:
+          chessboard
+            .setPiece('h8', null)
+            .then(() => chessboard.setPiece('f8', PIECE.br, true));
+          break;
+      }
+    }
+    if (castle === 'O-O-O') {
+      switch (color) {
+        case COLOR.white:
+          chessboard
+            .setPiece('a1', null)
+            .then(() => chessboard.setPiece('d1', PIECE.wr, true));
+          break;
+        case COLOR.black:
+          chessboard
+            .setPiece('a8', null)
+            .then(() => chessboard.setPiece('d8', PIECE.br, true));
+          break;
+      }
+    }
+  };
+
+  // @ts-ignore
+  const helperEnPassant = (moveTo: string, color: 'w' | 'b', chessboard) => {
+    const file = moveTo.charAt(0);
+    switch (color) {
+      case COLOR.white: {
+        const rank = (parseInt(moveTo.charAt(1)) - 1).toString();
+        const capturedSquare = `${file}${rank}`;
+        chessboard.setPiece(capturedSquare, null);
+        break;
+      }
+      case COLOR.black: {
+        const rank = (parseInt(moveTo.charAt(1)) + 1).toString();
+        const capturedSquare = `${file}${rank}`;
+        chessboard.setPiece(capturedSquare, null);
+        break;
+      }
     }
   };
 
@@ -199,7 +261,7 @@ export const registerGameEvents = (
   };
 
   const opponentMove = (move: GameMove) => {
-    const { from, to, promotion } = move;
+    const { from, to, promotion, castle, enPassant } = move;
     const prevPosition = chess.fen();
     const { piece, captured, color } = chess.move({
       from,
@@ -212,7 +274,16 @@ export const registerGameEvents = (
         board.setPiece(to, `${color}${promotion}`);
       }
     });
-    chess.turn() === 'w' ? clock.startWhiteClock(dispatch) : clock.startBlackClock(dispatch);
+
+    if (castle) {
+      helperCastlePieces(castle, color, board);
+    }
+
+    if (enPassant) {
+      helperEnPassant(to, color, board);
+    }
+
+    color === 'w' ? clock.startBlackClock(dispatch) : clock.startWhiteClock(dispatch);
     dispatch(setBoardPosition(chess.fen()));
     dispatch(
       updateConsoleMoveHistory({
@@ -221,7 +292,8 @@ export const registerGameEvents = (
         position: chess.fen(),
         piece,
         ...(promotion ? { promotion } : {}),
-        ...(captured ? { captured } : {})
+        ...(captured ? { captured } : {}),
+        ...(castle ? { castle } : {})
       })
     );
     highlightCurrentMoveHistory(chess.fen(), prevPosition);
@@ -570,10 +642,16 @@ export const registerUserEvents = (socket: Socket, dispatch: Dispatch<UserAction
       }
     }
   };
+  // TODO: Log client out via socket connection if token expired.
+  // const userExpiredSession = () => {
+  //   const { SERVER_FQDN } = process.env;
+  //   window.location.assign(`${SERVER_FQDN}/login`);
+  // };
 
   const userPing = (pong: Function) => pong();
 
   socket.on('message:user:info', userInfo);
+  // socket.on('message:user:expired', userExpiredSession);
   socket.on('message:user:ping', userPing);
   socket.on('message:user:notification', userNotification);
 };

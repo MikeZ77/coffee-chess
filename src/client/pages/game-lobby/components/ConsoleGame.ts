@@ -71,7 +71,7 @@ const getPieceIcon = (piece: string, index: number): HyperScriptHelperFn => {
 const renderMoveHistory = (history: GameHistory[]): HyperScriptHelperFn[] => {
   const moveHistory: HyperScriptHelperFn[] = [];
   history.forEach((move, index) => {
-    const { to: moveTo, position, piece, captured, promotion } = move;
+    const { to: moveTo, position, piece, captured, promotion, castle } = move;
     const moveNumber = (index + 1) / 2;
     moveHistory.push(
       span([
@@ -90,7 +90,11 @@ const renderMoveHistory = (history: GameHistory[]): HyperScriptHelperFn[] => {
             },
             [
               getPieceIcon(piece, index),
-              span(`${captured ? 'x' : ''}${moveTo}${promotion ? '=' : ' '}`),
+              span(
+                `${captured ? 'x' : ''}${castle ? castle.toLocaleLowerCase() : moveTo}${
+                  promotion ? '=' : ' '
+                }`
+              ),
               promotion && getPieceIcon(promotion, index)
             ]
           )

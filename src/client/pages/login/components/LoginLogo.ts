@@ -1,7 +1,7 @@
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 // @ts-ignore
-import TempLoginLogo from '../../../public/images/coffee_temp_logo.png';
+import TempLoginLogo from '../../../public/images/coffee_logo.png';
 
 const { div, img } = hh(h);
 
@@ -11,8 +11,8 @@ const LoginLogo = () => {
       img({
         src: TempLoginLogo,
         alt: 'Coffee Chess',
-        width: '300',
-        height: '300'
+        width: '250',
+        height: '250'
       })
     ])
   ]);

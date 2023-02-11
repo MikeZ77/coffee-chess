@@ -82,7 +82,6 @@ const app = (initState: State, view: View<State, AnyActions>, node: HTMLElement)
 
   socket.on('disconnect', () => {
     clientDisconnectNotification(dispatch);
-    // socket.connect();
   });
 
   socket.io.on('reconnect', () => {

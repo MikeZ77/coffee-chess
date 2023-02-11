@@ -5,10 +5,11 @@ import Logger from './config.logging.winston';
 type RedisClient = ReturnType<typeof createClient>;
 type IORedisClient = ReturnType<typeof Redis>;
 
-const { REDIS_SERVER, IO_REDIS_SERVER } = process.env;
+const { ENV, REDIS_SERVER, IO_REDIS_SERVER, REDIS_PASSWORD } = process.env;
 
 export const redisConfig = {
-  url: REDIS_SERVER
+  url: REDIS_SERVER,
+  ...(ENV !== 'dev' ? { password: REDIS_PASSWORD } : {})
 };
 
 export const initConnListeners = (
@@ -27,7 +28,6 @@ export const initConnListeners = (
 };
 
 export const initRedis = async () => {
-  // TODO: Config should be specified for stage and prod environments (requires password)
   const redisClientPromise = createClient(redisConfig);
   initConnListeners(redisClientPromise, 'Redis');
   await redisClientPromise.connect();
@@ -35,7 +35,10 @@ export const initRedis = async () => {
 };
 
 export const initIoRedis = async () => {
-  const ioredis = new Redis({ host: IO_REDIS_SERVER });
+  const ioredis = new Redis({
+    host: IO_REDIS_SERVER,
+    ...(ENV !== 'dev' ? { password: REDIS_PASSWORD } : {})
+  });
   initConnListeners(ioredis, 'IO Redis');
   return ioredis;
 };

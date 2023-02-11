@@ -5,7 +5,7 @@ import { Chess } from 'chess.js';
 import { v4 as uuidv4 } from 'uuid';
 import Logger from '@Utils/config.logging.winston';
 
-const { GAME_OBJECT_EXPIRY_SECONDS, GAME_MATCH_QUEUE_BLOCK_SEC: blockSeconds } = process.env;
+const { GAME_OBJECT_EXPIRY_SEC, GAME_MATCH_QUEUE_BLOCK_SEC: blockSeconds } = process.env;
 
 export default class QueueManager {
   public listenMatchQueue = async () => {
@@ -102,7 +102,7 @@ export default class QueueManager {
     await this.redis
       .multi()
       .json.set(`game:${newGame.gameId}`, '$', newGame)
-      .expire(`game:${newGame.gameId}`, parseInt(GAME_OBJECT_EXPIRY_SECONDS))
+      .expire(`game:${newGame.gameId}`, parseInt(GAME_OBJECT_EXPIRY_SEC))
       .json.set(userSessionSeekingPlayer, '$.playingGame', newGame.gameId)
       .json.set(userSessionMatchedPlayer, '$.playingGame', newGame.gameId)
       .exec();

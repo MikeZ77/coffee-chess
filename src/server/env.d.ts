@@ -15,9 +15,8 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NOTIFICATION_TIMEOUT_MS: string;
-      ENV: 'dev' | 'stage' | 'prod';
+      ENV: 'dev' | 'lab' | 'prod';
       PORT: string;
-      SOCKET_PORT: string;
       API_VERSION: string;
       DB_NAME: string;
       DB_SERVER: string;
@@ -25,6 +24,7 @@ declare global {
       DB_USER: string;
       REDIS_SERVER: string;
       IO_REDIS_SERVER: string;
+      REDIS_PASSWORD: string;
       EMAIL_USERNAME: string;
       EMAIL_PASSWORD: string;
       EMAIL_HOST: string;
@@ -35,7 +35,7 @@ declare global {
       QUEUE_LOCK_TTL_MS: string;
       QUEUE_RATING_MATCH: string;
       DEFAULT_RATING: string;
-      GAME_OBJECT_EXPIRY_SECONDS: string;
+      GAME_OBJECT_EXPIRY_SEC: string;
       GAME_ABORT_MS: string;
       GAME_CLOCK_TICK_MS: string;
       CLIENT_GAME_CLOCK_TICK_MS: string;

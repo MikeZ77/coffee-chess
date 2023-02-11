@@ -14,7 +14,7 @@ const { ENV } = process.env;
 const view: View<State, AnyActions> = (dispatch, state) => {
   if (!state.disablePage) {
     return div([
-      ['dev', 'pre'].includes(ENV) && !getCacheStateData('env-notification')
+      ['dev', 'lab'].includes(ENV) && !getCacheStateData('env-notification')
         ? article('#notification-banner', { className: 'message is-primary' }, [
             div({ className: 'message-header' }, [
               p('Notification'),

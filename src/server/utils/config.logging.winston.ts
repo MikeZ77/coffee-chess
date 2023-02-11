@@ -28,9 +28,7 @@ const format = winston.format.combine(
   }))(),
   winston.format.splat(),
   winston.format.colorize({ level: true }),
-  winston.format.printf(
-    (info) => `${info.timestamp} ${info.level} ${info.message}`
-  )
+  winston.format.printf((info) => `${info.timestamp} ${info.level} ${info.message}`)
 );
 
 const transports = [new winston.transports.Console()];

@@ -4,12 +4,9 @@ services:
     container_name: coffee-chess
     build:
       context: .
-      args:
-        ENV: dev
     depends_on:
       db:
         condition: service_healthy
-    command: npm run dev
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules

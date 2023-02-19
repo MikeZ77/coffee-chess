@@ -26,10 +26,7 @@ jobs:
       - run: docker-compose up
       - run: sqlcmd -S localhost,3002 -U SA -Q "RESTORE DATABASE [app] FROM DISK = N'app.bak' WITH FILE = 1, NOUNLOAD, REPLACE, STATS = 5"
       - run: npm run test
-
   build:
-    requires:
-      - test
     docker:
       - image: docker:stable
     steps:
@@ -42,3 +39,11 @@ jobs:
   # deploy:
   #   requires:
   #     - build
+
+workflows:
+  test_build_deploy:
+    jobs:
+      - test
+      - build:
+          requires:
+            - test

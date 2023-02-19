@@ -34,7 +34,7 @@ const format = winston.format.combine(
 const transports = [new winston.transports.Console()];
 
 const Logger = winston.createLogger({
-  level: ENV === 'dev' ? 'debug' : 'warn',
+  level: ENV === 'dev' ? 'debug' : 'http',
   levels,
   format,
   transports

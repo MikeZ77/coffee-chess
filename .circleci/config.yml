@@ -4,6 +4,9 @@ jobs:
   test:
     docker:
       - image: ubuntu-2004:2022.10.1
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD
     steps:
       - checkout
       - run: |

@@ -16,6 +16,7 @@ jobs:
           cp ~/$KUBE_REPO/.env .
       - run: npm install
       - run: docker run --name db-setup -v mssql-data:/var/opt/mssql -e ACCEPT_EULA='Y' -e MSSQL_SA_PASSWORD='dev7aY!dm2t62' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
+      - run: sleep 5
       - run: |
           docker cp ~/$KUBE_REPO/app.bak db-setup:/tmp
           docker cp ~/$KUBE_REPO/restore_app.sql db-setup:/tmp

@@ -29,13 +29,13 @@ services:
     ports:
       - 3002:1433
     environment:
-      SA_PASSWORD: dev7aY!dm2t62
+      SA_PASSWORD: dev7aY$dm2t62
       ACCEPT_EULA: Y
       MSSQL_PID: Developer
     volumes:
       - mssql-data:/var/opt/mssql
     healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "dev7aY!dm2t62" -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "dev7aY$dm2t62" -Q "SELECT 1" || exit 1
       interval: 10s
       timeout: 3s
       retries: 10

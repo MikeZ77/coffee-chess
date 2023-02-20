@@ -13,13 +13,13 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - 'N+d9P//Fwoec2qUPIM7U6fRscN9t3UUjzS0kHOBkGUI'
-      - run: npm install
-      - run: docker-compose up
       - run: |
           git clone git@github.com:MikeZ77/$KUBE_REPO.git /tmp
           cp /tmp/$KUBE_REPO/.env /tmp/$KUBE_REPO/app.bak .
           docker cp /tmp/$KUBE_REPO/app.bak sql-server:/tmp
           docker cp /tmp/$KUBE_REPO/restore_app.sql sql-server:/tmp
+      - run: npm install
+      - run: docker-compose up
       - run: docker exec sql-server /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P dev7aY\!dm2t62 -i /tmp/restore_app.sql
       - run: npm run test
   build:

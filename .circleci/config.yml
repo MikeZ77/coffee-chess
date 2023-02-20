@@ -14,15 +14,19 @@ jobs:
           mkdir ~/$KUBE_REPO
           git clone git@github.com:MikeZ77/$KUBE_REPO.git ~/$KUBE_REPO
           cp ~/$KUBE_REPO/.env .
-      - run: |
-          ls -lrt
-          cat .env
       - run: npm install
-      - run: docker-compose up
+      - run: docker run --name db-setup \
+          -v mssql-data:/var/opt/mssql \
+          -e ACCEPT_EULA='Y' \
+          -e MSSQL_SA_PASSWORD='dev7aY!dm2t62' \
+          -p 1433:1433 \
+          -d mcr.microsoft.com/mssql/server:2022-latest
       - run: | 
-          docker cp ~/$KUBE_REPO/app.bak sql-server:/tmp
-          docker cp ~/$KUBE_REPO/restore_app.sql sql-server:/tmp
-          docker exec sql-server /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P dev7aY\!dm2t62 -i /tmp/restore_app.sql
+          docker cp ~/$KUBE_REPO/app.bak db-setup:/tmp
+          docker cp ~/$KUBE_REPO/restore_app.sql db-setup:/tmp
+          docker exec db-setup /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P dev7aY\!dm2t62 -i /tmp/restore_app.sql
+      - run: docker stop db-setup
+      - run: docker-compose up
       - run: npm run test
   build:
     docker:

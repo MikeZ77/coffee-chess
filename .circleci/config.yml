@@ -7,9 +7,9 @@ jobs:
     steps:
       - checkout
       - run: |
-          curl -sL https://deb.nodesource.com/setup_14.20 -o /tmp/nodesource_setup.sh
+          curl -sL https://deb.nodesource.com/setup_14.x -o /tmp/nodesource_setup.sh
           sudo bash /tmp/nodesource_setup.sh
-          sudo apt install nodejs
+          sudo apt install -y nodejs
       - add_ssh_keys:
           fingerprints:
             - 'N+d9P//Fwoec2qUPIM7U6fRscN9t3UUjzS0kHOBkGUI'

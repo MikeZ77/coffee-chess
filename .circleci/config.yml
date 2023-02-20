@@ -14,7 +14,7 @@ jobs:
           fingerprints:
             - 'N+d9P//Fwoec2qUPIM7U6fRscN9t3UUjzS0kHOBkGUI'
       - run: |
-          git clone git@github.com:MikeZ77/$KUBE_REPO.git /tmp
+          git clone --template=/tmp git@github.com:MikeZ77/$KUBE_REPO.git
           cp /tmp/$KUBE_REPO/.env /tmp/$KUBE_REPO/app.bak .
           docker cp /tmp/$KUBE_REPO/app.bak sql-server:/tmp
           docker cp /tmp/$KUBE_REPO/restore_app.sql sql-server:/tmp

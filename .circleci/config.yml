@@ -22,7 +22,7 @@ jobs:
           docker cp ~/$KUBE_REPO/restore_app.sql db-setup:/tmp
       - run: docker exec db-setup /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'dev7aY!dm2t62' -i /tmp/restore_app.sql
       - run: docker stop db-setup
-      - run: docker-compose up
+      - run: docker-compose up -d
       - run: npm run test
   build:
     docker:

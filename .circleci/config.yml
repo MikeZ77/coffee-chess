@@ -14,6 +14,9 @@ jobs:
           mkdir ~/$KUBE_REPO
           git clone git@github.com:MikeZ77/$KUBE_REPO.git ~/$KUBE_REPO
           cp ~/$KUBE_REPO/.env .
+      - run: |
+          ls -lrt
+          cat .env
       - run: npm install
       - run: docker-compose up
       - run: | 

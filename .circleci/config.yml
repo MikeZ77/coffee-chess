@@ -6,14 +6,14 @@ jobs:
       image: ubuntu-2004:202010-01
     steps:
       - checkout
-      - run: |
-          nvm install 14.20.1
-          nvm use 14.20.1
+      - run: nvm install 14.20.1
       - run: |
           mkdir ~/$KUBE_REPO
           git clone git@github.com:MikeZ77/$KUBE_REPO.git ~/$KUBE_REPO
           cp ~/$KUBE_REPO/.env .
-      - run: npm install
+      - run: |
+          nvm use 14.20.1
+          npm install
       - run: docker run --name db-setup -v project_mssql-data:/var/opt/mssql -e ACCEPT_EULA='Y' -e MSSQL_SA_PASSWORD='dev7aY!dm2t62' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
       - run: sleep 5
       - run: |
@@ -22,7 +22,9 @@ jobs:
       - run: docker exec db-setup /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'dev7aY!dm2t62' -i /tmp/restore_app.sql
       - run: docker stop db-setup
       - run: docker-compose up -d
-      - run: npm run test
+      - run: |
+          nvm use 14.20.1
+          npm run test
   build:
     docker:
       - image: docker:stable

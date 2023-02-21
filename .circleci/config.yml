@@ -6,10 +6,7 @@ jobs:
       image: ubuntu-2004:202010-01
     steps:
       - checkout
-      - run: |
-          curl -sL https://deb.nodesource.com/setup_14.x -o /tmp/nodesource_setup.sh
-          sudo bash /tmp/nodesource_setup.sh
-          sudo apt install -y nodejs
+      - run: nvm install 14.20
       - run: |
           mkdir ~/$KUBE_REPO
           git clone git@github.com:MikeZ77/$KUBE_REPO.git ~/$KUBE_REPO

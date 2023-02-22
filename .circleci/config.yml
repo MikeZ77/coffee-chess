@@ -31,13 +31,23 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: docker build --tag mzaghi/coffee-chess:lab .
+      - run: docker build --tag mzaghi/coffee-chess:${CIRCLE_SHA1} .
       - run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      - run: docker push mzaghi/coffee-chess:lab
-
-  # deploy:
-  #   requires:
-  #     - build
+      - run: docker push mzaghi/coffee-chess:${CIRCLE_SHA1}
+  deploy:
+    docker:
+      - image: bitnami/kubectl:1.26.1
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: |
+          echo "$KUBE_CONFIG" | base64 --decode > kubeconfig.yaml
+          cp kubeconfig.yaml $HOME/.kube/config
+      - run: |
+          git clone git@github.com:MikeZ77/$KUBE_REPO.git
+          cp $KUBE_REPO/coffee.yaml .
+      - run: sed -i "s|{{IMAGE_TAG}}|${CIRCLE_SHA1}|g" coffee.yaml
+      - run: cat coffee.yaml
 
 workflows:
   test_build_deploy:
@@ -46,3 +56,6 @@ workflows:
       - build:
           requires:
             - test
+      - deploy:
+          requires:
+            - build

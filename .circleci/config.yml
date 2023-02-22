@@ -36,7 +36,7 @@ jobs:
       - run: docker push mzaghi/coffee-chess:${CIRCLE_SHA1}
   deploy:
     docker:
-      - image: bitnami/kubectl:latest
+      - image: circleci/kubernetes:1.23.0
     steps:
       - checkout
       - setup_remote_docker

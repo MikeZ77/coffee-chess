@@ -42,7 +42,8 @@ jobs:
       - setup_remote_docker
       - run: |
           echo "$KUBE_CONFIG" | base64 -d > kubeconfig.yaml
-          cp kubeconfig.yaml $HOME/.kube/config
+          mkdir $HOME/.kube
+          mv kubeconfig.yaml $HOME/.kube/config
       - run: |
           git clone git@github.com:MikeZ77/$KUBE_REPO.git
           cp $KUBE_REPO/coffee.yaml .

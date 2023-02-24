@@ -42,11 +42,12 @@ jobs:
       - setup_remote_docker
       - run: |
           echo "$KUBE_CONFIG" | base64 -d > kubeconfig.yaml
-          mkdir $HOME/.kube
-          mv kubeconfig.yaml $HOME/.kube/config
+          mkdir ~/.kube
+          mv kubeconfig.yaml ~/.kube/config
       - run: |
-          git clone git@github.com:MikeZ77/$KUBE_REPO.git
-          cp $KUBE_REPO/coffee.yaml .
+          mkdir ~/$KUBE_REPO
+          git clone git@github.com:MikeZ77/$KUBE_REPO.git ~/$KUBE_REPO
+          cp ~/$KUBE_REPO/coffee.yaml .
       - run: sed -i "s|{{IMAGE_TAG}}|${CIRCLE_SHA1}|g" coffee.yaml
       - run: cat coffee.yaml
 

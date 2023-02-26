@@ -36,10 +36,12 @@ jobs:
       - run: docker push mzaghi/coffee-chess:${CIRCLE_SHA1}
   deploy:
     docker:
-      - image: alpine/k8s:1.25.6
+      - image: ubuntu-2004:202010-01
     steps:
       - checkout
-      - setup_remote_docker
+      - run: | 
+          curl -LO https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
       - run: |
           echo "$KUBE_CONFIG" | base64 -d > kubeconfig.yaml
           mkdir ~/.kube

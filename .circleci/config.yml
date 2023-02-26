@@ -35,8 +35,8 @@ jobs:
       - run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       - run: docker push mzaghi/coffee-chess:${CIRCLE_SHA1}
   deploy:
-    docker:
-      - image: ubuntu-2004:202010-01
+    machine:
+      image: ubuntu-2004:202010-01
     steps:
       - checkout
       - run: | 

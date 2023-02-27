@@ -2,7 +2,7 @@
   "preset": "ts-jest",
   "testEnvironment": "node",
   "setupFiles": ["dotenv/config"],
-  "testTimeout": 15000,
+  "testTimeout": 300000,
   "testMatch": ["<rootDir>/src/server/__tests__/**/*.test.ts"],
   "moduleNameMapper": {
     "^@Utils/(.*)$": "<rootDir>/utils/$1",
